@@ -1,0 +1,114 @@
+# ===================================================================
+# REQUIREMENTS.TXT - AFEPANOU BACKEND DJANGO
+# ===================================================================
+# Marketplace e-commerce haitienne avec integration MonCash
+# Compatible Railway, PostgreSQL, Redis, Backblaze B2
+# ===================================================================
+
+# Core Django Framework
+Django
+djangorestframework
+django-cors-headers
+
+# Database & ORM
+psycopg2-binary
+django-environ
+
+# Caching & Performance
+redis
+django-redis
+
+# Authentication & Security
+djangorestframework-simplejwt
+cryptography
+
+# Image Processing & Media
+Pillow
+
+# File Storage (Backblaze B2)
+django-storages
+boto3
+
+# API Documentation
+drf-spectacular
+
+# Utilities & Helpers
+django-filter
+django-extensions
+python-slugify
+
+# HTTP Requests (pour MonCash API)
+requests
+
+# Date & Time
+python-dateutil
+pytz
+
+# Environment & Configuration
+python-decouple
+whitenoise
+
+# Production Server
+gunicorn
+
+# Testing
+pytest
+pytest-django
+coverage
+
+# Code Quality
+flake8
+black
+isort
+
+# Development Tools
+ipython
+
+# Rate Limiting
+django-ratelimit
+
+# CORS & Security Headers
+django-csp
+
+# Admin Interface Enhancement
+django-colorfield
+
+# Currency & Payment Utils
+babel
+
+# Content Management
+django-taggit
+
+# Health Checks
+django-health-check
+
+# ===================================================================
+# REQUIREMENTS SPECIFIQUES HAITI/MONCASH
+# ===================================================================
+
+# Timezone Haiti
+pytz
+
+# Devises (HTG, USD)
+py-moneyed
+
+# ===================================================================
+# RAILWAY DEPLOYMENT
+# ===================================================================
+
+# Railway-specific
+dj-database-url
+
+# Static files for production
+django-compressor
+
+# Health monitoring
+psutil
+
+# ===================================================================
+# NOTES POUR L'INSTALLATION
+# ===================================================================
+# Packages essentiels pour demarrer le projet
+# Python version recommandee: 3.10+
+# PostgreSQL version: 14+
+# Redis version: 6+

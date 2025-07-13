@@ -1,0 +1,481 @@
+# =============================================================================
+# AFEPANOU MARKETPLACE - .GITIGNORE
+# Backend Django + Frontend Next.js + Railway Deployment
+# =============================================================================
+
+# =============================================================================
+# ENVIRONNEMENT & SECRETS
+# =============================================================================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.railway
+*.env
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Secrets et clés
+secrets/
+*.key
+*.pem
+*.p12
+*.jks
+config/secrets/
+
+# =============================================================================
+# PYTHON / DJANGO BACKEND
+# =============================================================================
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Django stuff
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+staticfiles/
+static_root/
+media_root/
+
+# Django migrations (optionnel - décommentez si vous voulez les ignorer)
+# */migrations/
+# */migrations/*
+# !*/migrations/__init__.py
+
+# Django collectstatic
+/static/
+/staticfiles/
+
+# Django media files (en production)
+/media/
+media/uploads/
+media/cache/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# =============================================================================
+# NODE.JS / NEXT.JS FRONTEND
+# =============================================================================
+
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Next.js build output
+.next/
+out/
+build/
+
+# Next.js cache
+.next/cache/
+
+# Nuxt.js build / generate output
+.nuxt
+dist
+
+# Gatsby files
+.cache/
+public
+
+# Vuepress build output
+.vuepress/dist
+
+# Serverless directories
+.serverless/
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local files
+.dynamodb/
+
+# TernJS port file
+.tern-port
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
+# yarn v2
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# TypeScript cache
+*.tsbuildinfo
+
+# =============================================================================
+# DATABASE
+# =============================================================================
+
+# SQLite
+*.sqlite
+*.sqlite3
+*.db
+
+# PostgreSQL dumps
+*.sql
+*.dump
+
+# MySQL dumps
+*.mysql
+
+# Database backups
+backups/
+*.backup
+
+# =============================================================================
+# CACHE & LOGS
+# =============================================================================
+
+# Redis dumps
+dump.rdb
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# =============================================================================
+# ÉDITEURS & IDE
+# =============================================================================
+
+# VSCode
+.vscode/
+.vscode/settings.json
+.vscode/tasks.json
+.vscode/launch.json
+.vscode/extensions.json
+*.code-workspace
+
+# PyCharm
+.idea/
+*.swp
+*.swo
+*~
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*.swn
+.vim/
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# JetBrains
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# =============================================================================
+# SYSTÈME D'EXPLOITATION
+# =============================================================================
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# =============================================================================
+# MÉDIAS & ASSETS
+# =============================================================================
+
+# Images temporaires
+*.tmp
+temp/
+tmp/
+
+# Archives
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Images (si vous ne voulez pas les versionner)
+# *.jpg
+# *.jpeg
+# *.png
+# *.gif
+# *.bmp
+# *.tiff
+# *.svg
+
+# Vidéos
+*.mp4
+*.avi
+*.mkv
+*.mov
+*.wmv
+
+# Audio
+*.mp3
+*.wav
+*.flac
+*.aac
+
+# =============================================================================
+# DÉPLOIEMENT & DOCKER
+# =============================================================================
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+*.dockerfile.bak
+
+# Railway
+.railway/
+
+# Vercel
+.vercel
+
+# Netlify
+.netlify
+
+# Heroku
+.heroku/
+
+# AWS
+.aws/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# =============================================================================
+# OUTILS DE BUILD & PACKAGE MANAGERS
+# =============================================================================
+
+# Webpack
+webpack-stats.json
+
+# Parcel
+.parcel-cache/
+
+# ESLint
+.eslintcache
+
+# Stylelint
+.stylelintcache
+
+# Prettier
+.prettierignore
+
+# Rush Stack
+common/deploy/
+common/temp/
+common/autoinstallers/*/.npmrc
+**/.rush/temp/
+
+# =============================================================================
+# TESTS & MONITORING
+# =============================================================================
+
+# Test files
+test-results/
+playwright-report/
+test-results/
+coverage/
+
+# Sentry
+.sentryclirc
+
+# =============================================================================
+# AFEPANOU SPÉCIFIQUE
+# =============================================================================
+
+# Données de développement
+fixtures/dev_data/
+sample_data/
+
+# Scripts temporaires
+scripts/temp/
+temp_scripts/
+
+# Documentation générée
+docs/_build/
+docs/build/
+
+# Fichiers de configuration locaux
+local_config/
+config/local/
+
+# Backups locaux
+*.bak
+backup_*/
+
+# MonCash test data
+moncash_test/
+payment_test_data/
+
+# Images produits locales (si pas dans git)
+media/products/
+media/uploads/temp/
+
+# Cache assets
+.cache/
+cached_assets/
+
+# =============================================================================
+# SÉCURITÉ
+# =============================================================================
+
+# Certificats
+*.cert
+*.crt
+*.der
+*.p7b
+*.p7c
+*.pfx
+
+# Clés privées
+private_keys/
+*.private
+
+# Tokens
+tokens/
+access_tokens/
+
+# Configuration sensible
+sensitive_config/
+.secrets/
