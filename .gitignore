@@ -99,9 +99,9 @@ media_root/
 /staticfiles/
 
 # Django media files (en production)
-/media/
-media/uploads/
-media/cache/
+#/media/
+#media/uploads/
+#media/cache/
 
 # Celery stuff
 celerybeat-schedule
