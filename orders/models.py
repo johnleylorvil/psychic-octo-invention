@@ -1,4 +1,9 @@
+# ======================================
+# apps/orders/models.py
+# ======================================
+
 from django.db import models
+from django.conf import settings
 
 
 class Cart(models.Model):
@@ -8,7 +13,7 @@ class Cart(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     expires_at = models.DateTimeField(null=True, blank=True)
-    user = models.ForeignKey('users.User', on_delete=models.CASCADE, null=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
 
     class Meta:
         db_table = 'carts'
@@ -24,8 +29,8 @@ class CartItem(models.Model):
     options = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    cart = models.ForeignKey('Cart', on_delete=models.CASCADE)
-    product = models.ForeignKey('Product', on_delete=models.CASCADE)
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
+    product = models.ForeignKey('products.Product', on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'cart_items'
@@ -36,7 +41,7 @@ class CartItem(models.Model):
 
 class Order(models.Model):
     id = models.AutoField(primary_key=True)
-    order_number = models.CharField(max_length=50)
+    order_number = models.CharField(max_length=50, unique=True)
     customer_name = models.CharField(max_length=100)
     customer_email = models.CharField(max_length=100)
     customer_phone = models.CharField(max_length=20)
@@ -65,13 +70,13 @@ class Order(models.Model):
     source = models.CharField(max_length=50, blank=True, default='web')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    user = models.ForeignKey('users.User', on_delete=models.CASCADE, null=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
 
     class Meta:
         db_table = 'orders'
 
     def __str__(self):
-        return f'Order {self.id}'
+        return f'Order {self.order_number}'
 
 
 class OrderItem(models.Model):
@@ -84,29 +89,27 @@ class OrderItem(models.Model):
     product_image = models.CharField(max_length=255, blank=True)
     product_options = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    order = models.ForeignKey('Order', on_delete=models.CASCADE)
-    product = models.ForeignKey('Product', on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    product = models.ForeignKey('products.Product', on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'order_items'
 
     def __str__(self):
-        return f'OrderItem {self.id}'
+        return f'OrderItem {self.id} - {self.product_name}'
 
 
 class OrderStatusHistory(models.Model):
     id = models.AutoField(primary_key=True)
     old_status = models.CharField(max_length=50, blank=True)
     new_status = models.CharField(max_length=50)
-    changed_by = models.IntegerField(null=True, blank=True)
     comment = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    order = models.ForeignKey('Order', on_delete=models.CASCADE)
-    changed_by = models.ForeignKey('users.User', on_delete=models.CASCADE, null=True, blank=True)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
 
     class Meta:
         db_table = 'order_status_history'
 
     def __str__(self):
-        return f'OrderStatusHistory {self.id}'
-
+        return f'Status change for {self.order.order_number}: {self.old_status} → {self.new_status}'

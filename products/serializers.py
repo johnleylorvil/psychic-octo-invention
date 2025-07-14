@@ -39,6 +39,33 @@ class ReviewSerializer(serializers.ModelSerializer):
         read_only_fields = ['is_verified_purchase', 'created_at']
 
 
+# Serializer simple pour les relations (utilisé dans orders/serializers.py)
+class ProductSerializer(serializers.ModelSerializer):
+    """Serializer simple pour les relations avec d'autres apps"""
+    primary_image = serializers.SerializerMethodField()
+    final_price = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Product
+        fields = [
+            'id', 'name', 'slug', 'price', 'promotional_price', 
+            'final_price', 'primary_image', 'stock_quantity'
+        ]
+    
+    def get_primary_image(self, obj):
+        primary_image = obj.productimage_set.filter(is_primary=True).first()
+        if primary_image:
+            return {
+                'id': primary_image.id,
+                'image_url': primary_image.image_url,
+                'alt_text': primary_image.alt_text
+            }
+        return None
+    
+    def get_final_price(self, obj):
+        return obj.promotional_price or obj.price
+
+
 class ProductListSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     primary_image = serializers.SerializerMethodField()

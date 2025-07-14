@@ -1,4 +1,9 @@
+# ======================================
+# apps/content/models.py
+# ======================================
+
 from django.db import models
+from django.conf import settings
 
 
 class Banner(models.Model):
@@ -13,7 +18,7 @@ class Banner(models.Model):
     button_text = models.CharField(max_length=50, blank=True, default='Découvrir')
     button_color = models.CharField(max_length=7, blank=True, default='#007bff')
     text_color = models.CharField(max_length=7, blank=True, default='#ffffff')
-    overlay_opacity = models.DecimalField(max_digits=3, decimal_places=2, null=True, blank=True)
+    overlay_opacity = models.DecimalField(max_digits=3, decimal_places=2, null=True, blank=True, default=0.3)
     is_active = models.BooleanField(null=True, blank=True, default=True)
     sort_order = models.IntegerField(null=True, blank=True, default=0)
     start_date = models.DateField(null=True, blank=True)
@@ -32,7 +37,7 @@ class Banner(models.Model):
 class Page(models.Model):
     id = models.AutoField(primary_key=True)
     title = models.CharField(max_length=200)
-    slug = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=200, unique=True)
     content = models.TextField(null=True, blank=True)
     excerpt = models.TextField(null=True, blank=True)
     featured_image = models.CharField(max_length=255, blank=True)
@@ -44,7 +49,7 @@ class Page(models.Model):
     sort_order = models.IntegerField(null=True, blank=True, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    author = models.ForeignKey('users.User', on_delete=models.CASCADE, null=True, blank=True)
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
 
     class Meta:
         db_table = 'pages'
@@ -78,4 +83,3 @@ class MediaContentSection(models.Model):
 
     def __str__(self):
         return self.title
-

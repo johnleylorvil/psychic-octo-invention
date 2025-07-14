@@ -26,12 +26,12 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/core/', include('apps.core.urls')),
-    path('api/v1/users/', include('apps.users.urls')),
-    path('api/v1/orders/', include('apps.orders.urls')),
-    path('api/v1/products/', include('apps.products.urls')),
-    path('api/v1/payments/', include('apps.payments.urls')),
-    path('api/v1/content/', include('apps.content.urls')),
+    path('api/v1/core/', include('core.urls')),
+    path('api/v1/users/', include('users.urls')),
+    path('api/v1/orders/', include('orders.urls')),
+    path('api/v1/products/', include('products.urls')),
+    path('api/v1/payments/', include('payments.urls')),
+    path('api/v1/content/', include('content.urls')),
 ]
 
 # Servir les fichiers média en développement

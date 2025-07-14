@@ -11,12 +11,15 @@ from .models import User
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
+    # Affichage de la liste
     list_display = ['username', 'email', 'full_name', 'user_type', 'is_active_status', 'created_at_formatted']
-    list_filter = ['is_active', 'is_seller', 'is_admin', 'email_verified', 'city', 'created_at']
+    list_filter = ['is_active', 'is_seller', 'is_staff', 'is_superuser', 'email_verified', 'city', 'created_at']
     search_fields = ['username', 'email', 'first_name', 'last_name', 'phone']
-    readonly_fields = ['created_at', 'updated_at', 'last_login']
+    readonly_fields = ['created_at', 'updated_at', 'last_login', 'date_joined']
     date_hierarchy = 'created_at'
+    ordering = ['-created_at']
     
+    # Fieldsets pour l'édition d'un utilisateur existant
     fieldsets = (
         ('Informations de connexion', {
             'fields': ('username', 'email', 'password')
@@ -28,34 +31,42 @@ class UserAdmin(BaseUserAdmin):
             'fields': ('address', 'city', 'country')
         }),
         ('Permissions', {
-            'fields': ('is_active', 'is_admin', 'is_seller', 'email_verified')
+            'fields': ('is_active', 'is_staff', 'is_superuser', 'is_seller', 'email_verified', 'groups', 'user_permissions')
         }),
         ('Dates importantes', {
-            'fields': ('created_at', 'updated_at', 'last_login'),
+            'fields': ('date_joined', 'last_login', 'created_at', 'updated_at'),
             'classes': ('collapse',)
         }),
     )
     
+    # Fieldsets pour la création d'un nouvel utilisateur
     add_fieldsets = (
-        ('Création utilisateur', {
-            'fields': ('username', 'email', 'password1', 'password2', 'first_name', 'last_name')
+        ('Informations de base', {
+            'classes': ('wide',),
+            'fields': ('username', 'email', 'first_name', 'last_name', 'password1', 'password2')
         }),
         ('Permissions initiales', {
-            'fields': ('is_seller', 'is_admin')
+            'classes': ('wide',),
+            'fields': ('is_staff', 'is_seller')
         }),
     )
     
-    actions = ['activate_users', 'deactivate_users', 'make_sellers', 'verify_emails']
+    # Actions personnalisées
+    actions = ['activate_users', 'deactivate_users', 'make_sellers', 'remove_seller_status', 'verify_emails']
     
     def full_name(self, obj):
         """Affiche le nom complet"""
-        return f"{obj.first_name} {obj.last_name}"
+        if obj.first_name or obj.last_name:
+            return f"{obj.first_name} {obj.last_name}".strip()
+        return "-"
     full_name.short_description = "Nom complet"
     
     def user_type(self, obj):
         """Affiche le type d'utilisateur avec couleur"""
-        if obj.is_admin:
-            return format_html('<span style="color: red; font-weight: bold;">👑 Admin</span>')
+        if obj.is_superuser:
+            return format_html('<span style="color: purple; font-weight: bold;">👑 Super Admin</span>')
+        elif obj.is_staff:
+            return format_html('<span style="color: red; font-weight: bold;">🛡️ Staff</span>')
         elif obj.is_seller:
             return format_html('<span style="color: blue;">🏪 Vendeur</span>')
         else:
@@ -65,9 +76,10 @@ class UserAdmin(BaseUserAdmin):
     def is_active_status(self, obj):
         """Affiche le statut actif avec couleur"""
         if obj.is_active:
-            icon = "✅" if obj.email_verified else "⚠️"
-            status = "Vérifié" if obj.email_verified else "Non vérifié"
-            return format_html(f'<span style="color: green;">{icon} {status}</span>')
+            if obj.email_verified:
+                return format_html('<span style="color: green;">✅ Actif & Vérifié</span>')
+            else:
+                return format_html('<span style="color: orange;">⚠️ Actif non vérifié</span>')
         return format_html('<span style="color: red;">❌ Inactif</span>')
     is_active_status.short_description = "Statut"
     
@@ -76,6 +88,7 @@ class UserAdmin(BaseUserAdmin):
         return obj.created_at.strftime('%d/%m/%Y')
     created_at_formatted.short_description = "Inscrit le"
     
+    # Actions personnalisées
     def activate_users(self, request, queryset):
         """Activer les utilisateurs"""
         updated = queryset.update(is_active=True)
@@ -94,6 +107,12 @@ class UserAdmin(BaseUserAdmin):
         self.message_user(request, f"{updated} utilisateur(s) promu(s) vendeur(s).")
     make_sellers.short_description = "Promouvoir en vendeurs"
     
+    def remove_seller_status(self, request, queryset):
+        """Retirer le statut vendeur"""
+        updated = queryset.update(is_seller=False)
+        self.message_user(request, f"{updated} vendeur(s) rétrogradé(s) en client(s).")
+    remove_seller_status.short_description = "Retirer le statut vendeur"
+    
     def verify_emails(self, request, queryset):
         """Vérifier les emails"""
         updated = queryset.update(email_verified=True)
@@ -101,21 +120,45 @@ class UserAdmin(BaseUserAdmin):
     verify_emails.short_description = "Vérifier les emails"
     
     def changelist_view(self, request, extra_context=None):
-        """Ajoute des statistiques"""
+        """Ajoute des statistiques dans la vue liste"""
         extra_context = extra_context or {}
         
+        # Statistiques des utilisateurs
         total_users = User.objects.count()
         active_users = User.objects.filter(is_active=True).count()
         sellers = User.objects.filter(is_seller=True).count()
-        admins = User.objects.filter(is_admin=True).count()
+        staff_users = User.objects.filter(is_staff=True).count()
         verified_emails = User.objects.filter(email_verified=True).count()
+        
+        # Statistiques par ville
+        top_cities = User.objects.values('city').annotate(
+            count=Count('id')
+        ).order_by('-count')[:5]
+        
+        # Utilisateurs récents (dernière semaine)
+        from django.utils import timezone
+        from datetime import timedelta
+        week_ago = timezone.now() - timedelta(days=7)
+        recent_users = User.objects.filter(created_at__gte=week_ago).count()
         
         extra_context.update({
             'total_users': total_users,
             'active_users': active_users,
             'sellers': sellers,
-            'admins': admins,
+            'staff_users': staff_users,
             'verified_emails': verified_emails,
+            'top_cities': top_cities,
+            'recent_users': recent_users,
         })
         
         return super().changelist_view(request, extra_context=extra_context)
+    
+    def get_queryset(self, request):
+        """Optimise les requêtes pour l'affichage liste"""
+        return super().get_queryset(request).select_related()
+
+
+# Configuration personnalisée de l'interface admin
+admin.site.site_header = "Administration Afèpanou"
+admin.site.site_title = "Afèpanou Admin"
+admin.site.index_title = "Tableau de bord - Marketplace Haïtienne"

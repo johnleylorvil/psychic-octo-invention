@@ -13,7 +13,7 @@ from django.http import HttpResponse
 import json
 import logging
 
-from apps.orders.models import Order
+from orders.models import Order
 from .models import Transaction
 from .serializers import CreatePaymentSerializer, VerifyPaymentSerializer, TransactionSerializer
 from .services import MonCashService
