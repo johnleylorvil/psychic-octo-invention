@@ -42,7 +42,7 @@ class MediaContentSectionSerializer(serializers.ModelSerializer):
     def get_related_categories(self, obj):
         """Récupère les catégories liées basées sur category_tags"""
         if obj.category_tags:
-            from apps.products.models import Category
+            from products.models import Category
             try:
                 category_ids = [int(id.strip()) for id in obj.category_tags.split(',') if id.strip().isdigit()]
                 categories = Category.objects.filter(id__in=category_ids, is_active=True)

@@ -1,11 +1,11 @@
 # ======================================
 # apps/products/utils.py (bonus - utilitaires)
 # ======================================
-
+from django.db import models
 from django.core.cache import cache
 from django.db.models import Count, Avg
 from .models import Product, Category
-
+from products.models import Review
 
 class ProductSearchService:
     """Service pour la recherche avancée de produits"""
@@ -81,7 +81,7 @@ class ProductStatsService:
     @staticmethod
     def get_product_performance(product_id):
         """Performance d'un produit"""
-        from apps.orders.models import OrderItem
+        from orders.models import OrderItem
         
         # Nombre de ventes
         sales_count = OrderItem.objects.filter(

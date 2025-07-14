@@ -12,6 +12,7 @@ from django.utils import timezone
 from django.db.models import F
 from .models import Banner, Page, MediaContentSection
 from .serializers import BannerSerializer, PageSerializer, MediaContentSectionSerializer
+from django.db import models
 
 
 @api_view(['GET'])
@@ -153,8 +154,8 @@ def section_products(request, section_id):
     """
     section = get_object_or_404(MediaContentSection, id=section_id, is_active=True)
     
-    from apps.products.models import Product
-    from apps.products.serializers import ProductListSerializer
+    from products.models import Product
+    from products.serializers import ProductListSerializer
     
     products = Product.objects.filter(is_active=True)
     

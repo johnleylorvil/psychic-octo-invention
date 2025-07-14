@@ -3,7 +3,7 @@
 # ======================================
 
 from django.core.management.base import BaseCommand
-from apps.content.utils import invalidate_content_cache
+from content.utils import invalidate_content_cache
 
 
 class Command(BaseCommand):
