@@ -140,7 +140,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-
+dbinvest.py
 # Next.js build output
 .next/
 out/
