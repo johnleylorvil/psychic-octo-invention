@@ -172,7 +172,7 @@ quick_test_landing.py
 test_products_apis_20250719_122710.json
 # Serverless directories
 .serverless/
-
+test_api_final.py
 # FuseBox cache
 .fusebox/
 

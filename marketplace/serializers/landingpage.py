@@ -508,23 +508,41 @@ class CarouselConfigSerializer(serializers.Serializer):
             "show_product_count": True
         }
 
-# ============= LANDING PAGE MASTER SERIALIZER =============
+# ============= LANDING PAGE MASTER SERIALIZER (CORRIGÉ) =============
 
 class LandingPageSerializer(serializers.Serializer):
     """Serializer maître pour toute la landing page"""
-    header = HeaderConfigSerializer()
-    banner_carousel = BannerSectionSerializer()
-    popular_products = PopularProductsSectionSerializer()
-    content_sections = ContentSectionsSerializer()
-    footer = FooterSectionSerializer()
-    carousel_configs = CarouselConfigSerializer()
+    header = serializers.SerializerMethodField()
+    banner_carousel = serializers.SerializerMethodField()
+    popular_products = serializers.SerializerMethodField()
+    content_sections = serializers.SerializerMethodField()
+    footer = serializers.SerializerMethodField()
+    carousel_configs = serializers.SerializerMethodField()
     metadata = serializers.SerializerMethodField()
     
+    def get_header(self, obj):
+        return HeaderConfigSerializer().data
+
+    def get_banner_carousel(self, obj):
+        return BannerSectionSerializer().data
+
+    def get_popular_products(self, obj):
+        return PopularProductsSectionSerializer().data
+
+    def get_content_sections(self, obj):
+        return ContentSectionsSerializer().data
+
+    def get_footer(self, obj):
+        return FooterSectionSerializer().data
+
+    def get_carousel_configs(self, obj):
+        return CarouselConfigSerializer().data
+
     def get_metadata(self, obj):
         """Métadonnées de la page"""
         return {
-            "total_sections": 5,
-            "cache_ttl": 300,  # 5 minutes
+            "total_sections": 6,
+            "cache_ttl": 300,
             "last_updated": timezone.now().isoformat(),
             "admin_editable": True,
             "version": "1.0",
