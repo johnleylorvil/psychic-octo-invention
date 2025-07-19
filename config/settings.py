@@ -45,7 +45,7 @@ DJANGO_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework_simplejwt.token_blacklist',
-    'django_filters',
+    
 ]
 
 THIRD_PARTY_APPS = [
@@ -173,7 +173,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny',
     ],
     # ✅ PAGINATION PERSONNALISÉE POUR PRODUCTS
-    'DEFAULT_PAGINATION_CLASS': 'marketplace.pagination.StandardResultsSetPagination',
+    'DEFAULT_PAGINATION_CLASS': 'marketplace.utils.pagination.StandardResultsSetPagination',
     'PAGE_SIZE': int(os.getenv('DEFAULT_PAGE_SIZE', 12)),  # ✅ Optimisé pour grid produits
     
     # ✅ FILTRES BACKEND POUR PRODUCTS APIs

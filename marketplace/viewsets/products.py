@@ -91,7 +91,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             )
         elif self.action == 'featured':
             # Pour les produits vedettes
-            queryset = queryset.filter(is_featured=True).order_by('sort_order', '-created_at')
+           queryset = queryset.filter(is_featured=True).order_by('-created_at')
         
         return queryset
     
