@@ -145,10 +145,10 @@ dbinvest.py
 .next/
 out/
 build/
-
+samau.py
 # Next.js cache
 .next/cache/
-
+dbchange.py
 # Nuxt.js build / generate output
 .nuxt
 dist
@@ -156,10 +156,17 @@ dist
 # Gatsby files
 .cache/
 public
-
+testapi.py
 # Vuepress build output
 .vuepress/dist
-
+testapiauth.py
+testapiproducts.py
+database_analysis_report.json
+api_test_report_20250717_165354.json
+api_test_report_20250713_212228.json
+populate_database.py
+landing.py
+modelsinspect.py
 # Serverless directories
 .serverless/
 

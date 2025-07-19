@@ -9,11 +9,11 @@
 Django
 djangorestframework
 django-cors-headers
-
+dj_database_url
 # Database & ORM
 psycopg2-binary
 django-environ
-
+django-filter
 # Caching & Performance
 redis
 django-redis
