@@ -54,6 +54,8 @@ THIRD_PARTY_APPS = [
     'corsheaders',
     'django_filters',
     'storages',
+    'django_celery_beat',         # Pour tâches périodiques
+    'django_celery_results',      # Pour stocker résultats en DB (optionnel)
 ]
 
 LOCAL_APPS = [
@@ -446,3 +448,72 @@ STOCK_SETTINGS = {
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 ADMIN_URL = os.getenv('ADMIN_URL', 'admin/')
+
+# =============================================
+# CELERY CONFIGURATION (À AJOUTER DANS settings.py)
+# =============================================
+
+# 🚀 CELERY BROKER & BACKEND
+CELERY_BROKER_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+
+# ⚡ CELERY PERFORMANCE & SÉCURITÉ
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_ENABLE_UTC = True
+
+# 🚨 LIMITES RESSOURCES & SÉCURITÉ
+CELERY_TASK_SOFT_TIME_LIMIT = 300        # 5 minutes soft limit
+CELERY_TASK_TIME_LIMIT = 600             # 10 minutes hard limit
+CELERY_WORKER_MAX_TASKS_PER_CHILD = 50   # Redémarre worker après 50 tâches
+CELERY_WORKER_MAX_MEMORY_PER_CHILD = 200000  # 200MB limite mémoire par worker
+
+# 🔄 RETRY & ERROR HANDLING
+CELERY_TASK_DEFAULT_RETRY_DELAY = 60     # 60 secondes entre retries
+CELERY_TASK_MAX_RETRIES = 3              # Maximum 3 retries par défaut
+CELERY_TASK_REJECT_ON_WORKER_LOST = True # Rejeter tâches si worker crash
+
+# 📈 MONITORING & EVENTS
+CELERY_WORKER_SEND_TASK_EVENTS = True
+CELERY_TASK_SEND_SENT_EVENT = True
+CELERY_WORKER_PREFETCH_MULTIPLIER = 4    # Optimisation I/O bound tasks
+
+# 🗜️ COMPRESSION & OPTIMISATION
+CELERY_TASK_COMPRESSION = 'gzip'
+CELERY_RESULT_COMPRESSION = 'gzip'
+CELERY_RESULT_EXPIRES = 3600             # Résultats expirent après 1h
+
+# 🎯 QUEUES CONFIGURATION
+CELERY_TASK_CREATE_MISSING_QUEUES = True
+CELERY_TASK_DEFAULT_QUEUE = 'default'
+CELERY_TASK_DEFAULT_EXCHANGE = 'afepanou'
+CELERY_TASK_DEFAULT_EXCHANGE_TYPE = 'direct'
+
+# 🔀 ROUTING AVANCÉ (défini dans celery.py)
+CELERY_TASK_ROUTES = {}  # Sera overridé par config/celery.py
+
+# 📊 BEAT SCHEDULER CONFIGURATION
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+CELERY_BEAT_SCHEDULE = {}  # Sera défini dans config/celery.py
+
+# 🚨 SÉCURITÉ REDIS
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_BROKER_CONNECTION_RETRY = True
+CELERY_BROKER_CONNECTION_MAX_RETRIES = 10
+
+# 🎯 CONFIGURATION SPÉCIFIQUE AFÈPANOU
+CELERY_TASK_ALWAYS_EAGER = False  # False en production, True pour tests
+CELERY_TASK_EAGER_PROPAGATES = True
+CELERY_TASK_STORE_EAGER_RESULT = True
+
+# =============================================
+# CELERY DEPENDENCIES (À AJOUTER DANS INSTALLED_APPS)
+# =============================================
+
+# Ajouter ces apps dans THIRD_PARTY_APPS :
+"""
+'django_celery_beat',         # Pour tâches périodiques
+'django_celery_results',      # Pour stocker résultats en DB (optionnel)
+"""

@@ -175,7 +175,9 @@ test_products_apis_20250719_122710.json
 test_api_final.py
 # FuseBox cache
 .fusebox/
-
+analyze_b2_bucket.py
+complete_cart_test.py
+e2e_test_dashboard.py
 # DynamoDB Local files
 .dynamodb/
 
@@ -210,11 +212,11 @@ test_api_final.py
 
 # MySQL dumps
 *.mysql
-
+secrets.toml
 # Database backups
 backups/
 *.backup
-
+.streamlit/
 # =============================================================================
 # CACHE & LOGS
 # =============================================================================
@@ -230,7 +232,8 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-
+ultimateapitest.py
+afepanou_api_tester.py
 # Runtime data
 pids/
 *.pid
@@ -244,7 +247,9 @@ coverage/
 # =============================================================================
 # ÉDITEURS & IDE
 # =============================================================================
-
+appy.py
+images_list.json
+sync_app.py
 # VSCode
 .vscode/
 .vscode/settings.json

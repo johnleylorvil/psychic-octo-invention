@@ -1,114 +1,126 @@
 # ===================================================================
-# REQUIREMENTS.TXT - AFEPANOU BACKEND DJANGO
+# REQUIREMENTS.TXT - AFEPANOU MARKETPLACE BACKEND
 # ===================================================================
-# Marketplace e-commerce haitienne avec integration MonCash
-# Compatible Railway, PostgreSQL, Redis, Backblaze B2
+# Compatible: Python 3.10+, Django 4.x, PostgreSQL, Redis, Railway
+# Marketplace e-commerce haïtienne avec intégration MonCash + Celery
 # ===================================================================
 
-# Core Django Framework
+# ===================================================================
+# DJANGO CORE FRAMEWORK
+# ===================================================================
 Django
 djangorestframework
 django-cors-headers
-dj_database_url
-# Database & ORM
-psycopg2-binary
-django-environ
-django-filter
-# Caching & Performance
-redis
-django-redis
 
-# Authentication & Security
+# ===================================================================
+# DATABASE & ORM
+# ===================================================================
+psycopg2-binary
+dj-database-url
+
+# ===================================================================
+# AUTHENTICATION & SECURITY
+# ===================================================================
 djangorestframework-simplejwt
 cryptography
 
-# Image Processing & Media
-Pillow
+# ===================================================================
+# CACHING & PERFORMANCE (REDIS)
+# ===================================================================
+redis
+django-redis
 
-# File Storage (Backblaze B2)
+# ===================================================================
+# CELERY BACKGROUND TASKS (COMPATIBLE PYTHON 3.10+)
+# ===================================================================
+celery
+django-celery-beat
+django-celery-results
+flower
+kombu
+
+# ===================================================================
+# FILE STORAGE & MEDIA (BACKBLAZE B2)
+# ===================================================================
 django-storages
 boto3
+Pillow
 
-# API Documentation
+# ===================================================================
+# API & FILTERING
+# ===================================================================
+django-filter
 drf-spectacular
 
-# Utilities & Helpers
-django-filter
-django-extensions
-python-slugify
-
-# HTTP Requests (pour MonCash API)
+# ===================================================================
+# HTTP REQUESTS (MONCASH INTEGRATION)
+# ===================================================================
 requests
 
-# Date & Time
-python-dateutil
-pytz
-
-# Environment & Configuration
+# ===================================================================
+# ENVIRONMENT & CONFIGURATION
+# ===================================================================
+python-dotenv
 python-decouple
-whitenoise
+django-environ
 
-# Production Server
+# ===================================================================
+# STATIC FILES & DEPLOYMENT
+# ===================================================================
+whitenoise
 gunicorn
 
-# Testing
+# ===================================================================
+# UTILITIES & HELPERS
+# ===================================================================
+python-slugify
+python-dateutil
+pytz
+babel
+py-moneyed
+
+# ===================================================================
+# ADMIN INTERFACE & CONTENT MANAGEMENT
+# ===================================================================
+django-extensions
+django-colorfield
+django-taggit
+
+# ===================================================================
+# SECURITY & RATE LIMITING
+# ===================================================================
+django-ratelimit
+django-csp
+
+# ===================================================================
+# MONITORING & HEALTH CHECKS
+# ===================================================================
+django-health-check
+psutil
+setproctitle
+
+# ===================================================================
+# PRODUCTION OPTIMIZATIONS
+# ===================================================================
+django-compressor
+
+# ===================================================================
+# DEVELOPMENT & TESTING (OPTIONNEL)
+# ===================================================================
 pytest
 pytest-django
 coverage
+ipython
 
-# Code Quality
+# ===================================================================
+# CODE QUALITY (OPTIONNEL)
+# ===================================================================
 flake8
 black
 isort
 
-# Development Tools
-ipython
-
-# Rate Limiting
-django-ratelimit
-
-# CORS & Security Headers
-django-csp
-
-# Admin Interface Enhancement
-django-colorfield
-
-# Currency & Payment Utils
-babel
-
-# Content Management
-django-taggit
-
-# Health Checks
-django-health-check
-
 # ===================================================================
-# REQUIREMENTS SPECIFIQUES HAITI/MONCASH
+# ASYNC SUPPORT (OPTIONNEL POUR CELERY)
 # ===================================================================
-
-# Timezone Haiti
-pytz
-
-# Devises (HTG, USD)
-py-moneyed
-
-# ===================================================================
-# RAILWAY DEPLOYMENT
-# ===================================================================
-
-# Railway-specific
-dj-database-url
-
-# Static files for production
-django-compressor
-
-# Health monitoring
-psutil
-
-# ===================================================================
-# NOTES POUR L'INSTALLATION
-# ===================================================================
-# Packages essentiels pour demarrer le projet
-# Python version recommandee: 3.10+
-# PostgreSQL version: 14+
-# Redis version: 6+
+eventlet
+gevent

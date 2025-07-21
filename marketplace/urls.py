@@ -1,4 +1,4 @@
-# marketplace/urls/__init__.py
+# marketplace/urls.py (MISE À JOUR)
 
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
@@ -9,7 +9,8 @@ from marketplace.viewsets.auth import (
 )
 from marketplace.viewsets.products import ProductViewSet, CategoryViewSet
 from marketplace.viewsets.landingpage import LandingPageViewSet
-
+from marketplace.viewsets.cart_views import CartViewSet  # 🎯 NOUVEAU
+from marketplace.viewsets.order_views import OrderViewSet # 🎯 NOUVEAU
 # ============= ROUTER CONFIGURATION =============
 router = DefaultRouter()
 
@@ -19,6 +20,10 @@ router.register(r'auth', AuthViewSet, basename='auth')
 # Products & Categories endpoints  
 router.register(r'products', ProductViewSet, basename='products')
 router.register(r'categories', CategoryViewSet, basename='categories')
+
+# Cart endpoints - 🎯 NOUVEAU
+router.register(r'cart', CartViewSet, basename='cart')
+router.register(r'orders', OrderViewSet, basename='orders')
 
 # Landing Page endpoints
 router.register(r'landing-page', LandingPageViewSet, basename='landing-page')
@@ -61,6 +66,15 @@ GET    /api/categories/{slug}/products/    - Produits d'une catégorie (paginati
 GET    /api/categories/featured/           - Catégories vedettes header navigation (3 max)
 GET    /api/categories/tree/               - Arbre hiérarchique complet parent/enfant
 
+🛍️ CART APIs (7 endpoints) - 🎯 NOUVEAU:
+GET    /api/cart/                          - Panier actuel utilisateur (auto-création)
+POST   /api/cart/add_item/                 - Ajouter produit + réservation stock automatique
+PUT    /api/cart/update_item/?item_id=X    - Modifier quantité + validation stock
+DELETE /api/cart/remove_item/?item_id=X    - Supprimer article + libération stock
+DELETE /api/cart/clear/                    - Vider panier complet + libération stock globale
+POST   /api/cart/validate_stock/           - Validation stock avant checkout
+GET    /api/cart/summary/                  - Résumé rapide (header count, etc.)
+
 🎪 LANDING PAGE APIs (8 endpoints):
 GET    /api/landing-page/                  - Page complète avec toutes sections
 GET    /api/landing-page/header/           - Section header (logo, nav, search, cart)
@@ -74,38 +88,46 @@ POST   /api/landing-page/refresh-cache/    - Rafraîchissement cache (admin)
 🎯 JWT TOKENS (alternatives):
 POST   /api/auth/token/                    - Obtenir token JWT standard
 POST   /api/auth/token/refresh/            - Rafraîchir token JWT
-
+ORDER API
+GET    /api/orders/                     # Liste paginée + filtres
+GET    /api/orders/AF12345678/          # Détail complet + timeline  
+POST   /api/orders/create_from_cart/    # Checkout principal ⭐
+PUT    /api/orders/AF12345678/cancel/   # Annulation utilisateur
+PUT    /api/orders/AF12345678/update_status/  # Admin seulement
+GET    /api/orders/summary/             # Résumé utilisateur
+GET    /api/orders/status_options/      # Options frontend
 =====================================================================
-📊 TOTAL APIs FONCTIONNELLES: 28 endpoints
+📊 TOTAL APIs FONCTIONNELLES: 35 endpoints (28 + 7 Cart)
 =====================================================================
 
-🎯 WORKFLOW UTILISATEUR COMPLET:
+🎯 WORKFLOW UTILISATEUR COMPLET AVEC CART:
 1. Landing Page (/api/landing-page/) → Découverte site
 2. Auth (/api/auth/register|login/) → Compte utilisateur  
 3. Categories (/api/categories/featured/) → Navigation
 4. Products (/api/products/ + search) → Catalogue
-5. Cart APIs → À développer (utilise stock management)
-6. Orders APIs → À développer (workflow checkout)
+5. Cart (/api/cart/add_item/ + validate_stock/) → Panier shopping ✅ NOUVEAU
+6. Orders APIs → À développer (utilise panier)
 7. Payment APIs → À développer (MonCash integration)
 
 🏗️ ARCHITECTURE MODULAIRE:
-- Auth: Authentification JWT complète
-- Products: Catalogue avec stock management
-- Categories: Navigation hiérarchique
-- Landing: Structure page d'accueil complète
-- Cache: Performance optimisée par section
-- Admin: Interface administration complète
+- Auth: Authentification JWT complète ✅
+- Products: Catalogue avec stock management ✅
+- Categories: Navigation hiérarchique ✅
+- Landing: Structure page d'accueil complète ✅
+- Cart: Panier shopping avec gestion stock ✅ NOUVEAU
+- Cache: Performance optimisée par section ✅
+- Admin: Interface administration complète ✅
 
-🚀 MVP READY:
-✅ Backend complet (90%)
-✅ APIs fonctionnelles (28 endpoints)
+🚀 MVP PROGRESSION:
+✅ Backend complet (93%)
+✅ APIs fonctionnelles (35 endpoints)
 ✅ Landing page structurée
 ✅ Catalogue produits avec stock
 ✅ Authentification sécurisée
+✅ Cart shopping fonctionnel ✅ NOUVEAU
 ✅ Performance optimisée
 
-🔲 Restant (10%):
-- Cart APIs (4%)
-- Orders APIs (3%) 
+🔲 Restant (7%):
+- Orders APIs (4%) 
 - MonCash Payment (3%)
 """
