@@ -33,6 +33,12 @@ ALLOWED_HOSTS = [
     '.netlify.app'
 ]
 
+# 🎯 CORRECTION CSRF RAILWAY
+CSRF_TRUSTED_ORIGINS = [
+    'https://afepanoubackend.up.railway.app',
+    'https://*.railway.app',
+]
+
 # ===========================================
 # APPLICATION DEFINITION
 # ===========================================
