@@ -135,14 +135,11 @@ RUN chown -R django:django /app
 USER django
 
 # ===================================================================
-# PORTS ET VOLUMES
+# PORTS
 # ===================================================================
 
 # Exposer le port (Railway utilise la variable PORT)
 EXPOSE 8000
-
-# Définir les volumes pour la persistance (optionnel)
-VOLUME ["/app/staticfiles", "/app/media", "/app/logs"]
 
 # ===================================================================
 # HEALTH CHECK
