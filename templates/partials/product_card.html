@@ -1,0 +1,23 @@
+<div class="product-card" data-product-id="{{ product.id }}" onclick="showProduct({{ product.id }})">
+  <div class="product-image">
+    <img src="{{ product.images.first.image_url }}" alt="{{ product.name }}">
+    {% if product.promotional_price %}
+      <span class="badge sale">-{{ product.discount_percentage }}%</span>
+    {% endif %}
+  </div>
+  <div class="product-info">
+    <h3 class="product-title">{{ product.name }}</h3>
+    <p class="product-description">{{ product.short_description|truncatewords:10 }}</p>
+    <div class="product-price">
+      {% if product.promotional_price %}
+        <span class="price-current">{{ product.promotional_price }} HTG</span>
+        <span class="price-original">{{ product.price }} HTG</span>
+      {% else %}
+        <span class="price-current">{{ product.price }} HTG</span>
+      {% endif %}
+    </div>
+    <button class="product-btn add-to-cart" data-product-id="{{ product.id }}">
+      <i class="fas fa-shopping-cart"></i> Ajouter au panier
+    </button>
+  </div>
+</div>

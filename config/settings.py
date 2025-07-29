@@ -321,7 +321,7 @@ ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', 'admin@afepanou.com')
 # ===========================================
 
 MONCASH_CLIENT_ID = os.getenv('MONCASH_CLIENT_ID', '')
-MONCASH_SECRET_KEY = os.getenv('MONCASH_SECRET_KEY', '')
+MONCASH_CLIENT_SECRET = os.getenv('MONCASH_CLIENT_SECRET', '')
 MONCASH_MODE = os.getenv('MONCASH_MODE', 'sandbox')
 
 MONCASH_API_BASE = 'https://sandbox.moncashbutton.digicelgroup.com/Api'

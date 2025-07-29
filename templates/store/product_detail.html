@@ -1,0 +1,371 @@
+<!-- templates/store/product_detail.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ product.name }} - {{ category.name }} | Afèpanou Marketplace{% endblock %}
+{% block description %}{{ product.description|truncatewords:30 }}{% endblock %}
+{% block og_title %}{{ product.name }}{% endblock %}
+{% block og_description %}{{ product.description|truncatewords:30 }}{% endblock %}
+{% block og_image %}{% if product.images.exists %}{{ product.images.first.image.url }}{% else %}{% static 'images/placeholder-product.jpg' %}{% endif %}{% endblock %}
+{% block twitter_title %}{{ product.name }}{% endblock %}
+{% block twitter_description %}{{ product.description|truncatewords:30 }}{% endblock %}
+
+{% block content %}
+<div class="product-detail-container">
+    <!-- Breadcrumbs (optionnel mais utile) -->
+    <nav class="breadcrumb-section bg-soft py-4" aria-label="Fil d'Ariane">
+        <div class="container">
+            <ol class="flex items-center text-sm text-light">
+                <li><a href="{% url 'core:home' %}" class="hover:text-primary transition">Accueil</a></li>
+                <li class="mx-2">/</li>
+                <li><a href="{% url 'store:store_view' category.name|lower %}" class="hover:text-primary transition">{{ category.name }}</a></li>
+                <li class="mx-2">/</li>
+                <li class="text-dark font-medium" aria-current="page">{{ product.name }}</li>
+            </ol>
+        </div>
+    </nav>
+
+    <!-- Product Detail Section -->
+    <section class="product-detail-section section py-12">
+        <div class="container">
+            <div class="product-detail-grid grid grid-cols-1 md:grid-cols-2 gap-12">
+                <!-- Product Image Gallery -->
+                <div class="product-gallery">
+                    <div class="main-image-container bg-beige rounded-2xl overflow-hidden shadow-soft mb-6 relative" style="aspect-ratio: 1/1;">
+                        {% if product.images.exists %}
+                            <img id="main-product-image" src="{{ product.images.first.image.url }}" alt="{{ product.name }}" class="w-full h-full object-contain">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center text-muted">
+                                <i class="fas fa-image text-6xl"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% if product.images.count > 1 %}
+                    <div class="thumbnail-gallery flex gap-4 overflow-x-auto pb-2">
+                        {% for image in product.images.all %}
+                        <button class="thumbnail-btn border-2 rounded-lg overflow-hidden flex-shrink-0" 
+                                data-full-image="{{ image.image.url }}" 
+                                aria-label="Voir l'image {{ forloop.counter }}">
+                            <img src="{{ image.image.url }}" alt="Vignette {{ product.name }}" class="w-20 h-20 object-cover">
+                        </button>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Product Information -->
+                <div class="product-info">
+                    <div class="info-header mb-6">
+                        <h1 class="product-title text-3xl font-bold text-dark mb-3">{{ product.name }}</h1>
+                        <p class="product-category text-sm text-light mb-2">
+                            <i class="fas fa-tag mr-2"></i> {{ category.name }}
+                        </p>
+                        <div class="product-rating flex items-center mb-4">
+                            <!-- Exemple de notation, à adapter avec vos données -->
+                            <div class="stars flex text-amber-400">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                            </div>
+                            <span class="rating-text text-sm text-light ml-2">(4.5 - 12 avis)</span>
+                        </div>
+                    </div>
+
+                    <div class="info-body mb-8">
+                        <div class="product-price mb-6">
+                            <span class="current-price text-3xl font-bold text-primary">{{ product.current_price }} HTG</span>
+                            {% if product.original_price and product.original_price > product.current_price %}
+                                <span class="original-price text-lg text-muted line-through ml-3">{{ product.original_price }} HTG</span>
+                                <span class="discount-badge bg-forest text-white text-xs font-semibold px-2 py-1 rounded-full ml-3">
+                                    -{{ product.discount_percentage }}%
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="product-meta mb-6">
+                            <div class="flex items-center mb-3">
+                                <span class="text-dark font-medium mr-3">Disponibilité:</span>
+                                {% if product.stock_quantity > 0 %}
+                                    <span class="text-forest flex items-center">
+                                        <i class="fas fa-check-circle mr-1"></i> En Stock ({{ product.stock_quantity }} disponibles)
+                                    </span>
+                                {% else %}
+                                    <span class="text-red-500 flex items-center">
+                                        <i class="fas fa-times-circle mr-1"></i> Épuisé
+                                    </span>
+                                {% endif %}
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-dark font-medium mr-3">Vendu par:</span>
+                                <span class="text-light">{{ product.seller.get_full_name|default:product.seller.username }}</span>
+                            </div>
+                        </div>
+
+                        <div class="product-description mb-6">
+                            <h3 class="text-lg font-semibold text-dark mb-3">Description</h3>
+                            <p class="text-light leading-relaxed">{{ product.description }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Product Actions -->
+                    <div class="product-actions">
+                        {% if product.stock_quantity > 0 %}
+                        <form id="add-to-cart-form" class="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                            <div class="quantity-selector flex items-center">
+                                <label for="quantity" class="mr-3 text-dark font-medium">Quantité:</label>
+                                <div class="flex items-center border border-light rounded-full overflow-hidden">
+                                    <button type="button" id="decrease-qty" class="px-4 py-2 text-lg hover:bg-beige transition">-</button>
+                                    <input type="number" id="quantity" name="quantity" value="1" min="1" max="{{ product.stock_quantity }}" class="w-16 text-center border-0 focus:ring-0">
+                                    <button type="button" id="increase-qty" class="px-4 py-2 text-lg hover:bg-beige transition">+</button>
+                                </div>
+                                <span class="ml-3 text-sm text-light">({{ product.stock_quantity }} disponibles)</span>
+                            </div>
+                            <button type="submit" id="add-to-cart-btn" class="btn btn-primary flex-1 sm:flex-none">
+                                <i class="fas fa-shopping-cart mr-2"></i> Ajouter au Panier
+                            </button>
+                        </form>
+                        <button id="buy-now-btn" class="btn btn-secondary w-full mt-4">
+                            <i class="fas fa-bolt mr-2"></i> Acheter Maintenant
+                        </button>
+                        {% else %}
+                        <div class="text-center py-6 bg-soft rounded-2xl">
+                            <i class="fas fa-exclamation-circle text-3xl text-muted mb-3"></i>
+                            <p class="text-lg text-dark font-semibold">Ce produit est actuellement indisponible.</p>
+                            <p class="text-light">Veuillez revenir plus tard ou contacter le vendeur.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Related Products Section (placeholder) -->
+    <section class="related-products-section section bg-soft py-16">
+        <div class="container">
+            <div class="section-header text-center mb-12">
+                <h2 class="section-title">Produits Similaires</h2>
+                <p class="section-subtitle">Découvrez d'autres produits de la catégorie {{ category.name }}</p>
+            </div>
+            <div class="related-products-grid grid grid-cols-2 md:grid-cols-4 gap-6">
+                <!-- Placeholder cards - à remplacer par des vrais produits -->
+                <div class="product-card">
+                    <div class="product-image bg-beige flex items-center justify-center">
+                        <i class="fas fa-box text-3xl text-muted"></i>
+                    </div>
+                    <div class="product-info p-4">
+                        <h3 class="product-title text-lg font-semibold mb-2">Produit Similaire 1</h3>
+                        <span class="product-price text-primary font-bold">1 200 HTG</span>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <div class="product-image bg-beige flex items-center justify-center">
+                        <i class="fas fa-box text-3xl text-muted"></i>
+                    </div>
+                    <div class="product-info p-4">
+                        <h3 class="product-title text-lg font-semibold mb-2">Produit Similaire 2</h3>
+                        <span class="product-price text-primary font-bold">850 HTG</span>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <div class="product-image bg-beige flex items-center justify-center">
+                        <i class="fas fa-box text-3xl text-muted"></i>
+                    </div>
+                    <div class="product-info p-4">
+                        <h3 class="product-title text-lg font-semibold mb-2">Produit Similaire 3</h3>
+                        <span class="product-price text-primary font-bold">2 500 HTG</span>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <div class="product-image bg-beige flex items-center justify-center">
+                        <i class="fas fa-box text-3xl text-muted"></i>
+                    </div>
+                    <div class="product-info p-4">
+                        <h3 class="product-title text-lg font-semibold mb-2">Produit Similaire 4</h3>
+                        <span class="product-price text-primary font-bold">3 100 HTG</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Styles spécifiques à la page de détail produit */
+.product-detail-container {
+    margin-top: var(--header-height, 80px); /* Compenser la hauteur du header fixe */
+}
+
+/* Galerie d'images */
+.thumbnail-btn {
+    border-color: transparent;
+    transition: border-color var(--transition-fast);
+}
+.thumbnail-btn.active, .thumbnail-btn:hover {
+    border-color: var(--primary-orange);
+}
+.thumbnail-btn:focus {
+    outline: 2px solid var(--primary-orange);
+    outline-offset: 2px;
+}
+
+/* Quantité */
+.quantity-selector input[type="number"] {
+    -moz-appearance: textfield; /* Firefox */
+}
+.quantity-selector input[type="number"]::-webkit-outer-spin-button,
+.quantity-selector input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .product-detail-grid {
+        gap: var(--space-8);
+    }
+    .product-title {
+        font-size: var(--text-2xl);
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // --- Gestion de la Galerie d'Images ---
+    const mainImage = document.getElementById('main-product-image');
+    const thumbnailBtns = document.querySelectorAll('.thumbnail-btn');
+
+    if (mainImage && thumbnailBtns.length > 0) {
+        thumbnailBtns[0].classList.add('active'); // Activer la première vignette
+
+        thumbnailBtns.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const fullImageUrl = this.getAttribute('data-full-image');
+                
+                // Mettre à jour l'image principale
+                mainImage.src = fullImageUrl;
+                mainImage.alt = "Image principale de " + document.querySelector('.product-title').textContent;
+
+                // Mettre à jour l'état actif des vignettes
+                thumbnailBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    }
+
+    // --- Gestion du Sélecteur de Quantité ---
+    const qtyInput = document.getElementById('quantity');
+    const decreaseBtn = document.getElementById('decrease-qty');
+    const increaseBtn = document.getElementById('increase-qty');
+
+    if (qtyInput && decreaseBtn && increaseBtn) {
+        const maxQty = parseInt(qtyInput.max) || 999; // Limite de stock ou valeur par défaut
+        const minQty = parseInt(qtyInput.min) || 1;
+
+        function updateQty(newVal) {
+            let val = parseInt(newVal);
+            if (!isNaN(val)) {
+                val = Math.max(minQty, Math.min(maxQty, val)); // S'assurer qu'on est dans les bornes
+                qtyInput.value = val;
+            }
+        }
+
+        decreaseBtn.addEventListener('click', () => updateQty(parseInt(qtyInput.value) - 1));
+        increaseBtn.addEventListener('click', () => updateQty(parseInt(qtyInput.value) + 1));
+
+        qtyInput.addEventListener('change', function() {
+            updateQty(this.value);
+        });
+    }
+
+    // --- Gestion de l'Ajout au Panier ---
+    const addToCartForm = document.getElementById('add-to-cart-form');
+    const addToCartBtn = document.getElementById('add-to-cart-btn');
+
+    if (addToCartForm && addToCartBtn) {
+        addToCartForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // Empêcher le rechargement de la page
+
+            const productId = "{{ product.id }}"; // Récupéré depuis le contexte Django
+            const quantity = parseInt(document.getElementById('quantity').value);
+
+            if (isNaN(quantity) || quantity < 1) {
+                alert("Veuillez sélectionner une quantité valide.");
+                return;
+            }
+
+            // Animation ou feedback visuel
+            const originalHtml = addToCartBtn.innerHTML;
+            addToCartBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Ajout...';
+            addToCartBtn.disabled = true;
+
+            // Appel AJAX vers l'API Django (StoreView)
+            fetch("{% url 'store:store_view' category.name|lower %}", { // URL du store de la catégorie
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: new URLSearchParams({
+                    'action': 'add_to_cart',
+                    'product_id': productId,
+                    'quantity': quantity
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erreur réseau');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    console.error('Erreur serveur:', data.error);
+                    alert('Erreur lors de l\'ajout au panier: ' + data.error);
+                } else {
+                    // Mise à jour du badge du panier dans le header
+                    const cartBadge = document.getElementById('cart-badge');
+                    if (cartBadge) {
+                        cartBadge.textContent = data.cart.total_items;
+                        cartBadge.classList.add('animate-pulse');
+                        setTimeout(() => cartBadge.classList.remove('animate-pulse'), 1000);
+                    }
+                    // Feedback à l'utilisateur
+                    alert(`"${data.added_item.product_name}" ajouté au panier!`);
+                    // Rétablir le bouton
+                     addToCartBtn.innerHTML = '<i class="fas fa-check mr-2"></i> Ajouté!';
+                    setTimeout(() => {
+                         addToCartBtn.innerHTML = originalHtml;
+                         addToCartBtn.disabled = false;
+                    }, 1500);
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Une erreur est survenue. Veuillez réessayer.');
+                // Rétablir le bouton
+                addToCartBtn.innerHTML = originalHtml;
+                addToCartBtn.disabled = false;
+            });
+        });
+    }
+
+    // --- Gestion du Bouton "Acheter Maintenant" (placeholder) ---
+    const buyNowBtn = document.getElementById('buy-now-btn');
+    if(buyNowBtn) {
+        buyNowBtn.addEventListener('click', function() {
+            alert("La fonctionnalité 'Acheter Maintenant' sera implémentée prochainement.");
+            // Logique future: Rediriger vers le checkout avec ce produit
+        });
+    }
+});
+</script>
+{% endblock %}

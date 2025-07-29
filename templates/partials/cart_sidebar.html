@@ -1,0 +1,23 @@
+<div class="cart-sidebar" id="cart-sidebar">
+  <div class="cart-header">
+    <h3>Votre panier</h3>
+    <button class="close-btn" onclick="closeCart()"><i class="fas fa-times"></i></button>
+  </div>
+  
+  <div class="cart-items" id="cart-items-list">
+    <!-- Rempli dynamiquement via JS -->
+  </div>
+
+  <div class="cart-total">
+    <div class="total-row">
+      <span>Total</span>
+      <span id="cart-total-amount">0 HTG</span>
+    </div>
+  </div>
+
+  <div class="cart-actions">
+    <button class="product-btn" onclick="window.location='{% url 'checkout' %}'">
+      Commander
+    </button>
+  </div>
+</div>

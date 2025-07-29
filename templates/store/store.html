@@ -1,0 +1,236 @@
+<!-- templates/store/store.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ category.name }} - Afèpanou Marketplace{% endblock %}
+{% block description %}Découvrez les meilleurs produits de la catégorie {{ category.name }} sur Afèpanou. Soutenez l'entrepreneuriat haïtien.{% endblock %}
+{% block og_title %}{{ category.name }} - Afèpanou Marketplace{% endblock %}
+{% block og_description %}Explorez les produits de {{ category.name }} et soutenez l'économie locale haïtienne.{% endblock %}
+{% block twitter_title %}{{ category.name }} - Afèpanou Marketplace{% endblock %}
+{% block twitter_description %}Découvrez les produits de {{ category.name }} sur Afèpanou.{% endblock %}
+
+{% block content %}
+<div class="store-container">
+    <!-- Category Header -->
+    <section class="section bg-soft">
+        <div class="container">
+            <div class="section-header text-center">
+                <h1 class="section-title">{{ category.name }}</h1>
+                <p class="section-subtitle">Découvrez notre sélection de produits {{ category.name|lower }} authentiques et de qualité</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Products Grid -->
+    <section class="section">
+        <div class="container">
+            {% if products %}
+                <div class="products-grid">
+                    {% for product in products %}
+                    <article class="product-card" data-product-id="{{ product.id }}">
+                        <div class="product-image">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy">
+                            {% else %}
+                                <!-- Utiliser une icône générique si pas d'image -->
+                                <i class="fas fa-box-open" aria-hidden="true"></i>
+                            {% endif %}
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-title">{{ product.name }}</h3>
+                            <p class="product-description">{{ product.description|truncatewords:15 }}</p>
+                            <div class="product-meta flex justify-between items-center mb-4">
+                                <span class="product-price text-primary font-bold text-lg">{{ product.price }} HTG</span>
+                                {% if product.stock > 0 %}
+                                    <span class="product-stock text-forest text-sm"><i class="fas fa-check-circle"></i> En stock</span>
+                                {% else %}
+                                    <span class="product-stock text-muted text-sm"><i class="fas fa-times-circle"></i> Épuisé</span>
+                                {% endif %}
+                            </div>
+                            <div class="product-actions flex justify-between items-center">
+                                <a href="{% url 'store:store_view' store_name %}?product_id={{ product.id }}" class="btn btn-outline">Voir Détails</a>
+                                {% if product.stock > 0 %}
+                                    <button class="btn btn-primary add-to-cart-btn" data-product-id="{{ product.id }}">
+                                        <i class="fas fa-shopping-cart"></i> Ajouter
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination (exemple basique, à adapter selon votre backend) -->
+                {% if is_paginated %}
+                <nav class="pagination-container mt-12 flex justify-center" aria-label="Pagination des produits">
+                    <ul class="pagination flex gap-2">
+                        {% if page_obj.has_previous %}
+                            <li><a href="?page=1" class="pagination-link btn btn-ghost">&laquo; Premier</a></li>
+                            <li><a href="?page={{ page_obj.previous_page_number }}" class="pagination-link btn btn-ghost">Précédent</a></li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li><span class="pagination-link btn btn-primary">{{ num }}</span></li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li><a href="?page={{ num }}" class="pagination-link btn btn-ghost">{{ num }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <li><a href="?page={{ page_obj.next_page_number }}" class="pagination-link btn btn-ghost">Suivant</a></li>
+                            <li><a href="?page={{ page_obj.paginator.num_pages }}" class="pagination-link btn btn-ghost">Dernier &raquo;</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+            {% else %}
+                <div class="text-center py-12">
+                    <i class="fas fa-box-open text-5xl text-muted mb-4"></i>
+                    <h2 class="text-2xl font-semibold text-dark mb-2">Aucun produit disponible</h2>
+                    <p class="text-light">Il n'y a actuellement aucun produit dans cette catégorie. Revenez bientôt !</p>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Styles spécifiques à la page du store si nécessaire */
+.store-container {
+    margin-top: var(--header-height, 80px); /* Compenser la hauteur du header fixe */
+}
+
+.product-image {
+    height: 200px; /* Ajuster la hauteur selon les besoins */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background-color: var(--warm-beige); /* Couleur de fond si pas d'image */
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Couvrir la zone sans déformation */
+    transition: transform var(--transition-base);
+}
+
+.product-card:hover .product-image img {
+    transform: scale(1.05);
+}
+
+/* S'assurer que la grille s'adapte bien */
+.products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Utiliser auto-fill pour remplir l'espace */
+    gap: var(--space-8);
+}
+
+/* Styles pour la pagination */
+.pagination-container {
+    margin-top: var(--space-12);
+}
+
+.pagination-link {
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-lg);
+}
+
+.pagination-link:hover {
+    background-color: var(--warm-beige);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: var(--space-6);
+    }
+}
+
+@media (max-width: 480px) {
+    .products-grid {
+        grid-template-columns: 1fr; /* Une colonne sur très petit écran */
+    }
+    .product-actions {
+        flex-direction: column;
+        gap: var(--space-2);
+    }
+    .product-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gestion du clic sur le bouton "Ajouter au Panier"
+    document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const productId = this.getAttribute('data-product-id');
+            const quantity = 1; // Quantité par défaut, pourrait être dynamique
+
+            // Animation ou feedback visuel (optionnel)
+            const originalText = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ajout...';
+            this.disabled = true;
+
+            // Appel AJAX vers l'API Django (StoreView)
+            fetch(window.location.pathname, { // Utilise l'URL actuelle du store
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value // Important !
+                },
+                body: new URLSearchParams({
+                    'action': 'add_to_cart',
+                    'product_id': productId,
+                    'quantity': quantity
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error('Erreur:', data.error);
+                    alert('Erreur lors de l\'ajout au panier: ' + data.error);
+                    // Rétablir le bouton
+                    this.innerHTML = originalText;
+                    this.disabled = false;
+                } else {
+                    // Mise à jour du badge du panier dans le header
+                    const cartBadge = document.getElementById('cart-badge');
+                    if (cartBadge) {
+                        cartBadge.textContent = data.cart.total_items;
+                        // Ajouter une animation ou un effet visuel si souhaité
+                        cartBadge.classList.add('animate-pulse'); // Exemple, nécessite une animation CSS
+                        setTimeout(() => cartBadge.classList.remove('animate-pulse'), 1000);
+                    }
+                    // Feedback à l'utilisateur
+                    alert(`"${data.added_item.product_name}" ajouté au panier!`);
+                    // Rétablir le bouton
+                    this.innerHTML = '<i class="fas fa-check"></i> Ajouté';
+                    setTimeout(() => {
+                         this.innerHTML = originalText;
+                         this.disabled = false;
+                    }, 1500);
+                }
+            })
+            .catch(error => {
+                console.error('Erreur réseau:', error);
+                alert('Erreur de connexion. Veuillez réessayer.');
+                // Rétablir le bouton
+                this.innerHTML = originalText;
+                this.disabled = false;
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

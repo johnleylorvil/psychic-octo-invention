@@ -1,0 +1,33 @@
+<div class="modal" id="checkout-modal">
+  <div class="modal-content checkout-content">
+    <button class="close-btn" onclick="closeCheckout()"><i class="fas fa-times"></i></button>
+    
+    <h2>Finaliser la commande</h2>
+    
+    <form id="checkout-form">
+      <div class="form-grid">
+        <input type="text" name="name" placeholder="Nom complet" required>
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="tel" name="phone" placeholder="Téléphone" required>
+        <input type="text" name="address" placeholder="Adresse" required>
+        <input type="text" name="city" placeholder="Ville" value="Port-au-Prince" required>
+        <input type="text" name="country" placeholder="Pays" value="Haïti" required>
+      </div>
+      
+      <div class="cart-preview" id="checkout-cart-items">
+        <!-- Récapitulatif du panier -->
+      </div>
+      
+      <div class="total-summary">
+        <div class="total-row">
+          <strong>Total</strong>
+          <strong id="checkout-total">0 HTG</strong>
+        </div>
+      </div>
+      
+      <button type="submit" class="product-btn full-width">
+        Payer avec MonCash
+      </button>
+    </form>
+  </div>
+</div>

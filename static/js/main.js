@@ -1,391 +1,198 @@
-// AFEPANOU MARKETPLACE - MAIN.JS
-// Utils, Animations, Cart, Search
+// static/js/main.js
+// Module principal de l'application Afèpanou
 
-class AfepanouApp {
-  constructor() {
-    this.cart = { items: [], count: 0 };
-    this.searchTimeout = null;
-    this.init();
-  }
+// S'assurer que l'objet global existe
+window.afepanouStore = window.afepanouStore || {};
 
-  init() {
-    this.initHeader();
-    this.initSearch();
-    this.initCart();
-    this.initAnimations();
-    this.initScrollEffects();
-    this.initRippleEffects();
-  }
+(function() {
+    'use strict';
 
-  // HEADER FUNCTIONALITY
-  initHeader() {
-    const header = document.getElementById('header');
-    if (!header) return;
+    // --- Initialisation au chargement de la page ---
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("Afèpanou Main JS chargé et DOM prêt.");
 
-    window.addEventListener('scroll', () => {
-      if (window.scrollY > 50) {
-        header.classList.add('scrolled');
-      } else {
-        header.classList.remove('scrolled');
-      }
+        // Initialiser les modules
+        initMobileMenu();
+        initSearchBar(); // Si nécessaire
+        initCartIntegration();
+        // initSlideshow(); // Si le slideshow a besoin de JS personnalisé, sinon il est géré par home.js
+
+        // Gestion du cookie consent (exemple basique)
+        initCookieNotice();
     });
 
-    // Mobile menu toggle
-    const mobileBtn = document.querySelector('.mobile-menu-btn');
-    const navCategories = document.querySelector('.nav-categories');
-    
-    if (mobileBtn && navCategories) {
-      mobileBtn.addEventListener('click', () => {
-        navCategories.classList.toggle('mobile-active');
-      });
-    }
-  }
+    // --- Gestion du Menu Mobile ---
+    function initMobileMenu() {
+        const menuBtn = document.querySelector('.mobile-menu-btn');
+        const headerContent = document.querySelector('.header-content'); // Ou un autre conteneur spécifique
 
-  // SEARCH FUNCTIONALITY
-  initSearch() {
-    const searchInput = document.querySelector('.search-input');
-    if (!searchInput) return;
-
-    searchInput.addEventListener('input', (e) => {
-      clearTimeout(this.searchTimeout);
-      const query = e.target.value.trim();
-      
-      if (query.length > 2) {
-        this.searchTimeout = setTimeout(() => {
-          this.performSearch(query);
-        }, 300);
-        
-        // Visual feedback
-        searchInput.style.borderColor = 'var(--forest-green)';
-        setTimeout(() => {
-          searchInput.style.borderColor = 'var(--primary-orange)';
-        }, 500);
-      }
-    });
-
-    searchInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        this.performSearch(searchInput.value.trim());
-      }
-    });
-  }
-
-  performSearch(query) {
-    console.log(`Searching for: ${query}`);
-    // TODO: Implement actual search API call
-  }
-
-  // CART FUNCTIONALITY
-  initCart() {
-    this.loadCart();
-    this.updateCartBadge();
-
-    // Add to cart buttons
-    document.addEventListener('click', (e) => {
-      if (e.target.matches('.product-btn, .btn-add-cart')) {
-        e.preventDefault();
-        this.addToCart(e.target);
-      }
-    });
-  }
-
-  addToCart(button) {
-    const productCard = button.closest('.product-card, .content-card');
-    if (!productCard) return;
-
-    const product = {
-      id: Date.now(),
-      title: productCard.querySelector('.product-title, .content-title')?.textContent || 'Product',
-      price: 0,
-      quantity: 1
-    };
-
-    this.cart.items.push(product);
-    this.cart.count++;
-    this.saveCart();
-    this.updateCartBadge();
-    this.showCartNotification();
-  }
-
-  updateCartBadge() {
-    const badge = document.querySelector('.cart-badge');
-    if (badge) {
-      badge.textContent = this.cart.count;
-      badge.style.transform = 'scale(1.2)';
-      setTimeout(() => {
-        badge.style.transform = 'scale(1)';
-      }, 200);
-    }
-  }
-
-  showCartNotification() {
-    const notification = document.createElement('div');
-    notification.className = 'cart-notification';
-    notification.innerHTML = `
-      <i class="fas fa-check-circle"></i>
-      <span>Produit ajouté au panier</span>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-      notification.classList.add('show');
-    }, 100);
-    
-    setTimeout(() => {
-      notification.classList.remove('show');
-      setTimeout(() => notification.remove(), 300);
-    }, 2000);
-  }
-
-  saveCart() {
-    try {
-      localStorage.setItem('afepanou_cart', JSON.stringify(this.cart));
-    } catch (e) {
-      console.warn('Could not save cart to localStorage');
-    }
-  }
-
-  loadCart() {
-    try {
-      const saved = localStorage.getItem('afepanou_cart');
-      if (saved) {
-        this.cart = JSON.parse(saved);
-      }
-    } catch (e) {
-      console.warn('Could not load cart from localStorage');
-    }
-  }
-
-  // ANIMATIONS
-  initAnimations() {
-    // Smooth scroll for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', (e) => {
-        e.preventDefault();
-        const target = document.querySelector(anchor.getAttribute('href'));
-        if (target) {
-          target.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
-          });
+        if (menuBtn && headerContent) {
+            menuBtn.addEventListener('click', function() {
+                headerContent.classList.toggle('mobile-open'); // Ajouter cette classe dans votre CSS
+                const icon = this.querySelector('i');
+                if (icon) {
+                    if (headerContent.classList.contains('mobile-open')) {
+                        icon.classList.remove('fa-bars');
+                        icon.classList.add('fa-times');
+                    } else {
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    }
+                }
+            });
         }
-      });
-    });
-
-    // Logo glow animation
-    const logo = document.querySelector('.logo');
-    if (logo) {
-      logo.addEventListener('mouseenter', () => {
-        logo.style.animation = 'logoGlow 0.5s ease-in-out';
-      });
-      
-      logo.addEventListener('mouseleave', () => {
-        logo.style.animation = 'logoGlow 3s ease-in-out infinite alternate';
-      });
     }
-  }
 
-  // SCROLL EFFECTS
-  initScrollEffects() {
-    const observerOptions = {
-      threshold: 0.1,
-      rootMargin: '0px 0px -50px 0px'
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('revealed');
+    // --- Gestion de la Barre de Recherche (placeholder) ---
+    function initSearchBar() {
+        // Ajouter ici la logique pour la recherche si nécessaire (auto-complétion, soumission, etc.)
+        const searchInput = document.querySelector('.search-input');
+        if (searchInput) {
+            // Exemple: Soumission sur Entrée
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const query = this.value.trim();
+                    if (query) {
+                        // Rediriger vers une page de résultats ou déclencher une recherche
+                        // Exemple: window.location.href = `/search?q=${encodeURIComponent(query)}`;
+                        console.log("Recherche pour:", query);
+                        alert(`La recherche pour "${query}" sera implémentée prochainement.`);
+                    }
+                }
+            });
         }
-      });
-    }, observerOptions);
+    }
 
-    // Observe scroll reveal elements
-    document.querySelectorAll('.scroll-reveal, .scroll-reveal-left, .scroll-reveal-right').forEach(el => {
-      observer.observe(el);
-    });
+    // --- Intégration avec le Panier ---
+    function initCartIntegration() {
+        // 1. Initialiser le module du panier s'il existe
+        if (typeof afepanouCart !== 'undefined' && afepanouCart.init) {
+            // afepanouCart.init() est déjà appelé dans cart.js, mais on peut faire un refresh ici si besoin
+            console.log("Module afepanouCart trouvé, initialisation supplémentaire si nécessaire.");
+            // afepanouCart.loadCart(); // Déjà fait dans son init
+        }
 
-    // Staggered card animations
-    document.querySelectorAll('.product-card, .content-card').forEach((card, index) => {
-      card.style.animationDelay = `${index * 0.1}s`;
-      observer.observe(card);
-    });
-  }
+        // 2. Lier le bouton du panier dans le header à l'affichage du panier
+        const showCartBtn = document.querySelector('.action-btn[aria-label="Panier d\'achat"]'); // Plus spécifique
+        if (showCartBtn && typeof afepanouCart !== 'undefined' && afepanouCart.show) {
+            // Retirer l'onclick inline du HTML si présent et gérer ici
+            showCartBtn.removeAttribute('onclick'); // Supprime l'attribut onclick
+            showCartBtn.addEventListener('click', function(e) {
+                e.preventDefault(); // Empêcher tout comportement par défaut
+                console.log("Bouton panier du header cliqué.");
+                afepanouCart.show(); // Appelle la méthode show du module afepanouCart
+            });
+        } else if(showCartBtn) {
+             // Fallback si le module n'est pas chargé
+             console.warn("Module afepanouCart non trouvé, fallback sur onclick inline ou alerte.");
+             // Si onclick inline est toujours là, il fonctionnera. Sinon, on peut ajouter un fallback.
+             // showCartBtn.addEventListener('click', () => alert("Panier (à implémenter)"));
+        }
 
-  // RIPPLE EFFECTS
-  initRippleEffects() {
-    document.addEventListener('click', (e) => {
-      if (e.target.matches('.btn, .product-btn, .nav-btn, .action-btn')) {
-        this.createRipple(e);
-      }
-    });
-  }
+        // 3. Charger l'état initial du panier (nombre d'articles) au chargement de la page
+        loadInitialCartState();
+    }
 
-  createRipple(e) {
-    const button = e.target;
-    const ripple = document.createElement('span');
-    ripple.classList.add('ripple');
-    
-    const rect = button.getBoundingClientRect();
-    const size = Math.max(rect.width, rect.height);
-    ripple.style.width = ripple.style.height = size + 'px';
-    ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
-    ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
-    
-    button.appendChild(ripple);
-    
-    setTimeout(() => ripple.remove(), 600);
-  }
-
-  // UTILITY FUNCTIONS
-  debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-      const later = () => {
-        clearTimeout(timeout);
-        func(...args);
-      };
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
-    };
-  }
-
-  throttle(func, limit) {
-    let inThrottle;
-    return function() {
-      const args = arguments;
-      const context = this;
-      if (!inThrottle) {
-        func.apply(context, args);
-        inThrottle = true;
-        setTimeout(() => inThrottle = false, limit);
-      }
-    };
-  }
-
-  // PERFORMANCE OPTIMIZATION
-  lazyLoadImages() {
-    if ('IntersectionObserver' in window) {
-      const imageObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const img = entry.target;
-            if (img.dataset.src) {
-              img.src = img.dataset.src;
-              img.classList.remove('lazy');
-              imageObserver.unobserve(img);
+    // Charger l'état initial du panier (badge)
+    function loadInitialCartState() {
+        console.log("Chargement de l'état initial du panier...");
+        // Utiliser la même logique que dans afepanouCart.loadCart
+         fetch(window.location.pathname, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                 'X-CSRFToken': getCsrfToken() // Utiliser la fonction utilitaire
+            },
+            body: new URLSearchParams({
+                'action': 'cart'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("État initial du panier chargé:", data);
+            // Mettre à jour le badge
+            const cartBadge = document.getElementById('cart-badge');
+            if (cartBadge) {
+                cartBadge.textContent = data.total_items || 0;
+                if (data.total_items > 0) {
+                    cartBadge.classList.remove('hidden');
+                } else {
+                    cartBadge.classList.add('hidden');
+                }
             }
-          }
+            // Si afepanouCart existe, on peut aussi l'initialiser avec ces données
+            // pour éviter un deuxième appel AJAX immédiat
+            // if (typeof afepanouCart !== 'undefined') {
+            //     afepanouCart.updateCartDisplay(data); // Nécessite adaptation de afepanouCart
+            // }
+        })
+        .catch(error => {
+            console.error('Erreur lors du chargement de l\'état initial du panier:', error);
+            // En cas d'erreur, on peut masquer le badge ou le laisser à 0
         });
-      });
-
-      document.querySelectorAll('img[data-src]').forEach(img => {
-        imageObserver.observe(img);
-      });
     }
-  }
 
-  // ACCESSIBILITY
-  initAccessibility() {
-    // Skip to main content
-    const skipLink = document.createElement('a');
-    skipLink.href = '#main-content';
-    skipLink.className = 'skip-link';
-    skipLink.textContent = 'Aller au contenu principal';
-    document.body.insertBefore(skipLink, document.body.firstChild);
 
-    // Focus management
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Tab') {
-        document.body.classList.add('using-keyboard');
-      }
-    });
+    // --- Gestion de la Notification de Cookies ---
+    function initCookieNotice() {
+        const cookieNotice = document.getElementById('cookie-notice');
+        const acceptBtn = document.getElementById('accept-cookies');
+        const declineBtn = document.getElementById('decline-cookies');
 
-    document.addEventListener('mousedown', () => {
-      document.body.classList.remove('using-keyboard');
-    });
-  }
-}
+        if (cookieNotice) {
+            // Vérifier si l'utilisateur a déjà accepté/refusé
+            if (!localStorage.getItem('cookiesAccepted')) {
+                // Afficher la notice après un court délai
+                setTimeout(() => {
+                    cookieNotice.classList.add('show');
+                }, 1000);
+            }
 
-// CSS for notifications and accessibility
-const styles = `
-.cart-notification {
-  position: fixed;
-  top: 100px;
-  right: 20px;
-  background: var(--gradient-primary);
-  color: white;
-  padding: 1rem 1.5rem;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-medium);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transform: translateX(100%);
-  transition: transform 0.3s ease;
-  z-index: 1000;
-}
+            if (acceptBtn) {
+                acceptBtn.addEventListener('click', function() {
+                    localStorage.setItem('cookiesAccepted', 'true');
+                    cookieNotice.classList.remove('show');
+                    console.log("Cookies acceptés par l'utilisateur.");
+                    // Ici, vous pouvez initialiser les services qui nécessitent des cookies
+                });
+            }
 
-.cart-notification.show {
-  transform: translateX(0);
-}
+            if (declineBtn) {
+                declineBtn.addEventListener('click', function() {
+                    localStorage.setItem('cookiesAccepted', 'false');
+                    cookieNotice.classList.remove('show');
+                    console.log("Cookies refusés par l'utilisateur.");
+                    // Ici, vous pouvez désactiver les services non essentiels
+                });
+            }
+        }
+    }
 
-.skip-link {
-  position: absolute;
-  top: -40px;
-  left: 6px;
-  background: var(--primary-orange);
-  color: white;
-  padding: 8px;
-  border-radius: 4px;
-  text-decoration: none;
-  z-index: 100;
-  transition: top 0.3s;
-}
+    // --- Fonction utilitaire pour obtenir le token CSRF ---
+    function getCsrfToken() {
+        const csrfTokenElement = document.querySelector('[name=csrfmiddlewaretoken]');
+        return csrfTokenElement ? csrfTokenElement.value : '';
+    }
 
-.skip-link:focus {
-  top: 6px;
-}
+    // --- Fonction pour afficher les modales (comme le panier) ---
+    // Cette fonction peut servir de pont si d'autres parties du site veulent ouvrir le panier
+    window.afepanouStore.showModal = function(modalId) {
+        console.log(`Tentative d'ouverture de la modale: ${modalId}`);
+        if (modalId === 'cart-sidebar' && typeof afepanouCart !== 'undefined' && afepanouCart.show) {
+            afepanouCart.show();
+        } else {
+            // Gérer d'autres modales si nécessaire
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                // Logique générique pour ouvrir d'autres modales
+                // Exemple: modal.classList.add('show');
+                 console.warn(`Logique d'ouverture pour la modale '${modalId}' non implémentée ou module non trouvé.`);
+            } else {
+                 console.error(`Modale avec l'ID '${modalId}' non trouvée.`);
+            }
+        }
+    };
 
-.using-keyboard *:focus {
-  outline: 2px solid var(--primary-orange);
-  outline-offset: 2px;
-}
+    // --- Autres initialisations globales peuvent aller ici ---
 
-.mobile-active {
-  display: flex !important;
-  flex-direction: column;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: white;
-  box-shadow: var(--shadow-medium);
-  padding: 1rem;
-  border-radius: 0 0 15px 15px;
-  z-index: 1000;
-}
-
-@media (max-width: 768px) {
-  .nav-categories {
-    display: none;
-  }
-}
-`;
-
-// Inject styles
-const styleSheet = document.createElement('style');
-styleSheet.textContent = styles;
-document.head.appendChild(styleSheet);
-
-// Initialize app when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-  window.afepanouApp = new AfepanouApp();
-});
-
-// Export for module use
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = AfepanouApp;
-}
+})();
