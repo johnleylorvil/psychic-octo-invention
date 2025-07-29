@@ -1,4 +1,4 @@
-# storeview.py - Mise à jour pour approche statique
+# storeview.py - Mise à jour complète
 from datetime import timezone
 import requests
 import json
@@ -26,7 +26,6 @@ class StoreView(View):
         'services',
         'store-produits-de-premiere-necessite'
     ]
-
     # Configuration MonCash
     MONCASH_MODE = getattr(settings, 'MONCASH_ENV', 'sandbox')  # 'sandbox' ou 'live'
     MONCASH_CLIENT_ID = settings.MONCASH_CLIENT_ID
@@ -93,11 +92,9 @@ class StoreView(View):
         if 'product_id' in request.GET:
             product_id = request.GET.get('product_id')
             return self.show_product(request, product_id)
-
         # Si on demande le contenu du panier
         if request.GET.get('action') == 'cart':
             return self.get_cart(request)
-
         # Sinon, afficher le store
         return self.render_store(request, store_name)
 
@@ -119,29 +116,26 @@ class StoreView(View):
     def render_store(self, request, store_name):
         """Affiche le store avec ses produits"""
         # Vérifier si le store_name fait partie de notre liste prédéfinie
-        if store_name not in self.STORE_SLUGS:
-             # Optionnel: Afficher une 404 ou une page par défaut
-             # Pour l'instant, on laisse passer pour permettre l'affichage d'autres catégories
-             # si jamais l'URL est appelée directement avec un slug non-listé.
-             pass
-
+        # if store_name not in self.STORE_SLUGS:
+        #      # Optionnel: Afficher une 404 ou une page par défaut
+        #      # Pour l'instant, on laisse passer pour permettre l'affichage d'autres catégories
+        #      # si jamais l'URL est appelée directement avec un slug non-listé.
+        #      pass
         # Récupérer la catégorie par son slug
         try:
             category = Category.objects.get(slug=store_name, is_active=True)
         except Category.DoesNotExist:
             return render(request, '404.html', status=404)
-
-        # Récupérer les produits de cette catégorie
-        products = Product.objects.filter(category=category, is_active=True)
-
+        # Récupérer les produits de cette catégorie, en préchargeant les images
+        # --- MISE À JOUR : prefetch_related('images') ---
+        products = Product.objects.filter(category=category, is_active=True).prefetch_related('images')
         # Récupérer ou créer le panier
         cart = self.get_or_create_cart(request)
-
         context = {
             'store_name': store_name,
             'category': category,
             'category_name': category.name, # Le nom lisible de la catégorie
-            'products': products,
+            'products': products, # Liste de produits avec images préchargées
             'cart': cart,
             'cart_items': cart.items.all() if cart else [],
             # Passer la liste statique pour le header si nécessaire ailleurs
@@ -151,16 +145,20 @@ class StoreView(View):
 
     def show_product(self, request, product_id):
         """Affiche les détails d'un produit"""
-        product = get_object_or_404(Product, id=product_id, is_active=True)
+        # --- MISE À JOUR : prefetch_related('images') ---
+        product = get_object_or_404(Product.objects.prefetch_related('images'), id=product_id, is_active=True)
         # Récupérer ou créer le panier
         cart = self.get_or_create_cart(request)
-        
+        # --- MISE À JOUR : Ajout de 'category' dans le contexte ---
         context = {
-            'product': product,
+            'product': product, # Objet produit avec images préchargées
+            'category': product.category, # ✅ Ajout de la catégorie ici
             'cart': cart,
             'cart_items': cart.items.all() if cart else [],
             # Passer la liste statique pour le header si nécessaire ailleurs
             'main_categories': Category.objects.filter(slug__in=self.STORE_SLUGS, is_active=True)
+            # Note : Vous pourriez vouloir ajouter ici les produits similaires
+            # par exemple : 'related_products': Product.objects.filter(category=product.category, is_active=True).exclude(id=product.id)[:4].prefetch_related('images')
         }
         return render(request, 'store/product_detail.html', context)
 
@@ -174,6 +172,7 @@ class StoreView(View):
             'quantity': item.quantity,
             'price': float(item.price),
             'total_price': float(item.total_price),
+            # --- MISE À JOUR : Utilisation de image_url ---
             'image_url': item.product.images.filter(is_primary=True).first().image_url if item.product.images.exists() else ''
         } for item in cart.items.all()]
         return JsonResponse({
@@ -212,7 +211,6 @@ class StoreView(View):
         product = get_object_or_404(Product, id=product_id, is_active=True)
         if quantity < 1:
             return JsonResponse({'error': 'Quantité invalide'}, status=400)
-
         cart = self.get_or_create_cart(request)
         # Vérifier si le produit est déjà dans le panier
         cart_item, created = CartItem.objects.get_or_create(
@@ -226,7 +224,6 @@ class StoreView(View):
         if not created:
             cart_item.quantity += quantity
             cart_item.save()
-
         # Retourner le nouveau contenu du panier
         return self.get_cart(request)
 
@@ -259,7 +256,6 @@ class StoreView(View):
         cart = self.get_or_create_cart(request)
         if not cart.items.exists():
             return JsonResponse({'error': 'Le panier est vide'}, status=400)
-
         # Créer une commande
         with transaction.atomic():
             order = Order.objects.create(
@@ -290,12 +286,12 @@ class StoreView(View):
                     unit_price=item.price,
                     product_name=item.product.name,
                     product_sku=item.product.sku,
+                    # --- MISE À JOUR : Utilisation de image_url ---
                     product_image=item.product.images.filter(is_primary=True).first().image_url if item.product.images.exists() else ''
                 )
                 # Réduire le stock (optionnel, on peut attendre le paiement)
                 # item.product.stock_quantity = F('stock_quantity') - item.quantity
                 # item.product.save()
-
             # Créer une transaction
             transaction_obj = Transaction.objects.create(
                 order=order,
@@ -306,11 +302,9 @@ class StoreView(View):
                 callback_url=request.build_absolute_uri(reverse('store:moncash_callback')),
                 return_url=request.build_absolute_uri(reverse('store:moncash_return'))
             )
-
         # Vider le panier
         cart.is_active = False
         cart.save()
-
         return JsonResponse({
             'order_id': order.id,
             'order_number': order.order_number,
@@ -325,47 +319,38 @@ class StoreView(View):
             transaction_obj = Transaction.objects.get(order=order, status='pending')
         except (Order.DoesNotExist, Transaction.DoesNotExist):
             return JsonResponse({'error': 'Commande non trouvée'}, status=404)
-
         # Créer le paiement MonCash
         payment_url = self.create_moncash_payment(order, order.total_amount)
         if not payment_url:
             return JsonResponse({'error': 'Erreur lors de la création du paiement'}, status=500)
-
         # Mettre à jour la transaction avec l'URL de paiement
         # Note: Le token est généralement dans l'URL, mais vous pouvez l'extraire si nécessaire
         transaction_obj.payment_token = payment_url.split('token=')[-1] if 'token=' in payment_url else None
         transaction_obj.save()
-
         return JsonResponse({'payment_url': payment_url})
-
 
 # Les vues MonCashCallbackView et MonCashReturnView restent inchangées
 # (Elles sont incluses ici pour complétude mais n'ont pas été modifiées)
 class MonCashCallbackView(View):
     """Endpoint pour le callback MonCash (appelé en backend)"""
-
     def post(self, request, *args, **kwargs):
         try:
             # Récupérer les données du callback
             data = json.loads(request.body)
             order_id = data.get('orderId')
-
             # Vérifier que c'est bien une notification MonCash
             if not order_id:
                 return JsonResponse({'status': 'error', 'message': 'Invalid data'}, status=400)
-
             # Trouver la transaction
             try:
                 transaction_obj = Transaction.objects.get(moncash_order_id=order_id)
                 order = transaction_obj.order
             except Transaction.DoesNotExist:
                 return JsonResponse({'status': 'error', 'message': 'Transaction not found'}, status=404)
-
             # Vérifier le statut du paiement via l'API MonCash
             access_token = StoreView().get_access_token()
             if not access_token:
                 return JsonResponse({'status': 'error', 'message': 'Authentication failed'}, status=500)
-
             api_url = StoreView().get_moncash_api_url()
             response = requests.post(
                 f"{api_url}/v1/RetrieveOrderPayment",
@@ -376,15 +361,12 @@ class MonCashCallbackView(View):
                 },
                 data=json.dumps({"orderId": order_id})
             )
-
             if response.status_code == 200:
                 payment_data = response.json().get('payment', {})
                 status = payment_data.get('message', '').lower()
-
                 # Mettre à jour la transaction
                 transaction_obj.gateway_response = payment_data
                 transaction_obj.webhook_received_at = timezone.now()
-
                 if status == 'successful':
                     transaction_obj.status = 'completed'
                     order.payment_status = 'paid'
@@ -396,19 +378,15 @@ class MonCashCallbackView(View):
                 else:
                     transaction_obj.status = 'failed'
                     order.payment_status = 'failed'
-
                 transaction_obj.save()
                 order.save()
                 return JsonResponse({'status': 'success'})
-
             return JsonResponse({'status': 'error', 'message': 'Payment verification failed'}, status=500)
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
-
 class MonCashReturnView(View):
     """Endpoint pour le retour MonCash (où l'utilisateur est redirigé)"""
-
     def get(self, request, *args, **kwargs):
         order_number = request.GET.get('orderId')
         try:

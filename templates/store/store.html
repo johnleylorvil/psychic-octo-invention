@@ -7,93 +7,122 @@
 {% block og_title %}{{ category.name }} - Afèpanou Marketplace{% endblock %}
 {% block og_description %}Explorez les produits de {{ category.name }} et soutenez l'économie locale haïtienne.{% endblock %}
 {% block twitter_title %}{{ category.name }} - Afèpanou Marketplace{% endblock %}
-{% block twitter_description %}Découvrez les produits de {{ category.name }} sur Afèpanou.{% endblock %}
 
 {% block content %}
-<div class="store-container">
-    <!-- Category Header -->
-    <section class="section bg-soft">
-        <div class="container">
-            <div class="section-header text-center">
-                <h1 class="section-title">{{ category.name }}</h1>
-                <p class="section-subtitle">Découvrez notre sélection de produits {{ category.name|lower }} authentiques et de qualité</p>
-            </div>
+<div class="store-container bg-soft min-h-screen">
+    <!-- Hero Section (optionnelle, peut reprendre le style de home.css) -->
+    <section class="hero bg-gradient-to-r from-primary to-secondary text-white py-20 text-center">
+        <div class="container mx-auto px-4">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4 font-accent">{{ category.name }}</h1>
+            <p class="text-xl md:text-2xl max-w-3xl mx-auto">Découvrez nos produits {{ category.name|lower }}</p>
         </div>
     </section>
 
-    <!-- Products Grid -->
-    <section class="section">
-        <div class="container">
+    <!-- Breadcrumbs -->
+    <nav class="breadcrumb-section bg-soft py-4" aria-label="Fil d'Ariane">
+        <div class="container mx-auto px-4">
+            <ol class="flex items-center text-sm text-light">
+                <li><a href="{% url 'core:home' %}" class="hover:text-primary transition">Accueil</a></li>
+                <li class="mx-2">/</li>
+                <li class="text-dark font-medium" aria-current="page">{{ category.name }}</li>
+            </ol>
+        </div>
+    </nav>
+
+    <!-- Main Store Content -->
+    <div class="container mx-auto px-4 py-12">
+        <!-- Section Titre & Filtres (simplifiés pour l'instant) -->
+        <section class="store-header mb-12 text-center">
+            <h2 class="text-3xl font-bold text-dark mb-4">{{ category.name }}</h2>
+            <p class="text-light max-w-2xl mx-auto">Trouvez les meilleurs produits de cette catégorie sur Afèpanou.</p>
+            <!-- Filtres et tri pourraient aller ici -->
+        </section>
+
+        <!-- Products Grid -->
+        <section class="products-section">
             {% if products %}
-                <div class="products-grid">
-                    {% for product in products %}
-                    <article class="product-card" data-product-id="{{ product.id }}">
-                        <div class="product-image">
-                            {% if product.image %}
-                                <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy">
+            <div class="products-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                {% for product in products %}
+                <div class="product-card bg-white rounded-2xl overflow-hidden shadow-soft transition duration-300 ease-in-out transform hover:-translate-y-2 hover:shadow-lg hover:translate-x-1 relative">
+                    <!-- Image -->
+                    <div class="product-image h-64 bg-beige flex items-center justify-center overflow-hidden relative">
+                        {% if product.images.exists %}
+                            <!-- MISE À JOUR : Utilisation de image_url au lieu de image.url -->
+                            <img src="{{ product.images.first.image_url }}" alt="{{ product.name }}" class="w-full h-full object-contain transition-transform duration-500">
+                        {% else %}
+                            <div class="text-muted text-5xl">
+                                <i class="fas fa-image"></i>
+                            </div>
+                        {% endif %}
+                        <!-- Badge Nouveau (optionnel) -->
+                        {% if product.is_new %}
+                        <span class="absolute top-4 left-4 bg-accent text-white text-xs font-bold px-3 py-1 rounded-full z-10">Nouveau</span>
+                        {% endif %}
+                        <!-- Badge Réduction (optionnel) -->
+                        {% if product.discount_percent > 0 %}
+                        <span class="absolute top-4 right-4 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full z-10">-{{ product.discount_percent }}%</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Product Info -->
+                    <div class="product-info p-6">
+                        <h3 class="product-title text-xl font-semibold text-dark mb-2 line-clamp-2">{{ product.name }}</h3>
+                        <p class="product-description text-light text-sm mb-4 line-clamp-2">{{ product.description|truncatewords:15 }}</p>
+
+                        <div class="product-meta flex justify-between items-center mb-4">
+                            <!-- MISE À JOUR : Utilisation de stock_quantity au lieu de stock -->
+                            {% if product.stock_quantity > 0 %}
+                            <span class="product-stock text-forest text-sm flex items-center">
+                                <i class="fas fa-check-circle mr-1"></i> En stock ({{ product.stock_quantity }})
+                            </span>
                             {% else %}
-                                <!-- Utiliser une icône générique si pas d'image -->
-                                <i class="fas fa-box-open" aria-hidden="true"></i>
+                            <span class="product-stock text-red-500 text-sm flex items-center">
+                                <i class="fas fa-times-circle mr-1"></i> Épuisé
+                            </span>
+                            {% endif %}
+                            <div class="product-rating">
+                                <div class="stars flex text-yellow-400">
+                                    <!-- Exemple de notation fixe, à dynamiser avec product.average_rating -->
+                                    <i class="fas fa-star filled"></i>
+                                    <i class="fas fa-star filled"></i>
+                                    <i class="fas fa-star filled"></i>
+                                    <i class="fas fa-star filled"></i>
+                                    <i class="fas fa-star-half-alt filled"></i>
+                                    <!-- <i class="fas fa-star"></i> -->
+                                </div>
+                                <!-- <span class="rating-text text-xs text-light ml-1">(4.5)</span> -->
+                            </div>
+                        </div>
+
+                        <div class="product-footer flex justify-between items-center">
+                            <span class="product-price text-primary font-bold text-lg">{{ product.price }} HTG</span>
+                            {% if product.stock_quantity > 0 %}
+                            <button class="add-to-cart-btn btn btn-primary text-sm px-4 py-2 flex items-center"
+                                    data-product-id="{{ product.id }}">
+                                <i class="fas fa-shopping-cart mr-2"></i> Ajouter
+                            </button>
+                            {% else %}
+                             <button class="btn btn-outline text-sm px-4 py-2 opacity-50 cursor-not-allowed" disabled>
+                                <i class="fas fa-shopping-cart mr-2"></i> Épuisé
+                            </button>
                             {% endif %}
                         </div>
-                        <div class="product-info">
-                            <h3 class="product-title">{{ product.name }}</h3>
-                            <p class="product-description">{{ product.description|truncatewords:15 }}</p>
-                            <div class="product-meta flex justify-between items-center mb-4">
-                                <span class="product-price text-primary font-bold text-lg">{{ product.price }} HTG</span>
-                                {% if product.stock > 0 %}
-                                    <span class="product-stock text-forest text-sm"><i class="fas fa-check-circle"></i> En stock</span>
-                                {% else %}
-                                    <span class="product-stock text-muted text-sm"><i class="fas fa-times-circle"></i> Épuisé</span>
-                                {% endif %}
-                            </div>
-                            <div class="product-actions flex justify-between items-center">
-                                <a href="{% url 'store:store_view' store_name %}?product_id={{ product.id }}" class="btn btn-outline">Voir Détails</a>
-                                {% if product.stock > 0 %}
-                                    <button class="btn btn-primary add-to-cart-btn" data-product-id="{{ product.id }}">
-                                        <i class="fas fa-shopping-cart"></i> Ajouter
-                                    </button>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </article>
-                    {% endfor %}
+                    </div>
+
+                    <!-- Lien vers les détails (optionnel, le clic sur la carte pourrait aussi mener aux détails) -->
+                    <a href="{% url 'store:store_view' store_name %}?product_id={{ product.id }}" class="absolute inset-0 z-10" aria-label="Voir les détails de {{ product.name }}"></a>
                 </div>
-
-                <!-- Pagination (exemple basique, à adapter selon votre backend) -->
-                {% if is_paginated %}
-                <nav class="pagination-container mt-12 flex justify-center" aria-label="Pagination des produits">
-                    <ul class="pagination flex gap-2">
-                        {% if page_obj.has_previous %}
-                            <li><a href="?page=1" class="pagination-link btn btn-ghost">&laquo; Premier</a></li>
-                            <li><a href="?page={{ page_obj.previous_page_number }}" class="pagination-link btn btn-ghost">Précédent</a></li>
-                        {% endif %}
-
-                        {% for num in page_obj.paginator.page_range %}
-                            {% if page_obj.number == num %}
-                                <li><span class="pagination-link btn btn-primary">{{ num }}</span></li>
-                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                                <li><a href="?page={{ num }}" class="pagination-link btn btn-ghost">{{ num }}</a></li>
-                            {% endif %}
-                        {% endfor %}
-
-                        {% if page_obj.has_next %}
-                            <li><a href="?page={{ page_obj.next_page_number }}" class="pagination-link btn btn-ghost">Suivant</a></li>
-                            <li><a href="?page={{ page_obj.paginator.num_pages }}" class="pagination-link btn btn-ghost">Dernier &raquo;</a></li>
-                        {% endif %}
-                    </ul>
-                </nav>
-                {% endif %}
-
+                {% endfor %}
+            </div>
             {% else %}
-                <div class="text-center py-12">
-                    <i class="fas fa-box-open text-5xl text-muted mb-4"></i>
-                    <h2 class="text-2xl font-semibold text-dark mb-2">Aucun produit disponible</h2>
-                    <p class="text-light">Il n'y a actuellement aucun produit dans cette catégorie. Revenez bientôt !</p>
-                </div>
+            <div class="text-center py-20">
+                <h3 class="text-2xl font-semibold text-dark mb-4">Aucun produit trouvé</h3>
+                <p class="text-light mb-6">Il n'y a actuellement aucun produit dans cette catégorie.</p>
+                <a href="{% url 'core:home' %}" class="btn btn-primary">Retour à l'accueil</a>
+            </div>
             {% endif %}
-        </div>
-    </section>
+        </section>
+    </div>
 </div>
 {% endblock %}
 
@@ -112,14 +141,12 @@
     overflow: hidden;
     background-color: var(--warm-beige); /* Couleur de fond si pas d'image */
 }
-
 .product-image img {
     width: 100%;
     height: 100%;
     object-fit: cover; /* Couvrir la zone sans déformation */
     transition: transform var(--transition-base);
 }
-
 .product-card:hover .product-image img {
     transform: scale(1.05);
 }
@@ -134,12 +161,10 @@
 .pagination-container {
     margin-top: var(--space-12);
 }
-
 .pagination-link {
     padding: var(--space-2) var(--space-4);
     border-radius: var(--radius-lg);
 }
-
 .pagination-link:hover {
     background-color: var(--warm-beige);
 }
@@ -151,16 +176,15 @@
         gap: var(--space-6);
     }
 }
-
 @media (max-width: 480px) {
     .products-grid {
         grid-template-columns: 1fr; /* Une colonne sur très petit écran */
     }
-    .product-actions {
+    .product-footer {
         flex-direction: column;
         gap: var(--space-2);
     }
-    .product-actions .btn {
+    .product-footer .btn {
         width: 100%;
         justify-content: center;
     }
@@ -207,18 +231,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Mise à jour du badge du panier dans le header
                     const cartBadge = document.getElementById('cart-badge');
                     if (cartBadge) {
-                        cartBadge.textContent = data.cart.total_items;
+                        cartBadge.textContent = data.total_items; // Utiliser total_items du JSON renvoyé
                         // Ajouter une animation ou un effet visuel si souhaité
                         cartBadge.classList.add('animate-pulse'); // Exemple, nécessite une animation CSS
                         setTimeout(() => cartBadge.classList.remove('animate-pulse'), 1000);
                     }
                     // Feedback à l'utilisateur
-                    alert(`"${data.added_item.product_name}" ajouté au panier!`);
+                    alert(`"${data.items.find(item => item.product_id == productId).name}" ajouté au panier!`);
                     // Rétablir le bouton
                     this.innerHTML = '<i class="fas fa-check"></i> Ajouté';
                     setTimeout(() => {
-                         this.innerHTML = originalText;
-                         this.disabled = false;
+                        this.innerHTML = originalText;
+                        this.disabled = false;
                     }, 1500);
                 }
             })
