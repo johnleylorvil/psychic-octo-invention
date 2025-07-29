@@ -95,8 +95,6 @@ media_root/
 # !*/migrations/__init__.py
 
 # Django collectstatic
-/static/
-/staticfiles/
 
 # Django media files (en production)
 #/media/

@@ -1,0 +1,277 @@
+/*
+ * LANDING.CSS
+ * Ce fichier contient les styles spécifiques aux composants de la page d'accueil.
+ * Il utilise les variables (design tokens) définies dans main.css.
+*/
+
+/* --- Styles Généraux de la Section --- */
+.landing-section {
+    padding: 60px 5%; /* Espace vertical et horizontal pour chaque section */
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.section-title {
+    font-family: var(--font-header);
+    font-size: 2.2rem;
+    color: var(--text-dark);
+    text-align: center;
+    margin-bottom: 40px;
+    position: relative;
+}
+
+/* Ligne de soulignement subtile pour les titres */
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(45deg, var(--orange-secondary), var(--orange-primary));
+}
+
+
+/* --- 1. Section Carrousel de Bannières --- */
+.banner-carousel-section {
+    width: 100%;
+    height: 70vh; /* Hauteur de la bannière */
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--white);
+    padding: 0; /* Prend toute la largeur */
+    max-width: none; /* Ignore le max-width des sections normales */
+}
+
+.banner-slide {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.banner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4); /* Opacité pour la lisibilité */
+}
+
+.banner-content {
+    position: relative; /* Pour être au-dessus de l'overlay */
+    z-index: 2;
+    animation: fadeInUp 1s ease-out; /* Animation d'entrée */
+}
+
+.banner-title {
+    font-family: var(--font-header);
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.banner-subtitle {
+    font-family: var(--font-body);
+    font-size: 1.2rem;
+    font-weight: 400;
+    margin-bottom: 2rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.banner-cta {
+    font-family: var(--font-header);
+    padding: 15px 35px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--white);
+    background: linear-gradient(45deg, var(--orange-secondary), var(--orange-primary));
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.banner-cta:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+
+/* --- 2. Section Produits Vedettes --- */
+.featured-products-section {
+    background-color: var(--beige-light-transparent); /* Un fond beige très léger */
+}
+
+.product-grid {
+    display: grid;
+    /* Grille responsive qui s'adapte automatiquement */
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 30px;
+}
+
+.product-card {
+    background-color: var(--white);
+    border-radius: 12px;
+    overflow: hidden;
+    /* L'effet de relief "beveled" du guide de style */
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-card:hover {
+    /* L'animation de "croissance" au survol */
+    transform: translateY(-8px);
+    box-shadow: 4px 8px 16px rgba(0,0,0,0.12);
+}
+
+.product-card a {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.product-card-image-wrapper {
+    width: 100%;
+    aspect-ratio: 1 / 1; /* Images carrées */
+    background-color: #f0f0f0;
+}
+
+.product-card-image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Assure que l'image remplit l'espace sans se déformer */
+}
+
+.product-card-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* Permet au body de grandir pour aligner les footers */
+}
+
+.product-card-title {
+    font-family: var(--font-header);
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.product-card-price {
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--terracotta-dark);
+    margin-top: auto; /* Pousse le prix en bas de la carte */
+}
+
+
+/* --- 3. Section Contenu Média & Texte --- */
+.content-sections-list {
+    display: flex;
+    flex-direction: column;
+    gap: 80px; /* Espace entre chaque section de contenu */
+}
+
+.content-section-item {
+    display: flex;
+    align-items: center;
+    gap: 50px;
+}
+
+/* Modificateur pour l'image à droite */
+.content-section-item.layout-right {
+    flex-direction: row-reverse;
+}
+
+.content-image-wrapper {
+    flex: 1 1 50%; /* Le conteneur de l'image prend 50% de la largeur */
+}
+
+.content-image-wrapper img {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 4px 8px 16px rgba(0,0,0,0.1);
+}
+
+.content-text-wrapper {
+    flex: 1 1 50%;
+}
+
+.content-text-wrapper h2 {
+    font-family: var(--font-header);
+    font-size: 2rem;
+    margin-bottom: 20px;
+    color: var(--text-dark);
+}
+
+.content-text-wrapper p {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    line-height: 1.7;
+    margin-bottom: 30px;
+}
+
+.content-cta {
+    display: inline-block;
+    font-family: var(--font-header);
+    padding: 12px 30px;
+    color: var(--white);
+    background: linear-gradient(45deg, var(--orange-secondary), var(--orange-primary));
+    border-radius: 8px;
+    text-decoration: none;
+    transition: transform 0.3s ease;
+}
+
+.content-cta:hover {
+    transform: scale(1.05);
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 768px) {
+    .section-title {
+        font-size: 1.8rem;
+    }
+
+    .banner-title {
+        font-size: 2.5rem;
+    }
+
+    .banner-subtitle {
+        font-size: 1rem;
+    }
+
+    /* Empiler les sections de contenu sur mobile */
+    .content-section-item,
+    .content-section-item.layout-right {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+/* Animation Keyframes */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

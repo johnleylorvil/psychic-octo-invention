@@ -1,0 +1,586 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Afèpanou - Marketplace Haïtien pour la Croissance Économique Locale{% endblock %}
+
+{% block description %}Découvrez Afèpanou, le marketplace haïtien qui connecte entrepreneurs, artisans et consommateurs. Produits authentiques, artisanats traditionnels, agriculture locale et services diversifiés pour soutenir l'économie haïtienne.{% endblock %}
+
+{% block keywords %}marketplace haïti, produits haïtiens, artisanat haïti, agriculture locale, entrepreneuriat haïti, économie haïtienne, produits locaux, services haïti, croissance économique{% endblock %}
+
+{% block og_title %}Afèpanou - Soutenez l'Économie Haïtienne{% endblock %}
+{% block og_description %}Marketplace communautaire pour entrepreneurs haïtiens. Découvrez des produits authentiques et soutenez la croissance économique locale.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock %}
+
+{% block body_class %}homepage{% endblock %}
+
+{% block content %}
+    <!-- Hero Slideshow -->
+    {% include 'includes/slideshow.html' %}
+    
+    <!-- Popular Products & Media Content -->
+    {% include 'includes/product_grid.html' %}
+    
+    <!-- Success Stories Section -->
+    <section class="success-stories section" id="success-stories">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Histoires de Succès</h2>
+                <p class="section-subtitle">Découvrez comment Afèpanou transforme la vie des entrepreneurs haïtiens</p>
+            </div>
+            
+            <div class="stories-grid">
+                <article class="story-card">
+                    <div class="story-image">
+                        <img src="{% static 'images/stories/marie-artisan.jpg' %}" alt="Marie, artisane de bijoux traditionnels" loading="lazy">
+                    </div>
+                    <div class="story-content">
+                        <h3 class="story-title">Marie, Artisane de Bijoux</h3>
+                        <p class="story-excerpt">"Grâce à Afèpanou, j'ai pu faire connaître mes créations à travers tout Haïti et augmenter mes revenus de 300%."</p>
+                        <div class="story-meta">
+                            <span class="story-location">Port-au-Prince</span>
+                            <span class="story-category">Artisanat</span>
+                        </div>
+                    </div>
+                </article>
+                
+                <article class="story-card">
+                    <div class="story-image">
+                        <img src="{% static 'images/stories/jean-agriculteur.jpg' %}" alt="Jean, producteur de café bio" loading="lazy">
+                    </div>
+                    <div class="story-content">
+                        <h3 class="story-title">Jean, Producteur de Café</h3>
+                        <p class="story-excerpt">"Ma production de café bio trouve maintenant des acheteurs réguliers. Afèpanou a révolutionné ma façon de vendre."</p>
+                        <div class="story-meta">
+                            <span class="story-location">Jacmel</span>
+                            <span class="story-category">Agriculture</span>
+                        </div>
+                    </div>
+                </article>
+                
+                <article class="story-card">
+                    <div class="story-image">
+                        <img src="{% static 'images/stories/lucie-services.jpg' %}" alt="Lucie, consultante en marketing" loading="lazy">
+                    </div>
+                    <div class="story-content">
+                        <h3 class="story-title">Lucie, Consultante Marketing</h3>
+                        <p class="story-excerpt">"En tant que consultante, Afèpanou me permet de toucher plus de clients et de développer mon expertise."</p>
+                        <div class="story-meta">
+                            <span class="story-location">Cap-Haïtien</span>
+                            <span class="story-category">Services</span>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Statistics Section -->
+    <section class="statistics section-alt" id="statistics">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Notre Impact</h2>
+                <p class="section-subtitle">Des chiffres qui témoignent de notre contribution à l'économie haïtienne</p>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-store" aria-hidden="true"></i>
+                    </div>
+                    <div class="stat-number" data-target="1250">0</div>
+                    <div class="stat-label">Vendeurs Actifs</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-box" aria-hidden="true"></i>
+                    </div>
+                    <div class="stat-number" data-target="15000">0</div>
+                    <div class="stat-label">Produits Disponibles</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-handshake" aria-hidden="true"></i>
+                    </div>
+                    <div class="stat-number" data-target="75000">0</div>
+                    <div class="stat-label">Transactions Réussies</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-growth" aria-hidden="true"></i>
+                    </div>
+                    <div class="stat-number" data-target="25">0</div>
+                    <div class="stat-label">Départements Couverts</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Newsletter Section -->
+    <section class="newsletter section" id="newsletter">
+        <div class="container">
+            <div class="newsletter-content">
+                <div class="newsletter-text">
+                    <h2 class="newsletter-title">Restez Connecté à la Croissance</h2>
+                    <p class="newsletter-subtitle">Recevez nos dernières nouvelles, offres spéciales et histoires inspirantes d'entrepreneurs haïtiens</p>
+                </div>
+                
+                <form class="newsletter-form" method="post" action="#">
+                    {% csrf_token %}
+                    <div class="form-row">
+                        <input 
+                            type="email" 
+                            name="email"
+                            class="newsletter-input" 
+                            placeholder="Votre adresse email"
+                            required
+                            aria-label="Adresse email pour newsletter"
+                        >
+                        <button type="submit" class="newsletter-btn">
+                            S'abonner
+                            <i class="fas fa-paper-plane" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <div class="newsletter-privacy">
+                        <input type="checkbox" id="privacy-consent" name="privacy_consent" required>
+                        <label for="privacy-consent">
+                            J'accepte de recevoir des emails et j'ai lu la 
+                            <a href="#" target="_blank">politique de confidentialité</a>
+                        </label>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/home.js' %}"></script>
+<script>
+// Page-specific JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize counter animations
+    initCounterAnimations();
+    
+    // Initialize newsletter form
+    initNewsletterForm();
+    
+    // Initialize lazy loading for story images
+    initLazyLoading();
+});
+
+function initCounterAnimations() {
+    const counters = document.querySelectorAll('.stat-number');
+    const observerOptions = {
+        threshold: 0.5,
+        rootMargin: '0px 0px -100px 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                animateCounter(entry.target);
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+    
+    counters.forEach(counter => observer.observe(counter));
+}
+
+function animateCounter(element) {
+    const target = parseInt(element.dataset.target);
+    const duration = 2000;
+    const step = target / (duration / 16);
+    let current = 0;
+    
+    const timer = setInterval(() => {
+        current += step;
+        if (current >= target) {
+            element.textContent = target.toLocaleString();
+            clearInterval(timer);
+        } else {
+            element.textContent = Math.floor(current).toLocaleString();
+        }
+    }, 16);
+}
+
+function initNewsletterForm() {
+    const form = document.querySelector('.newsletter-form');
+    if (!form) return;
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const email = formData.get('email');
+        const consent = formData.get('privacy_consent');
+        
+        if (!consent) {
+            alert('Veuillez accepter la politique de confidentialité');
+            return;
+        }
+        
+        // Show loading state
+        const submitBtn = form.querySelector('.newsletter-btn');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Inscription...';
+        submitBtn.disabled = true;
+        
+        // Simulate API call (replace with actual endpoint)
+        setTimeout(() => {
+            submitBtn.innerHTML = '<i class="fas fa-check"></i> Inscrit!';
+            form.reset();
+            
+            setTimeout(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }, 2000);
+        }, 1000);
+    });
+}
+
+function initLazyLoading() {
+    if ('IntersectionObserver' in window) {
+        const imageObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    img.src = img.dataset.src || img.src;
+                    img.classList.remove('lazy');
+                    imageObserver.unobserve(img);
+                }
+            });
+        });
+        
+        document.querySelectorAll('img[loading="lazy"]').forEach(img => {
+            imageObserver.observe(img);
+        });
+    }
+}
+</script>
+
+<!-- Structured Data for Homepage -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Afèpanou",
+    "url": "{{ request.build_absolute_uri }}",
+    "description": "Marketplace haïtien pour la croissance économique locale",
+    "potentialAction": {
+        "@type": "SearchAction",
+        "target": "{{ request.build_absolute_uri }}search?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": "Afèpanou",
+        "logo": "{% static 'images/logo.png' %}"
+    }
+}
+</script>
+{% endblock %}
+
+<style>
+/* Success Stories Section */
+.success-stories {
+    background: var(--pure-white);
+}
+
+.stories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: var(--space-8);
+    margin-top: var(--space-12);
+}
+
+.story-card {
+    background: var(--gradient-soft);
+    border-radius: var(--radius-2xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-soft);
+    transition: all var(--transition-base);
+}
+
+.story-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-medium);
+}
+
+.story-image {
+    height: 200px;
+    overflow: hidden;
+}
+
+.story-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition-slow);
+}
+
+.story-card:hover .story-image img {
+    transform: scale(1.05);
+}
+
+.story-content {
+    padding: var(--space-6);
+}
+
+.story-title {
+    font-family: var(--font-primary);
+    font-size: var(--text-xl);
+    font-weight: var(--font-semibold);
+    margin-bottom: var(--space-3);
+    color: var(--text-dark);
+}
+
+.story-excerpt {
+    color: var(--text-light);
+    line-height: 1.7;
+    margin-bottom: var(--space-4);
+    font-style: italic;
+}
+
+.story-meta {
+    display: flex;
+    gap: var(--space-4);
+    font-size: var(--text-sm);
+}
+
+.story-location,
+.story-category {
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    font-weight: var(--font-medium);
+}
+
+.story-location {
+    background: var(--forest-green);
+    color: var(--pure-white);
+}
+
+.story-category {
+    background: var(--primary-orange);
+    color: var(--pure-white);
+}
+
+/* Statistics Section */
+.statistics {
+    background: var(--gradient-soft);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-8);
+    margin-top: var(--space-12);
+}
+
+.stat-card {
+    background: var(--pure-white);
+    padding: var(--space-8);
+    border-radius: var(--radius-2xl);
+    text-align: center;
+    box-shadow: var(--shadow-soft);
+    transition: all var(--transition-base);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-medium);
+}
+
+.stat-icon {
+    width: 80px;
+    height: 80px;
+    background: var(--gradient-primary);
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--space-6);
+    font-size: var(--text-3xl);
+    color: var(--pure-white);
+}
+
+.stat-number {
+    font-family: var(--font-primary);
+    font-size: var(--text-4xl);
+    font-weight: var(--font-bold);
+    color: var(--text-dark);
+    margin-bottom: var(--space-2);
+}
+
+.stat-label {
+    font-size: var(--text-lg);
+    color: var(--text-light);
+    font-weight: var(--font-medium);
+}
+
+/* Newsletter Section */
+.newsletter {
+    background: var(--text-dark);
+    color: var(--pure-white);
+}
+
+.newsletter-content {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.newsletter-title {
+    font-family: var(--font-primary);
+    font-size: var(--text-4xl);
+    font-weight: var(--font-bold);
+    margin-bottom: var(--space-4);
+    color: var(--pure-white);
+}
+
+.newsletter-subtitle {
+    font-size: var(--text-lg);
+    color: #BDC3C7;
+    margin-bottom: var(--space-8);
+    line-height: 1.6;
+}
+
+.newsletter-form {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.form-row {
+    display: flex;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+}
+
+.newsletter-input {
+    flex: 1;
+    padding: var(--space-4);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-lg);
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--pure-white);
+    font-size: var(--text-base);
+}
+
+.newsletter-input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.newsletter-input:focus {
+    outline: none;
+    border-color: var(--primary-orange);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.newsletter-btn {
+    background: var(--gradient-primary);
+    color: var(--pure-white);
+    border: none;
+    padding: var(--space-4) var(--space-6);
+    border-radius: var(--radius-lg);
+    font-weight: var(--font-semibold);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.newsletter-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
+}
+
+.newsletter-privacy {
+    font-size: var(--text-sm);
+    color: #BDC3C7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+}
+
+.newsletter-privacy a {
+    color: var(--primary-orange);
+    text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .stories-grid,
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-6);
+    }
+    
+    .form-row {
+        flex-direction: column;
+    }
+    
+    .newsletter-title {
+        font-size: var(--text-3xl);
+    }
+    
+    .newsletter-subtitle {
+        font-size: var(--text-base);
+    }
+    
+    .stat-number {
+        font-size: var(--text-3xl);
+    }
+    
+    .newsletter-privacy {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--space-3);
+    }
+}
+
+@media (max-width: 480px) {
+    .story-content,
+    .stat-card {
+        padding: var(--space-4);
+    }
+    
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        font-size: var(--text-2xl);
+    }
+    
+    .newsletter-content {
+        padding: 0 var(--space-4);
+    }
+}
+</style>
+
+<!-- Structured Data for Homepage -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Afèpanou",
+    "url": "{{ request.build_absolute_uri }}",
+    "description": "Marketplace haïtien pour la croissance économique locale",
+    "potentialAction": {
+        "@type": "SearchAction",
+        "target": "{{ request.build_absolute_uri }}search?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": "Afèpanou",
+        "logo": "{% static 'images/logo.png' %}"
+    }
+}
+</script>

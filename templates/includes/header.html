@@ -1,0 +1,63 @@
+{% load static %}
+
+<header class="header" id="header">
+    <div class="container">
+        <div class="header-content">
+            <!-- Logo -->
+            <a href="{% url 'core:home' %}" class="logo">
+                Afèpanou
+            </a>
+            
+            <!-- Mobile Menu Button -->
+            <button class="mobile-menu-btn" aria-label="Menu mobile">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <!-- Search Bar -->
+            <div class="search-container">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    placeholder="Rechercher des produits..."
+                    aria-label="Rechercher des produits"
+                >
+                <i class="fas fa-search search-icon" aria-hidden="true"></i>
+            </div>
+            
+            <!-- Navigation Categories -->
+            <nav class="nav-categories" role="navigation">
+                <button class="nav-btn" data-category="artisanats">
+                    <i class="fas fa-hammer" aria-hidden="true"></i>
+                    Artisanats
+                </button>
+                <button class="nav-btn" data-category="agriculture">
+                    <i class="fas fa-seedling" aria-hidden="true"></i>
+                    Agriculture
+                </button>
+                <button class="nav-btn" data-category="services">
+                    <i class="fas fa-handshake" aria-hidden="true"></i>
+                    Services
+                </button>
+            </nav>
+            
+            <!-- Header Actions -->
+            <div class="header-actions">
+                <!-- Account Button -->
+                <button class="action-btn" aria-label="Mon compte" title="Mon compte">
+                    <i class="fas fa-user" aria-hidden="true"></i>
+                </button>
+                
+                <!-- Wishlist Button -->
+                <button class="action-btn" aria-label="Liste de souhaits" title="Liste de souhaits">
+                    <i class="fas fa-heart" aria-hidden="true"></i>
+                </button>
+                
+                <!-- Cart Button -->
+                <button class="action-btn" aria-label="Panier d'achat" title="Panier d'achat">
+                    <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+                    <span class="cart-badge" aria-label="Nombre d'articles">0</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</header>
