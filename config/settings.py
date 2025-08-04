@@ -37,6 +37,7 @@ ALLOWED_HOSTS = [
 CSRF_TRUSTED_ORIGINS = [
     'https://afepanoubackend.up.railway.app',
     'https://*.railway.app',
+    'https://www.afepanou.com',
 ]
 
 # ===========================================

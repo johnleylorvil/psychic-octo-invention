@@ -497,9 +497,7 @@ def success(request):
     
     return render(request, 'pages/success.html', context)
 
-def home(request):
-    """Page d'accueil - redirection vers le store"""
-    return redirect('store')
+
 
 # Vue pour les orders (mentionnée dans success.html)
 def orders(request):
