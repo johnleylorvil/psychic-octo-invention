@@ -4,6 +4,7 @@ from django.db import models
 from django.utils.text import slugify
 from django.core.validators import MinValueValidator, MaxValueValidator
 import uuid
+from django.urls import reverse
 
 # ============= USER MODEL CUSTOM =============
 class User(AbstractUser):
@@ -88,16 +89,18 @@ class Category(models.Model):
         return self.name
 
 # ============= PRODUITS =============
+# ============= PRODUITS =============
 class Product(models.Model):
     """Produits du marketplace"""
+    # ... (tous vos champs existants de 'name' à 'updated_at')
     name = models.CharField(max_length=200)
     slug = models.CharField(unique=True, max_length=200)
     short_description = models.CharField(max_length=500, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     detailed_description = models.TextField(blank=True, null=True)
     specifications = models.JSONField(blank=True, null=True)
-    category = models.ForeignKey(Category, models.CASCADE, related_name='products')
-    seller = models.ForeignKey(User, models.CASCADE, related_name='products')
+    category = models.ForeignKey('Category', models.CASCADE, related_name='products')
+    seller = models.ForeignKey('User', models.CASCADE, related_name='products')
     price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     promotional_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, validators=[MinValueValidator(0)])
     cost_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, validators=[MinValueValidator(0)])
@@ -129,6 +132,7 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
+
     class Meta:
         db_table = 'products'
         verbose_name = 'Produit'
@@ -145,14 +149,34 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
+    # NOUVELLE MÉTHODE : Pour obtenir l'URL canonique d'un produit
+    def get_absolute_url(self):
+        """Retourne l'URL pour la page de détail de ce produit."""
+        # Note : 'product_detail' est le nom de votre URL pour voir un produit.
+        # Vous devez la créer dans votre urls.py, par exemple :
+        # path('produit/<slug:slug>/', views.product_detail, name='product_detail')
+        return reverse('product_detail', kwargs={'slug': self.slug})
+
+    # NOUVELLE PROPRIÉTÉ : Pour obtenir facilement l'image principale
+    @property
+    def primary_image(self):
+        """Retourne l'objet ProductImage marqué comme principal, ou le premier de la liste."""
+        # Ceci suppose que votre modèle ProductImage a une relation 'images'
+        # comme : product = models.ForeignKey(Product, models.CASCADE, related_name='images')
+        primary = self.images.filter(is_primary=True).first()
+        if primary:
+            return primary
+        # Si aucune image n'est marquée comme principale, on retourne la première trouvée
+        return self.images.first()
+
     @property
     def current_price(self):
-        """Retourne le prix promotionnel s'il existe, sinon le prix normal"""
-        return self.promotional_price if self.promotional_price else self.price
+        """Retourne le prix promotionnel s'il existe, sinon le prix normal."""
+        return self.promotional_price if self.promotional_price is not None else self.price
 
     @property
     def in_stock(self):
-        """Vérifie si le produit est en stock"""
+        """Vérifie si le produit est en stock."""
         return self.stock_quantity and self.stock_quantity > 0
 
 # ============= IMAGES PRODUITS =============

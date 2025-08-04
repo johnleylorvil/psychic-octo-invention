@@ -1,0 +1,36 @@
+{% comment %}
+  Ce composant attend un objet 'product' avec les attributs :
+  - product.id
+  - product.get_absolute_url (ou une URL vers la page de détail)
+  - product.image.url
+  - product.name
+  - product.price
+{% endcomment %}
+
+<div class="product-card animate-on-scroll">
+    <a href="{{ product.get_absolute_url }}">
+        <div class="product-card-image">
+            {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+            {% else %}
+                {# Placeholder si pas d'image #}
+                <img src="https://via.placeholder.com/300x200.png?text=Afèpanou" alt="Image non disponible">
+            {% endif %}
+        </div>
+    </a>
+
+    <div class="product-card-content">
+        <h3 class="product-card-title">
+            <a href="{{ product.get_absolute_url }}">{{ product.name }}</a>
+        </h3>
+
+        <p class="product-card-price">{{ product.price }} HTG</p>
+
+        <button 
+            class="btn btn-primary add-to-cart-btn" 
+            data-product-id="{{ product.id }}" 
+            data-url="{% url 'add_to_cart' %}">
+            Ajouter au Panier
+        </button>
+    </div>
+</div>

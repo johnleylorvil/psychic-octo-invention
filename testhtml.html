@@ -3,1552 +3,749 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Afèpanou - Marketplace Haïtien</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+    <title>Devoir 2 - Algèbre Linéaire</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            overflow-x: hidden;
-        }
-
-        /* Header Navigation */
-        .header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 2px 30px rgba(0,0,0,0.1);
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            transition: all 0.3s ease;
-        }
-
-        .header.scrolled {
-            background: rgba(255, 255, 255, 0.98);
-            box-shadow: 0 2px 40px rgba(0,0,0,0.15);
-        }
-
-        .nav-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 1rem 2rem;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            font-size: 2rem;
-            font-weight: 900;
-            color: #2c3e50;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .logo:hover {
-            transform: scale(1.05);
-        }
-
-        .logo i {
-            margin-right: 0.5rem;
-            color: #e74c3c;
-            font-size: 2.2rem;
-        }
-
-        .search-container {
-            flex: 1;
-            max-width: 500px;
-            margin: 0 3rem;
-            position: relative;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 1rem 1.5rem 1rem 4rem;
-            border: 2px solid #ecf0f1;
-            border-radius: 50px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background: white;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: #e74c3c;
-            box-shadow: 0 5px 30px rgba(231, 76, 60, 0.2);
-            transform: translateY(-2px);
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 1.5rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #7f8c8d;
-            font-size: 1.2rem;
-        }
-
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 2.5rem;
-        }
-
-        .nav-link {
-            text-decoration: none;
-            color: #2c3e50;
-            font-weight: 600;
-            position: relative;
-            padding: 0.5rem 0;
-            transition: all 0.3s ease;
-        }
-
-        .nav-link:hover {
-            color: #e74c3c;
-        }
-
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            width: 0;
-            height: 2px;
-            background: #e74c3c;
-            transition: all 0.3s ease;
-            transform: translateX(-50%);
-        }
-
-        .nav-link:hover::after {
-            width: 100%;
-        }
-
-        .cart-button {
-            position: relative;
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            color: white;
-            padding: 0.8rem 1.5rem;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 20px rgba(231, 76, 60, 0.3);
-        }
-
-        .cart-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
-        }
-
-        .cart-count {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #f39c12;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 0.8rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-
-        /* Banner Carousel */
-        .banner-section {
-            margin-top: 80px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .carousel-container {
-            position: relative;
-            height: 70vh;
-            min-height: 500px;
-        }
-
-        .carousel-slide {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            transition: all 0.8s ease-in-out;
-            background-size: cover;
-            background-position: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .carousel-slide.active {
-            opacity: 1;
-        }
-
-        .slide-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .slide-content {
-            text-align: center;
-            color: white;
-            max-width: 800px;
-            padding: 2rem;
-        }
-
-        .slide-title {
-            font-size: 3.5rem;
-            font-weight: 900;
-            margin-bottom: 1rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .slide-subtitle {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-        }
-
-        .slide-description {
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
-            opacity: 0.9;
-        }
-
-        .slide-button {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            color: white;
-            padding: 1.2rem 3rem;
-            border: none;
-            border-radius: 50px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 30px rgba(231, 76, 60, 0.4);
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .slide-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 40px rgba(231, 76, 60, 0.5);
-        }
-
-        .carousel-nav {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 1rem;
-        }
-
-        .nav-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.5);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .nav-dot.active {
-            background: white;
-            transform: scale(1.2);
-        }
-
-        .carousel-arrow {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: none;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .carousel-arrow:hover {
-            background: rgba(255,255,255,0.3);
-            transform: translateY(-50%) scale(1.1);
-        }
-
-        .carousel-arrow.prev {
-            left: 30px;
-        }
-
-        .carousel-arrow.next {
-            right: 30px;
-        }
-
-        /* Popular Brands */
-        .brands-section {
-            padding: 5rem 0;
-            background: #f8f9fa;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 2rem;
-        }
-
-        .section-header {
-            text-align: center;
-            margin-bottom: 4rem;
-        }
-
-        .section-title {
-            font-size: 3rem;
-            font-weight: 900;
-            color: #2c3e50;
-            margin-bottom: 1rem;
-        }
-
-        .section-subtitle {
-            font-size: 1.2rem;
-            color: #7f8c8d;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .brands-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 2rem;
-            margin-bottom: 4rem;
-        }
-
-        .brand-logo {
-            background: white;
-            padding: 2rem;
-            border-radius: 20px;
-            text-align: center;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .brand-logo:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-        }
-
-        .brand-logo img {
-            max-height: 60px;
-            opacity: 0.7;
-            transition: opacity 0.3s ease;
-        }
-
-        .brand-logo:hover img {
-            opacity: 1;
-        }
-
-        /* Popular Products */
-        .products-section {
-            padding: 5rem 0;
-            background: white;
-        }
-
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 3rem;
-        }
-
-        .product-card {
-            background: white;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .product-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-        }
-
-        .product-image {
-            position: relative;
-            height: 250px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            overflow: hidden;
-        }
-
-        .product-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.3s ease;
-        }
-
-        .product-card:hover .product-image img {
-            transform: scale(1.1);
-        }
-
-        .product-badge {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: #e74c3c;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-
-        .product-info {
-            padding: 2rem;
-        }
-
-        .product-category {
-            color: #7f8c8d;
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .product-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 1rem;
-            line-height: 1.3;
-        }
-
-        .product-description {
-            color: #7f8c8d;
-            margin-bottom: 1.5rem;
-            line-height: 1.6;
-        }
-
-        .product-price {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1.5rem;
-        }
-
-        .price-current {
-            font-size: 1.8rem;
-            font-weight: 900;
-            color: #e74c3c;
-        }
-
-        .price-original {
-            color: #95a5a6;
-            text-decoration: line-through;
-            font-size: 1.2rem;
-        }
-
-        .add-to-cart {
-            width: 100%;
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            color: white;
-            padding: 1rem;
-            border: none;
-            border-radius: 15px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .add-to-cart:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(231, 76, 60, 0.3);
-        }
-
-        /* Content Sections */
-        .content-sections {
-            padding: 5rem 0;
-            background: #f8f9fa;
-        }
-
-        .content-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 4rem;
-            margin-top: 4rem;
-        }
-
-        .content-card {
-            background: white;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-        }
-
-        .content-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-        }
-
-        .content-image {
-            height: 200px;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            position: relative;
-        }
-
-        .content-body {
-            padding: 2rem;
-        }
-
-        .content-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 1rem;
-        }
-
-        .content-description {
-            color: #7f8c8d;
-            margin-bottom: 2rem;
-            line-height: 1.6;
-        }
-
-        .content-button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 0.8rem 2rem;
-            border: none;
-            border-radius: 25px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .content-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-        }
-
-        /* Call to Action */
-        .cta-section {
-            padding: 5rem 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            text-align: center;
-        }
-
-        .cta-title {
-            font-size: 3rem;
-            font-weight: 900;
-            margin-bottom: 1rem;
-        }
-
-        .cta-subtitle {
-            font-size: 1.3rem;
-            margin-bottom: 3rem;
-            opacity: 0.9;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .cta-button {
-            background: white;
-            color: #667eea;
-            padding: 1.2rem 3rem;
-            border: none;
-            border-radius: 50px;
-            font-size: 1.2rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-        }
-
-        .cta-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 50px rgba(0,0,0,0.3);
-        }
-
-        /* Footer */
-        .footer {
-            background: #2c3e50;
-            color: white;
-            padding: 4rem 0 2rem;
-        }
-
-        .footer-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 3rem;
-            margin-bottom: 3rem;
-        }
-
-        .footer-section h3 {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            color: #ecf0f1;
-        }
-
-        .footer-section p,
-        .footer-section a {
-            color: #bdc3c7;
-            line-height: 1.8;
-            margin-bottom: 0.5rem;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-
-        .footer-section a:hover {
-            color: #e74c3c;
-        }
-
-        .social-links {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .social-link {
-            width: 40px;
-            height: 40px;
-            background: #34495e;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .social-link:hover {
-            background: #e74c3c;
-            transform: translateY(-2px);
-        }
-
-        .footer-bottom {
-            text-align: center;
-            padding-top: 2rem;
-            border-top: 1px solid #34495e;
-            color: #95a5a6;
-        }
-
-        /* Loading Animation */
-        .loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255,255,255,0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            z-index: 9999;
-        }
-
-        .spinner {
-            width: 60px;
-            height: 60px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #e74c3c;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 1rem;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .loading-text {
-            color: #2c3e50;
-            font-size: 1.2rem;
-            font-weight: 600;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .nav-container {
-                flex-direction: column;
-                gap: 1rem;
-                padding: 1rem;
+        @page {
+            margin: 2cm;
+            size: A4;
+        }
+        
+        @media print {
+            body { 
+                margin: 0; 
+                font-size: 12pt;
+                line-height: 1.4;
             }
-
-            .search-container {
-                max-width: 100%;
-                margin: 0;
+            .page-break { 
+                page-break-before: always; 
             }
-
-            .nav-links {
-                gap: 1rem;
-                flex-wrap: wrap;
-                justify-content: center;
+            .no-print { 
+                display: none; 
             }
-
-            .slide-title {
-                font-size: 2.5rem;
-            }
-
-            .slide-subtitle {
-                font-size: 1.2rem;
-            }
-
-            .section-title {
-                font-size: 2rem;
-            }
-
-            .cta-title {
-                font-size: 2rem;
-            }
-
-            .carousel-arrow {
+            .print-button {
                 display: none;
             }
-
-            .container {
-                padding: 0 1rem;
-            }
-
-            .products-grid,
-            .content-grid {
-                grid-template-columns: 1fr;
-            }
         }
-
-        /* Animations */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        
+        body {
+            font-family: 'Times New Roman', serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            color: #000;
+            font-size: 14px;
         }
-
-        .fade-in-up {
-            animation: fadeInUp 0.8s ease forwards;
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 20px;
+        }
+        
+        .header h1 {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 8px 0;
+        }
+        
+        .header h2 {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 8px 0;
+        }
+        
+        .header h3 {
+            font-size: 14px;
+            font-weight: bold;
+            margin: 8px 0;
+        }
+        
+        .students {
+            text-align: center;
+            margin: 30px 0;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .exercise {
+            margin: 25px 0;
+        }
+        
+        .exercise-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 20px 0 15px 0;
+            border-bottom: 1px solid #666;
+            padding-bottom: 5px;
+        }
+        
+        .sub-question {
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        
+        .solution {
+            margin: 10px 0 10px 20px;
+            text-align: justify;
+        }
+        
+        .calculation {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-left: 3px solid #ccc;
+        }
+        
+        .final-answer {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .print-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .print-button:hover {
+            background: #0056b3;
+        }
+        
+        .matrix {
+            font-family: 'Courier New', monospace;
+            display: inline-block;
+            vertical-align: middle;
+            margin: 2px;
+        }
+        
+        .math-display {
+            text-align: center;
+            margin: 15px 0;
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+        }
+        
+        .math-inline {
+            font-style: italic;
+        }
+        
+        table.matrix {
+            display: inline-table;
+            vertical-align: middle;
+            border-left: 1px solid black;
+            border-right: 1px solid black;
+            margin: 0 5px;
+        }
+        
+        table.matrix td {
+            padding: 3px 8px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-    <!-- Loading Animation -->
-    <div class="loading" id="loadingScreen">
-        <div class="spinner"></div>
-        <div class="loading-text">Chargement d'Afèpanou...</div>
+    <button class="print-button no-print" onclick="window.print()">🖨️ Imprimer en PDF</button>
+    
+    <div class="header">
+        <h1>Institut des Sciences, des Technologies et des Études Avancées d'Haïti</h1>
+        <h1>(ISTEAH)</h1>
+        <h2>MAT 1500 : Algèbre Linéaire</h2>
+        <h2>ÉTÉ 2025</h2>
+        <h3>Devoir 2</h3>
+    </div>
+    
+    <div class="students">
+        <p><strong>JOSEPH Samuel Jonathan</strong></p>
+        <p><strong>JONATHAN Pierre Louis</strong></p>
     </div>
 
-    <!-- Header Navigation -->
-    <header class="header" id="header">
-        <nav class="nav-container">
-            <a href="#" class="logo" id="siteLogo">
-                <i class="fas fa-store"></i>
-                <span>Afèpanou</span>
-            </a>
-            
-            <div class="search-container">
-                <input type="text" class="search-input" id="searchInput" placeholder="Rechercher des produits haïtiens...">
-                <i class="fas fa-search search-icon"></i>
-            </div>
-            
-            <div class="nav-links" id="navLinks">
-                <!-- Navigation links will be populated by API -->
-                <a href="#" class="nav-link">Accueil</a>
-                <a href="#products" class="nav-link">Produits</a>
-                <a href="#about" class="nav-link">À Propos</a>
-                <a href="#contact" class="nav-link">Contact</a>
-                
-                <a href="#" class="cart-button" id="cartButton">
-                    <i class="fas fa-shopping-cart"></i>
-                    Panier
-                    <span class="cart-count" id="cartCount">0</span>
-                </a>
-            </div>
-        </nav>
-    </header>
-
-    <!-- Banner Carousel Section -->
-    <section class="banner-section" id="bannerSection">
-        <div class="carousel-container" id="carouselContainer">
-            <!-- Carousel slides will be populated by API -->
-        </div>
-        <button class="carousel-arrow prev" id="prevButton">
-            <i class="fas fa-chevron-left"></i>
-        </button>
-        <button class="carousel-arrow next" id="nextButton">
-            <i class="fas fa-chevron-right"></i>
-        </button>
-        <div class="carousel-nav" id="carouselNav">
-            <!-- Navigation dots will be populated dynamically -->
-        </div>
-    </section>
-
-    <!-- Popular Brands Section -->
-    <section class="brands-section">
-        <div class="container">
-            <div class="section-header" data-aos="fade-up">
-                <h2 class="section-title">Marques Populaires</h2>
-                <p class="section-subtitle">Découvrez les marques les plus appréciées sur Afèpanou</p>
-            </div>
-            <div class="brands-grid" id="brandsGrid" data-aos="fade-up" data-aos-delay="200">
-                <!-- Brands will be populated dynamically -->
-            </div>
-        </div>
-    </section>
-
-    <!-- Popular Products Section -->
-    <section class="products-section" id="productsSection">
-        <div class="container">
-            <div class="section-header" data-aos="fade-up">
-                <h2 class="section-title" id="productsTitle">Produits Vedettes</h2>
-                <p class="section-subtitle" id="productsSubtitle">Nos produits les plus populaires</p>
-            </div>
-            <div class="products-grid" id="productsGrid" data-aos="fade-up" data-aos-delay="300">
-                <!-- Products will be populated by API -->
-            </div>
-        </div>
-    </section>
-
-    <!-- Content Sections -->
-    <section class="content-sections" id="contentSections">
-        <div class="container">
-            <div class="section-header" data-aos="fade-up">
-                <h2 class="section-title">Nos Collections</h2>
-                <p class="section-subtitle">Explorez nos différentes catégories de produits haïtiens</p>
-            </div>
-            <div class="content-grid" id="contentGrid" data-aos="fade-up" data-aos-delay="400">
-                <!-- Content sections will be populated by API -->
-            </div>
-        </div>
-    </section>
-
-    <!-- Call to Action Section -->
-    <section class="cta-section" data-aos="fade-up">
-        <div class="container">
-            <h2 class="cta-title">Endless Styles, Effortless Shopping</h2>
-            <p class="cta-subtitle">Découvrez l'excellence du commerce haïtien et trouvez votre produit parfait!</p>
-            <button class="cta-button" onclick="scrollToSection('productsSection')">
-                <i class="fas fa-shopping-bag"></i> Découvrir Maintenant
-            </button>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer" id="footer">
-        <div class="container">
-            <div class="footer-content" id="footerContent">
-                <!-- Footer content will be populated by API -->
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2025 Afèpanou Technologies | Tous droits réservés | <a href="#">Politique de Confidentialité</a></p>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
-    <script>
-        // Configuration API
-        const API_BASE_URL = 'http://localhost:8000/api';
+    <div class="exercise">
+        <div class="exercise-title">Exercice 1 (4 pts)</div>
         
-        // Variables globales
-        let currentSlide = 0;
-        let slides = [];
-        let carouselInterval;
+        <div class="sub-question">1. Soit la matrice A = 
+            <table class="matrix">
+                <tr><td>-1</td><td>-2</td></tr>
+                <tr><td>3</td><td>4</td></tr>
+            </table>
+        </div>
         
-        // État de l'application
-        const appState = {
-            headerData: null,
-            bannersData: null,
-            productsData: null,
-            contentData: null,
-            footerData: null,
-            cartCount: 0
-        };
-
-        // Initialisation de l'application
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeApp();
-        });
-
-        async function initializeApp() {
-            try {
-                // Afficher le loading
-                showLoading(true);
+        <div class="sub-question">a) Calculer A² - 3A + 2I₂</div>
+        <div class="solution">
+            <div class="calculation">
+                <strong>Matrice A = </strong><table class="matrix">
+                    <tr><td>1</td><td>2</td><td>-1</td></tr>
+                    <tr><td>2</td><td>1</td><td>0</td></tr>
+                    <tr><td>-1</td><td>1</td><td>0</td></tr>
+                </table><br><br>
                 
-                // Charger toutes les sections
-                await Promise.all([
-                    loadHeader(),
-                    loadBanners(),
-                    loadPopularProducts(),
-                    loadContentSections(),
-                    loadFooter()
-                ]);
+                Réduction par lignes:<br>
+                L₂ ← L₂ - 2L₁ et L₃ ← L₃ + L₁:<br>
+                <table class="matrix">
+                    <tr><td>1</td><td>2</td><td>-1</td></tr>
+                    <tr><td>0</td><td>-3</td><td>2</td></tr>
+                    <tr><td>0</td><td>3</td><td>-1</td></tr>
+                </table><br><br>
                 
-                // Initialiser les composants
-                initializeCarousel();
-                initializeScrollEffects();
-                initializeSearch();
+                L₃ ← L₃ + L₂: <table class="matrix">
+                    <tr><td>1</td><td>2</td><td>-1</td></tr>
+                    <tr><td>0</td><td>-3</td><td>2</td></tr>
+                    <tr><td>0</td><td>0</td><td>1</td></tr>
+                </table><br><br>
                 
-                // Initialiser AOS (Animate On Scroll)
-                AOS.init({
-                    duration: 800,
-                    once: true,
-                    offset: 100
-                });
+                <strong>Rang(A) = 3</strong>
+            </div>
+            
+            <div class="calculation">
+                <strong>Matrice B = </strong><table class="matrix">
+                    <tr><td>1</td><td>2</td><td>3</td></tr>
+                    <tr><td>2</td><td>3</td><td>4</td></tr>
+                    <tr><td>3</td><td>4</td><td>5</td></tr>
+                </table><br><br>
                 
-                // Masquer le loading
-                showLoading(false);
+                L₂ ← L₂ - 2L₁ et L₃ ← L₃ - 3L₁:<br>
+                <table class="matrix">
+                    <tr><td>1</td><td>2</td><td>3</td></tr>
+                    <tr><td>0</td><td>-1</td><td>-2</td></tr>
+                    <tr><td>0</td><td>-2</td><td>-4</td></tr>
+                </table><br><br>
                 
-            } catch (error) {
-                console.error('Erreur lors de l\'initialisation:', error);
-                showError('Erreur de chargement des données');
-                showLoading(false);
-            }
-        }
-
-        // API Calls
-        async function apiCall(endpoint) {
-            try {
-                const response = await fetch(`${API_BASE_URL}${endpoint}`);
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                const data = await response.json();
-                return data;
-            } catch (error) {
-                console.error(`Erreur API ${endpoint}:`, error);
-                throw error;
-            }
-        }
-
-        async function loadHeader() {
-            try {
-                const data = await apiCall('/landing-page/header/');
-                appState.headerData = data;
-                renderHeader(data);
-            } catch (error) {
-                console.log('Utilisation des données de fallback pour le header');
-                renderHeaderFallback();
-            }
-        }
-
-        async function loadBanners() {
-            try {
-                const data = await apiCall('/landing-page/banners/');
-                appState.bannersData = data;
-                renderBanners(data);
-            } catch (error) {
-                console.log('Utilisation des bannières de fallback');
-                renderBannersFallback();
-            }
-        }
-
-        async function loadPopularProducts() {
-            try {
-                const data = await apiCall('/landing-page/popular-products/');
-                appState.productsData = data;
-                renderProducts(data);
-            } catch (error) {
-                console.log('Utilisation des produits de fallback');
-                renderProductsFallback();
-            }
-        }
-
-        async function loadContentSections() {
-            try {
-                const data = await apiCall('/landing-page/content-sections/');
-                appState.contentData = data;
-                renderContentSections(data);
-            } catch (error) {
-                console.log('Utilisation du contenu de fallback');
-                renderContentFallback();
-            }
-        }
-
-        async function loadFooter() {
-            try {
-                const data = await apiCall('/landing-page/footer/');
-                appState.footerData = data;
-                renderFooter(data);
-            } catch (error) {
-                console.log('Utilisation du footer de fallback');
-                renderFooterFallback();
-            }
-        }
-
-        // Rendering Functions
-        function renderHeader(data) {
-            // Mise à jour du logo si disponible
-            if (data.logo) {
-                const logoImg = document.createElement('img');
-                logoImg.src = data.logo;
-                logoImg.style.height = '40px';
-                logoImg.style.marginRight = '0.5rem';
+                L₃ ← L₃ - 2L₂: <table class="matrix">
+                    <tr><td>1</td><td>2</td><td>3</td></tr>
+                    <tr><td>0</td><td>-1</td><td>-2</td></tr>
+                    <tr><td>0</td><td>0</td><td>0</td></tr>
+                </table><br><br>
                 
-                const logoElement = document.getElementById('siteLogo');
-                logoElement.innerHTML = '';
-                logoElement.appendChild(logoImg);
-                logoElement.appendChild(document.createTextNode('Afèpanou'));
-            }
+                <strong>Rang(B) = 2</strong>
+            </div>
+        </div>
+    </div>
 
-            // Mise à jour du placeholder de recherche
-            if (data.search_config && data.search_config.placeholder) {
-                document.getElementById('searchInput').placeholder = data.search_config.placeholder;
-            }
+    <div class="page-break"></div>
 
-            // Mise à jour des catégories de navigation
-            if (data.category_buttons && data.category_buttons.length > 0) {
-                const navLinks = document.getElementById('navLinks');
-                const existingLinks = navLinks.querySelectorAll('.nav-link:not(.cart-button)');
+    <div class="exercise">
+        <div class="exercise-title">Exercice 5 (3 pts)</div>
+        
+        <div class="sub-question">Dans ℝ⁴, on considère les sous-espaces vectoriels suivants :</div>
+        <div class="solution">
+            <ul>
+                <li>F = {(x, y, z, t) ∈ ℝ⁴ : x + y - z + 2t = 0}</li>
+                <li>G = vect(e) où e = (1,1,1,1)</li>
+            </ul>
+        </div>
+        
+        <div class="sub-question">a) Montrer que F et G sont supplémentaires</div>
+        <div class="solution">
+            <div class="calculation">
+                <strong>Calcul des dimensions :</strong><br>
+                • dim F = 3 (car F est un hyperplan de ℝ⁴)<br>
+                • dim G = 1 (car G est engendré par un vecteur non nul)<br><br>
                 
-                // Supprimer les anciens liens (garder les 2 premiers)
-                for (let i = 2; i < existingLinks.length; i++) {
-                    existingLinks[i].remove();
-                }
+                <strong>Vérification que F ∩ G = {0} :</strong><br><br>
                 
-                // Ajouter les catégories depuis l'API
-                data.category_buttons.forEach(category => {
-                    const link = document.createElement('a');
-                    link.href = `#category-${category.slug}`;
-                    link.className = 'nav-link';
-                    link.textContent = category.name;
-                    link.title = `${category.products_count} produits`;
-                    navLinks.insertBefore(link, navLinks.lastElementChild);
-                });
-            }
-
-            // Mise à jour du panier
-            if (data.cart_button) {
-                updateCartCount(data.cart_button.items_count || 0);
-            }
-        }
-
-        function renderHeaderFallback() {
-            // Header par défaut si l'API ne répond pas
-            console.log('Header par défaut chargé');
-        }
-
-        function renderBanners(data) {
-            const carouselContainer = document.getElementById('carouselContainer');
-            const carouselNav = document.getElementById('carouselNav');
-            
-            if (!data.banners || data.banners.length === 0) {
-                renderBannersFallback();
-                return;
-            }
-            
-            slides = data.banners;
-            carouselContainer.innerHTML = '';
-            carouselNav.innerHTML = '';
-            
-            slides.forEach((banner, index) => {
-                // Créer le slide
-                const slide = document.createElement('div');
-                slide.className = `carousel-slide ${index === 0 ? 'active' : ''}`;
-                slide.style.backgroundImage = `url(${banner.image_url})`;
+                Si (1,1,1,1) ∈ F, alors 1 + 1 - 1 + 2·1 = 3 ≠ 0.<br>
+                Donc (1,1,1,1) ∉ F, ce qui implique F ∩ G = {0}.<br><br>
                 
-                slide.innerHTML = `
-                    <div class="slide-overlay" style="background: rgba(0,0,0,${banner.overlay_opacity || 0.4})">
-                        <div class="slide-content">
-                            <h1 class="slide-title" style="color: ${banner.text_color || '#ffffff'}">${banner.title}</h1>
-                            ${banner.subtitle ? `<p class="slide-subtitle" style="color: ${banner.text_color || '#ffffff'}">${banner.subtitle}</p>` : ''}
-                            ${banner.description ? `<p class="slide-description" style="color: ${banner.text_color || '#ffffff'}">${banner.description}</p>` : ''}
-                            ${banner.button_text ? `<a href="${banner.link_url || '#'}" class="slide-button" style="background-color: ${banner.button_color || '#e74c3c'}">${banner.button_text}</a>` : ''}
-                        </div>
-                    </div>
-                `;
+                <strong>Vérification de la somme directe :</strong><br><br>
                 
-                carouselContainer.appendChild(slide);
+                dim(F ⊕ G) = dim F + dim G = 3 + 1 = 4 = dim ℝ⁴
+            </div>
+            
+            <div class="final-answer">
+                Donc F ⊕ G = ℝ⁴, ce qui signifie que F et G sont supplémentaires.
+            </div>
+        </div>
+        
+        <div class="sub-question">b) Soit p la projection sur F parallèlement à G. Déterminer p(u) pour tout u ∈ ℝ⁴</div>
+        <div class="solution">
+            <div class="calculation">
+                Pour u = (x, y, z, t) ∈ ℝ⁴, on écrit u = f + λe avec f ∈ F et λ ∈ ℝ.<br><br>
                 
-                // Créer le point de navigation
-                const dot = document.createElement('button');
-                dot.className = `nav-dot ${index === 0 ? 'active' : ''}`;
-                dot.onclick = () => goToSlide(index);
-                carouselNav.appendChild(dot);
-            });
-        }
-
-        function renderBannersFallback() {
-            // Bannières par défaut
-            const defaultBanners = [
-                {
-                    title: "Bienvenue sur Afèpanou",
-                    subtitle: "Marketplace Haïtien",
-                    description: "Découvrez l'excellence du commerce local haïtien",
-                    button_text: "Explorer",
-                    image_url: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
-                    text_color: "#ffffff"
-                },
-                {
-                    title: "Produits Authentiques",
-                    subtitle: "100% Haïtiens",
-                    description: "Des artisans locaux aux grandes marques",
-                    button_text: "Découvrir",
-                    image_url: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
-                    text_color: "#ffffff"
-                }
-            ];
-            
-            renderBanners({ banners: defaultBanners });
-        }
-
-        function renderProducts(data) {
-            const productsGrid = document.getElementById('productsGrid');
-            const productsTitle = document.getElementById('productsTitle');
-            const productsSubtitle = document.getElementById('productsSubtitle');
-            
-            // Mise à jour des titres
-            if (data.section_title) {
-                productsTitle.textContent = data.section_title;
-            }
-            
-            if (!data.products || data.products.length === 0) {
-                renderProductsFallback();
-                return;
-            }
-            
-            productsGrid.innerHTML = '';
-            
-            data.products.forEach(product => {
-                const productCard = document.createElement('div');
-                productCard.className = 'product-card';
-                productCard.setAttribute('data-aos', 'fade-up');
+                On a f = (x - λ, y - λ, z - λ, t - λ) qui doit vérifier :<br>
+                (x - λ) + (y - λ) - (z - λ) + 2(t - λ) = 0<br><br>
                 
-                const discountBadge = product.discount_percentage > 0 ? 
-                    `<div class="product-badge">-${product.discount_percentage}%</div>` : '';
+                Donc :<br>
+                x + y - z + 2t - 3λ = 0<br>
+                λ = (x + y - z + 2t)/3<br><br>
                 
-                const originalPrice = product.is_on_sale ? 
-                    `<span class="price-original">${product.original_price} HTG</span>` : '';
+                La projection est :<br>
+                p(u) = u - λe = (x, y, z, t) - [(x + y - z + 2t)/3](1, 1, 1, 1)
+            </div>
+            
+            <div class="final-answer">
+                p(u) = (x - (x + y - z + 2t)/3, y - (x + y - z + 2t)/3, z - (x + y - z + 2t)/3, t - (x + y - z + 2t)/3)<br><br>
                 
-                productCard.innerHTML = `
-                    <div class="product-image">
-                        <img src="${product.primary_image?.url || 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'}" 
-                             alt="${product.primary_image?.alt || product.name}"
-                             onerror="this.src='https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'">
-                        ${discountBadge}
-                    </div>
-                    <div class="product-info">
-                        <div class="product-category">${product.category_name || 'Produit'}</div>
-                        <h3 class="product-title">${product.name}</h3>
-                        <p class="product-description">${product.short_description || 'Découvrez ce produit exceptionnel'}</p>
-                        <div class="product-price">
-                            <div>
-                                <span class="price-current">${product.final_price} HTG</span>
-                                ${originalPrice}
-                            </div>
-                        </div>
-                        <button class="add-to-cart" onclick="addToCart('${product.slug}')">
-                            <i class="fas fa-shopping-cart"></i> Ajouter au Panier
-                        </button>
-                    </div>
-                `;
+                Ou de manière plus compacte :<br>
+                p(u) = (1/3)(2x - y + z - 2t, -x + 2y + z - 2t, -x - y + 2z - 2t, -x - y + z + t)
+            </div>
+        </div>
+        
+        <div class="sub-question">c) Soit s la symétrie par rapport à F parallèlement à G. Déterminer de deux manières différentes s(u) pour tout u ∈ ℝ⁴</div>
+        <div class="solution">
+            <div class="calculation">
+                <strong>Méthode 1 :</strong> Utilisation de la relation s = 2p - Id<br><br>
                 
-                productsGrid.appendChild(productCard);
-            });
-        }
-
-        function renderProductsFallback() {
-            const defaultProducts = [
-                {
-                    name: "Artisanat Traditionnel",
-                    short_description: "Pièce unique créée par nos artisans locaux",
-                    final_price: "2500",
-                    category_name: "Artisanat",
-                    slug: "artisanat-traditionnel",
-                    primary_image: { url: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" }
-                },
-                {
-                    name: "Produit Local Premium",
-                    short_description: "Qualité exceptionnelle, 100% haïtien",
-                    final_price: "1800",
-                    original_price: "2200",
-                    is_on_sale: true,
-                    discount_percentage: 18,
-                    category_name: "Premium",
-                    slug: "produit-local-premium",
-                    primary_image: { url: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" }
-                },
-                {
-                    name: "Spécialité Haïtienne",
-                    short_description: "Découvrez notre spécialité locale authentique",
-                    final_price: "3200",
-                    category_name: "Spécialités",
-                    slug: "specialite-haitienne",
-                    primary_image: { url: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" }
-                }
-            ];
-            
-            renderProducts({ products: defaultProducts });
-        }
-
-        function renderContentSections(data) {
-            const contentGrid = document.getElementById('contentGrid');
-            
-            if (!data.sections || data.sections.length === 0) {
-                renderContentFallback();
-                return;
-            }
-            
-            contentGrid.innerHTML = '';
-            
-            data.sections.forEach(section => {
-                const contentCard = document.createElement('div');
-                contentCard.className = 'content-card';
-                contentCard.setAttribute('data-aos', 'fade-up');
+                s(u) = 2p(u) - u<br><br>
                 
-                contentCard.innerHTML = `
-                    <div class="content-image" style="background: linear-gradient(135deg, ${section.background_color || '#f093fb'} 0%, ${section.background_color || '#f5576c'} 100%)">
-                        ${section.image_url ? `<img src="${section.image_url}" alt="${section.title}" style="width: 100%; height: 100%; object-fit: cover;">` : ''}
-                    </div>
-                    <div class="content-body">
-                        <h3 class="content-title" style="color: ${section.text_color || '#2c3e50'}">${section.title}</h3>
-                        <p class="content-description">${section.description}</p>
-                        ${section.button_text ? `<a href="${section.button_link || '#'}" class="content-button">${section.button_text}</a>` : ''}
-                    </div>
-                `;
+                En utilisant le résultat de la question précédente :<br>
+                s(u) = 2 · (1/3)(2x - y + z - 2t, -x + 2y + z - 2t, -x - y + 2z - 2t, -x - y + z + t) - (x, y, z, t)<br><br>
                 
-                contentGrid.appendChild(contentCard);
-            });
-        }
-
-        function renderContentFallback() {
-            const defaultContent = [
-                {
-                    title: "Produits de Première Nécessité",
-                    description: "Tous les produits essentiels du quotidien, disponibles en qualité premium et à prix abordables.",
-                    button_text: "Découvrir",
-                    background_color: "#667eea"
-                },
-                {
-                    title: "Produits Patriotiques",
-                    description: "Célébrez la fierté haïtienne avec notre collection de produits aux couleurs nationales.",
-                    button_text: "Explorer",
-                    background_color: "#f093fb"
-                },
-                {
-                    title: "Artisanat Local",
-                    description: "Œuvres d'art et créations artisanales authentiques, directement des mains de nos artistes locaux.",
-                    button_text: "Voir Plus",
-                    background_color: "#4facfe"
-                },
-                {
-                    title: "Production Agricole",
-                    description: "Produits frais et de qualité directement de nos agriculteurs haïtiens engagés.",
-                    button_text: "Commander",
-                    background_color: "#43e97b"
-                }
-            ];
+                Après calcul :<br>
+                s(u) = (1/3)(x - 2y + 2z - 4t, -2x + y + 2z - 4t, -2x - 2y + z - 4t, -2x - 2y + 2z - 5t)
+            </div>
             
-            renderContentSections({ sections: defaultContent });
-        }
-
-        function renderFooter(data) {
-            const footerContent = document.getElementById('footerContent');
-            
-            if (!data) {
-                renderFooterFallback();
-                return;
-            }
-            
-            footerContent.innerHTML = '';
-            
-            // Section Identité
-            if (data.identity_section) {
-                const identityDiv = document.createElement('div');
-                identityDiv.className = 'footer-section';
-                identityDiv.innerHTML = `
-                    <h3>${data.identity_section.site_name || 'Afèpanou'}</h3>
-                    <p>${data.identity_section.tagline || 'Marketplace Haïtien'}</p>
-                    <p>${data.identity_section.mission_statement || 'Créer un écosystème économique durable en Haïti'}</p>
-                    <div class="social-links">
-                        ${data.public_settings?.social_media?.facebook ? `<a href="${data.public_settings.social_media.facebook}" class="social-link"><i class="fab fa-facebook-f"></i></a>` : ''}
-                        ${data.public_settings?.social_media?.instagram ? `<a href="${data.public_settings.social_media.instagram}" class="social-link"><i class="fab fa-instagram"></i></a>` : ''}
-                        ${data.public_settings?.social_media?.twitter ? `<a href="${data.public_settings.social_media.twitter}" class="social-link"><i class="fab fa-twitter"></i></a>` : ''}
-                    </div>
-                `;
-                footerContent.appendChild(identityDiv);
-            }
-            
-            // Sections de Navigation
-            if (data.navigation_links) {
-                Object.keys(data.navigation_links).forEach(sectionName => {
-                    const section = data.navigation_links[sectionName];
-                    if (section && section.length > 0) {
-                        const navDiv = document.createElement('div');
-                        navDiv.className = 'footer-section';
-                        
-                        let sectionTitle = sectionName.charAt(0).toUpperCase() + sectionName.slice(1);
-                        if (sectionName === 'about') sectionTitle = 'À Propos';
-                        if (sectionName === 'sellers') sectionTitle = 'Vendeurs';
-                        if (sectionName === 'legal') sectionTitle = 'Légal';
-                        
-                        navDiv.innerHTML = `
-                            <h3>${sectionTitle}</h3>
-                            ${section.map(link => `<a href="#${link.slug}">${link.title}</a>`).join('')}
-                        `;
-                        footerContent.appendChild(navDiv);
-                    }
-                });
-            }
-            
-            // Contact
-            if (data.public_settings) {
-                const contactDiv = document.createElement('div');
-                contactDiv.className = 'footer-section';
-                contactDiv.innerHTML = `
-                    <h3>Contact</h3>
-                    ${data.public_settings.contact_email ? `<p><i class="fas fa-envelope"></i> ${data.public_settings.contact_email}</p>` : ''}
-                    ${data.public_settings.support_phone ? `<p><i class="fas fa-phone"></i> ${data.public_settings.support_phone}</p>` : ''}
-                    ${data.public_settings.business_hours ? `<p><i class="fas fa-clock"></i> ${data.public_settings.business_hours}</p>` : ''}
-                `;
-                footerContent.appendChild(contactDiv);
-            }
-        }
-
-        function renderFooterFallback() {
-            const footerContent = document.getElementById('footerContent');
-            footerContent.innerHTML = `
-                <div class="footer-section">
-                    <h3>Afèpanou</h3>
-                    <p>Marketplace Haïtien</p>
-                    <p>Créer un écosystème économique durable en Haïti, où chaque produit raconte une histoire et soutient notre communauté.</p>
-                    <div class="social-links">
-                        <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
-                    </div>
-                </div>
-                <div class="footer-section">
-                    <h3>À Propos</h3>
-                    <a href="#">Notre Histoire</a>
-                    <a href="#">Notre Mission</a>
-                    <a href="#">Nos Valeurs</a>
-                    <a href="#">L'Équipe</a>
-                </div>
-                <div class="footer-section">
-                    <h3>Vendeurs</h3>
-                    <a href="#">Devenir Vendeur</a>
-                    <a href="#">Support Vendeurs</a>
-                    <a href="#">Guide de Vente</a>
-                    <a href="#">Politique Vendeurs</a>
-                </div>
-                <div class="footer-section">
-                    <h3>Contact</h3>
-                    <p><i class="fas fa-envelope"></i> contact@afepanou.com</p>
-                    <p><i class="fas fa-phone"></i> +509 1234-5678</p>
-                    <p><i class="fas fa-clock"></i> 9h-17h (GMT-5)</p>
-                    <p><i class="fas fa-map-marker-alt"></i> Port-au-Prince, Haïti</p>
-                </div>
-            `;
-        }
-
-        // Carousel Functions
-        function initializeCarousel() {
-            const carouselConfig = {
-                auto_play: true,
-                interval: 5000,
-                transition: 'fade'
-            };
-            
-            if (carouselConfig.auto_play) {
-                startCarousel(carouselConfig.interval);
-            }
-            
-            // Event listeners pour les flèches
-            document.getElementById('prevButton').addEventListener('click', prevSlide);
-            document.getElementById('nextButton').addEventListener('click', nextSlide);
-        }
-
-        function startCarousel(interval = 5000) {
-            carouselInterval = setInterval(nextSlide, interval);
-        }
-
-        function stopCarousel() {
-            if (carouselInterval) {
-                clearInterval(carouselInterval);
-            }
-        }
-
-        function goToSlide(index) {
-            const slides = document.querySelectorAll('.carousel-slide');
-            const dots = document.querySelectorAll('.nav-dot');
-            
-            // Retirer les classes actives
-            slides[currentSlide]?.classList.remove('active');
-            dots[currentSlide]?.classList.remove('active');
-            
-            // Ajouter les classes actives
-            currentSlide = index;
-            slides[currentSlide]?.classList.add('active');
-            dots[currentSlide]?.classList.add('active');
-        }
-
-        function nextSlide() {
-            const totalSlides = document.querySelectorAll('.carousel-slide').length;
-            if (totalSlides === 0) return;
-            
-            const nextIndex = (currentSlide + 1) % totalSlides;
-            goToSlide(nextIndex);
-        }
-
-        function prevSlide() {
-            const totalSlides = document.querySelectorAll('.carousel-slide').length;
-            if (totalSlides === 0) return;
-            
-            const prevIndex = currentSlide === 0 ? totalSlides - 1 : currentSlide - 1;
-            goToSlide(prevIndex);
-        }
-
-        // Utility Functions
-        function showLoading(show) {
-            const loadingScreen = document.getElementById('loadingScreen');
-            if (show) {
-                loadingScreen.style.display = 'flex';
-            } else {
-                loadingScreen.style.display = 'none';
-            }
-        }
-
-        function showError(message) {
-            console.error(message);
-            // Optionnel: afficher une notification d'erreur à l'utilisateur
-        }
-
-        function updateCartCount(count) {
-            appState.cartCount = count;
-            document.getElementById('cartCount').textContent = count;
-            
-            if (count > 0) {
-                document.getElementById('cartCount').style.display = 'flex';
-            } else {
-                document.getElementById('cartCount').style.display = 'none';
-            }
-        }
-
-        function initializeScrollEffects() {
-            // Effet de scroll pour le header
-            window.addEventListener('scroll', function() {
-                const header = document.getElementById('header');
-                if (window.scrollY > 100) {
-                    header.classList.add('scrolled');
-                } else {
-                    header.classList.remove('scrolled');
-                }
-            });
-        }
-
-        function initializeSearch() {
-            const searchInput = document.getElementById('searchInput');
-            
-            searchInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    performSearch(this.value);
-                }
-            });
-        }
-
-        function performSearch(query) {
-            if (!query.trim()) return;
-            
-            console.log('Recherche:', query);
-            // Ici vous pourriez rediriger vers une page de résultats
-            // window.location.href = `/search?q=${encodeURIComponent(query)}`;
-            
-            // Ou faire un appel API pour la recherche
-            searchProducts(query);
-        }
-
-        async function searchProducts(query) {
-            try {
-                const data = await apiCall(`/products/search/?q=${encodeURIComponent(query)}`);
-                console.log('Résultats de recherche:', data);
+            <div class="calculation">
+                <strong>Méthode 2 :</strong> Décomposition directe<br><br>
                 
-                // Ici vous pourriez afficher les résultats dans une modal ou rediriger
-                alert(`${data.results?.length || 0} produits trouvés pour "${query}"`);
-            } catch (error) {
-                console.error('Erreur de recherche:', error);
-            }
-        }
+                Pour u = f + λe avec f ∈ F et λe ∈ G, on a :<br>
+                s(u) = f - λe<br><br>
+                
+                Avec λ = (x + y - z + 2t)/3 :<br>
+                s(u) = u - 2λe = (x, y, z, t) - [2(x + y - z + 2t)/3](1, 1, 1, 1)
+            </div>
+            
+            <div class="final-answer">
+                s(u) = (x - 2(x + y - z + 2t)/3, y - 2(x + y - z + 2t)/3, z - 2(x + y - z + 2t)/3, t - 2(x + y - z + 2t)/3)<br><br>
+                
+                Soit :<br>
+                s(u) = (1/3)(x - 2y + 2z - 4t, -2x + y + 2z - 4t, -2x - 2y + z - 4t, -2x - 2y + 2z - 5t)
+            </div>
+        </div>
+    </div>
+    
+    <div style="margin-top: 50px; text-align: center; font-style: italic;">
+        <p>— Fin du devoir —</p>
+    </div>
 
-        function addToCart(productSlug) {
-            // Simulation d'ajout au panier
-            console.log('Ajout au panier:', productSlug);
-            
-            // Incrémenter le compteur du panier
-            updateCartCount(appState.cartCount + 1);
-            
-            // Effet visuel
-            const button = event.target;
-            const originalText = button.innerHTML;
-            button.innerHTML = '<i class="fas fa-check"></i> Ajouté!';
-            button.style.background = '#27ae60';
-            
-            setTimeout(() => {
-                button.innerHTML = originalText;
-                button.style.background = '';
-            }, 2000);
-            
-            // Ici vous pourriez faire un appel API réel
-            // await apiCall('/cart/add_item/', { method: 'POST', body: { product_slug: productSlug, quantity: 1 }});
-        }
-
-        function scrollToSection(sectionId) {
-            const section = document.getElementById(sectionId);
-            if (section) {
-                section.scrollIntoView({ 
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-        }
-
-        // Pause carousel au survol
-        document.addEventListener('DOMContentLoaded', function() {
-            const carouselSection = document.getElementById('bannerSection');
-            
-            carouselSection.addEventListener('mouseenter', stopCarousel);
-            carouselSection.addEventListener('mouseleave', () => {
-                startCarousel(5000);
-            });
-        });
-    </script>
 </body>
-</html>
+</html>calculation">
+                <strong>Calcul de A²:</strong><br>
+                A² = <table class="matrix">
+                    <tr><td>-1</td><td>-2</td></tr>
+                    <tr><td>3</td><td>4</td></tr>
+                </table> × <table class="matrix">
+                    <tr><td>-1</td><td>-2</td></tr>
+                    <tr><td>3</td><td>4</td></tr>
+                </table> = <table class="matrix">
+                    <tr><td>-5</td><td>-6</td></tr>
+                    <tr><td>9</td><td>10</td></tr>
+                </table>
+                
+                <br><br><strong>Calcul de 3A:</strong><br>
+                3A = <table class="matrix">
+                    <tr><td>-3</td><td>-6</td></tr>
+                    <tr><td>9</td><td>12</td></tr>
+                </table>
+                
+                <br><br><strong>Donc:</strong><br>
+                A² - 3A + 2I₂ = <table class="matrix">
+                    <tr><td>-5</td><td>-6</td></tr>
+                    <tr><td>9</td><td>10</td></tr>
+                </table> - <table class="matrix">
+                    <tr><td>-3</td><td>-6</td></tr>
+                    <tr><td>9</td><td>12</td></tr>
+                </table> + <table class="matrix">
+                    <tr><td>2</td><td>0</td></tr>
+                    <tr><td>0</td><td>2</td></tr>
+                </table>
+            </div>
+            
+            <div class="final-answer">
+                A² - 3A + 2I₂ = <table class="matrix">
+                    <tr><td>0</td><td>0</td></tr>
+                    <tr><td>0</td><td>0</td></tr>
+                </table>
+            </div>
+        </div>
+        
+        <div class="sub-question">b) En déduire que A est inversible et calculer son inverse A⁻¹</div>
+        <div class="solution">
+            <div class="calculation">
+                De A² - 3A + 2I₂ = 0, on obtient:<br>
+                A² - 3A = -2I₂<br>
+                A(A - 3I₂) = -2I₂<br>
+                A · [-(A - 3I₂)/2] = I₂<br><br>
+                
+                Donc A est inversible et:<br>
+                A⁻¹ = -(A - 3I₂)/2 = (3I₂ - A)/2<br><br>
+                
+                A⁻¹ = 1/2 × [<table class="matrix">
+                    <tr><td>3</td><td>0</td></tr>
+                    <tr><td>0</td><td>3</td></tr>
+                </table> - <table class="matrix">
+                    <tr><td>-1</td><td>-2</td></tr>
+                    <tr><td>3</td><td>4</td></tr>
+                </table>] = 1/2 × <table class="matrix">
+                    <tr><td>4</td><td>2</td></tr>
+                    <tr><td>-3</td><td>-1</td></tr>
+                </table>
+            </div>
+            
+            <div class="final-answer">
+                A⁻¹ = <table class="matrix">
+                    <tr><td>2</td><td>1</td></tr>
+                    <tr><td>-3/2</td><td>-1/2</td></tr>
+                </table>
+            </div>
+        </div>
+        
+        <div class="sub-question">c) Pour n ≥ 2, déterminer le reste de la division euclidienne de Xⁿ par X² - 3X + 2</div>
+        <div class="solution">
+            <div class="calculation">
+                Le polynôme X² - 3X + 2 = (X-1)(X-2).<br><br>
+                
+                Par division euclidienne: Xⁿ = Q(X)(X² - 3X + 2) + aX + b<br><br>
+                
+                En évaluant en X = 1: 1ⁿ = 1 = a + b<br>
+                En évaluant en X = 2: 2ⁿ = 2a + b<br><br>
+                
+                Résolvant le système:<br>
+                • a + b = 1<br>
+                • 2a + b = 2ⁿ<br><br>
+                
+                On obtient: a = 2ⁿ - 1 et b = 2 - 2ⁿ
+            </div>
+            
+            <div class="final-answer">
+                Le reste est: (2ⁿ - 1)X + (2 - 2ⁿ)
+            </div>
+        </div>
+        
+        <div class="sub-question">d) En déduire l'expression de Aⁿ</div>
+        <div class="solution">
+            <div class="calculation">
+                En appliquant le théorème de Cayley-Hamilton:<br>
+                Aⁿ = (2ⁿ - 1)A + (2 - 2ⁿ)I₂<br><br>
+                
+                Aⁿ = (2ⁿ - 1)<table class="matrix">
+                    <tr><td>-1</td><td>-2</td></tr>
+                    <tr><td>3</td><td>4</td></tr>
+                </table> + (2 - 2ⁿ)<table class="matrix">
+                    <tr><td>1</td><td>0</td></tr>
+                    <tr><td>0</td><td>1</td></tr>
+                </table>
+            </div>
+            
+            <div class="final-answer">
+                Aⁿ = <table class="matrix">
+                    <tr><td>3 - 2ⁿ⁺¹</td><td>-2(2ⁿ - 1)</td></tr>
+                    <tr><td>3(2ⁿ - 1)</td><td>3·2ⁿ - 2</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <div class="exercise">
+        <div class="sub-question">2. Soit A = 
+            <table class="matrix">
+                <tr><td>1</td><td>1</td><td>0</td></tr>
+                <tr><td>0</td><td>1</td><td>1</td></tr>
+                <tr><td>0</td><td>0</td><td>1</td></tr>
+            </table> et soit B = A - I₃
+        </div>
+        
+        <div class="sub-question">a) Calculer B², B³</div>
+        <div class="solution">
+            <div class="calculation">
+                B = <table class="matrix">
+                    <tr><td>0</td><td>1</td><td>0</td></tr>
+                    <tr><td>0</td><td>0</td><td>1</td></tr>
+                    <tr><td>0</td><td>0</td><td>0</td></tr>
+                </table><br><br>
+                
+                B² = <table class="matrix">
+                    <tr><td>0</td><td>0</td><td>1</td></tr>
+                    <tr><td>0</td><td>0</td><td>0</td></tr>
+                    <tr><td>0</td><td>0</td><td>0</td></tr>
+                </table><br><br>
+                
+                B³ = <table class="matrix">
+                    <tr><td>0</td><td>0</td><td>0</td></tr>
+                    <tr><td>0</td><td>0</td><td>0</td></tr>
+                    <tr><td>0</td><td>0</td><td>0</td></tr>
+                </table>
+            </div>
+        </div>
+        
+        <div class="sub-question">b) Développer (B + I₃)ⁿ par la formule du binôme et simplifier</div>
+        <div class="solution">
+            <div class="calculation">
+                Par la formule du binôme:<br>
+                (B + I₃)ⁿ = Σ(k=0 à n) C(n,k) Bᵏ I₃ⁿ⁻ᵏ = Σ(k=0 à n) C(n,k) Bᵏ<br><br>
+                
+                Puisque Bᵏ = 0 pour k ≥ 3:
+            </div>
+            
+            <div class="final-answer">
+                (B + I₃)ⁿ = I₃ + nB + [n(n-1)/2]B²
+            </div>
+        </div>
+        
+        <div class="sub-question">c) En déduire Aⁿ pour tout entier n</div>
+        <div class="solution">
+            <div class="calculation">
+                Puisque A = B + I₃:<br>
+                Aⁿ = I₃ + nB + [n(n-1)/2]B²<br><br>
+                
+                Aⁿ = <table class="matrix">
+                    <tr><td>1</td><td>0</td><td>0</td></tr>
+                    <tr><td>0</td><td>1</td><td>0</td></tr>
+                    <tr><td>0</td><td>0</td><td>1</td></tr>
+                </table> + n<table class="matrix">
+                    <tr><td>0</td><td>1</td><td>0</td></tr>
+                    <tr><td>0</td><td>0</td><td>1</td></tr>
+                    <tr><td>0</td><td>0</td><td>0</td></tr>
+                </table> + [n(n-1)/2]<table class="matrix">
+                    <tr><td>0</td><td>0</td><td>1</td></tr>
+                    <tr><td>0</td><td>0</td><td>0</td></tr>
+                    <tr><td>0</td><td>0</td><td>0</td></tr>
+                </table>
+            </div>
+            
+            <div class="final-answer">
+                Aⁿ = <table class="matrix">
+                    <tr><td>1</td><td>n</td><td>n(n-1)/2</td></tr>
+                    <tr><td>0</td><td>1</td><td>n</td></tr>
+                    <tr><td>0</td><td>0</td><td>1</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <div class="exercise">
+        <div class="exercise-title">Exercice 2 (5 pts)</div>
+        
+        <div class="sub-question">1. Soient (E, +, ×) un 𝕂-ev, F et G deux sev de E</div>
+        
+        <div class="sub-question">a) F ∪ G est-il nécessairement un sev de E ?</div>
+        <div class="solution">
+            <p><strong>Réponse:</strong> Non, F ∪ G n'est pas nécessairement un sous-espace vectoriel de E.</p>
+            
+            <div class="calculation">
+                <strong>Contre-exemple:</strong> Dans ℝ², prenons:<br>
+                • F = {(x, 0) : x ∈ ℝ} (axe des abscisses)<br>
+                • G = {(0, y) : y ∈ ℝ} (axe des ordonnées)<br><br>
+                
+                Les vecteurs (1, 0) ∈ F ∪ G et (0, 1) ∈ F ∪ G, mais:<br>
+                (1, 0) + (0, 1) = (1, 1) ∉ F ∪ G<br><br>
+                
+                Donc F ∪ G n'est pas stable par addition.
+            </div>
+        </div>
+        
+        <div class="sub-question">b) Montrer que F ∪ G est un sev ⟺ F ⊂ G ou G ⊂ F</div>
+        <div class="solution">
+            <div class="calculation">
+                <strong>(⇐)</strong> Si F ⊂ G, alors F ∪ G = G qui est un sev.<br>
+                Si G ⊂ F, alors F ∪ G = F qui est un sev.<br><br>
+                
+                <strong>(⇒)</strong> Supposons que F ∪ G est un sev et que F ⊄ G et G ⊄ F.<br><br>
+                
+                Il existe u ∈ F \ G et v ∈ G \ F.<br>
+                Alors u, v ∈ F ∪ G, donc u + v ∈ F ∪ G (stabilité).<br><br>
+                
+                Si u + v ∈ F, alors v = (u + v) - u ∈ F (contradiction car v ∉ F).<br>
+                Si u + v ∈ G, alors u = (u + v) - v ∈ G (contradiction car u ∉ G).<br><br>
+                
+                Donc on ne peut avoir ni F ⊄ G ni G ⊄ F.
+            </div>
+        </div>
+        
+        <div class="sub-question">2. Montrer que les ensembles suivants sont des sous-espaces vectoriels en les écrivant sous la forme de vect(𝔉)</div>
+        
+        <div class="sub-question">a) F₁ = {P ∈ ℝ₃[X] | P(1) = 0}</div>
+        <div class="solution">
+            <div class="calculation">
+                F₁ est le noyau de l'application linéaire φ : P ↦ P(1), donc c'est un sev.<br>
+                Un polynôme P ∈ ℝ₃[X] vérifie P(1) = 0 si et seulement si (X-1) divise P.
+            </div>
+            
+            <div class="final-answer">
+                F₁ = vect{X-1, (X-1)², (X-1)³}
+            </div>
+        </div>
+        
+        <div class="sub-question">b) F₂ = {P ∈ ℝₙ[X] | P' = 0}</div>
+        <div class="solution">
+            <div class="calculation">
+                F₂ est l'ensemble des polynômes de dérivée nulle, donc des polynômes constants.
+            </div>
+            
+            <div class="final-answer">
+                F₂ = vect{1}
+            </div>
+        </div>
+        
+        <div class="sub-question">c) F₃ = {P ∈ ℝ₂[X] | P' = 0}</div>
+        <div class="solution">
+            <div class="final-answer">
+                F₃ = vect{1}
+            </div>
+        </div>
+        
+        <div class="sub-question">d) F₄ = {(x, y, z) ∈ ℝ³ | x + y - z = 0}</div>
+        <div class="solution">
+            <div class="calculation">
+                F₄ est le noyau de la forme linéaire (x, y, z) ↦ x + y - z.<br>
+                On peut paramétrer: z = x + y, donc (x, y, z) = (x, y, x+y) = x(1, 0, 1) + y(0, 1, 1).
+            </div>
+            
+            <div class="final-answer">
+                F₄ = vect{(1, 0, 1), (0, 1, 1)}
+            </div>
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <div class="exercise">
+        <div class="exercise-title">Exercice 3 (3 pts)</div>
+        
+        <div class="sub-question">Calculer l'inverse des matrices suivantes :</div>
+        
+        <div class="solution">
+            <div class="calculation">
+                <strong>Matrice A (matrice triangulaire supérieure avec des 1):</strong><br><br>
+                
+                Pour une matrice n×n triangulaire supérieure avec des 1 sur la diagonale et au-dessus, l'inverse suit le pattern:<br><br>
+                
+                A⁻¹ᵢⱼ = {<br>
+                &nbsp;&nbsp;1 si i = j<br>
+                &nbsp;&nbsp;(-1)ʲ⁻ⁱ si i < j<br>
+                &nbsp;&nbsp;0 si i > j<br>
+                }<br><br>
+                
+                <strong>Exemple pour n = 4:</strong><br>
+                A⁻¹ = <table class="matrix">
+                    <tr><td>1</td><td>-1</td><td>1</td><td>-1</td></tr>
+                    <tr><td>0</td><td>1</td><td>-1</td><td>1</td></tr>
+                    <tr><td>0</td><td>0</td><td>1</td><td>-1</td></tr>
+                    <tr><td>0</td><td>0</td><td>0</td><td>1</td></tr>
+                </table>
+            </div>
+            
+            <div class="calculation">
+                <strong>Matrice B:</strong><br><br>
+                
+                L'inverse de B suit le pattern:<br>
+                B⁻¹ᵢⱼ = {<br>
+                &nbsp;&nbsp;1 si i = j<br>
+                &nbsp;&nbsp;(-1)ʲ⁻ⁱ C(j,i) si i < j<br>
+                &nbsp;&nbsp;0 si i > j<br>
+                }<br><br>
+                
+                <strong>Exemple pour n = 4:</strong><br>
+                B⁻¹ = <table class="matrix">
+                    <tr><td>1</td><td>-2</td><td>1</td><td>0</td></tr>
+                    <tr><td>0</td><td>1</td><td>-2</td><td>1</td></tr>
+                    <tr><td>0</td><td>0</td><td>1</td><td>-2</td></tr>
+                    <tr><td>0</td><td>0</td><td>0</td><td>1</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="exercise">
+        <div class="exercise-title">Exercice 4 (5 pts)</div>
+        
+        <div class="sub-question">1. Calculer le rang des familles de vecteurs v = (v₁, v₂, v₃) de ℝ³ suivantes :</div>
+        
+        <div class="sub-question">a) v₁ = (1,2,0), v₂ = (0,1,0), v₃ = (1,1,1)</div>
+        <div class="solution">
+            <div class="calculation">
+                Matrice associée: M = <table class="matrix">
+                    <tr><td>1</td><td>0</td><td>1</td></tr>
+                    <tr><td>2</td><td>1</td><td>1</td></tr>
+                    <tr><td>0</td><td>0</td><td>1</td></tr>
+                </table><br><br>
+                
+                Réduction par lignes:<br>
+                L₂ ← L₂ - 2L₁: <table class="matrix">
+                    <tr><td>1</td><td>0</td><td>1</td></tr>
+                    <tr><td>0</td><td>1</td><td>-1</td></tr>
+                    <tr><td>0</td><td>0</td><td>1</td></tr>
+                </table><br><br>
+                
+                La matrice est de rang 3.
+            </div>
+            
+            <div class="final-answer">
+                <strong>Rang = 3</strong> (famille libre, base de ℝ³)
+            </div>
+        </div>
+        
+        <div class="sub-question">b) v₁ = (1,1,0), v₂ = (0,1,1), v₃ = (1,2,1)</div>
+        <div class="solution">
+            <div class="calculation">
+                Matrice associée: M = <table class="matrix">
+                    <tr><td>1</td><td>0</td><td>1</td></tr>
+                    <tr><td>1</td><td>1</td><td>2</td></tr>
+                    <tr><td>0</td><td>1</td><td>1</td></tr>
+                </table><br><br>
+                
+                Réduction par lignes:<br>
+                L₂ ← L₂ - L₁: <table class="matrix">
+                    <tr><td>1</td><td>0</td><td>1</td></tr>
+                    <tr><td>0</td><td>1</td><td>1</td></tr>
+                    <tr><td>0</td><td>1</td><td>1</td></tr>
+                </table><br><br>
+                
+                L₃ ← L₃ - L₂: <table class="matrix">
+                    <tr><td>1</td><td>0</td><td>1</td></tr>
+                    <tr><td>0</td><td>1</td><td>1</td></tr>
+                    <tr><td>0</td><td>0</td><td>0</td></tr>
+                </table><br><br>
+                
+                On constate que v₃ = v₁ + v₂.
+            </div>
+            
+            <div class="final-answer">
+                <strong>Rang = 2</strong> (famille liée)
+            </div>
+        </div>
+        
+        <div class="sub-question">c) v₁ = (1,1,1), v₂ = (1,2,1), v₃ = (1,-1,1)</div>
+        <div class="solution">
+            <div class="calculation">
+                Matrice associée: M = <table class="matrix">
+                    <tr><td>1</td><td>1</td><td>1</td></tr>
+                    <tr><td>1</td><td>2</td><td>-1</td></tr>
+                    <tr><td>1</td><td>1</td><td>1</td></tr>
+                </table><br><br>
+                
+                Réduction par lignes:<br>
+                L₂ ← L₂ - L₁ et L₃ ← L₃ - L₁: <table class="matrix">
+                    <tr><td>1</td><td>1</td><td>1</td></tr>
+                    <tr><td>0</td><td>1</td><td>-2</td></tr>
+                    <tr><td>0</td><td>0</td><td>0</td></tr>
+                </table>
+            </div>
+            
+            <div class="final-answer">
+                <strong>Rang = 2</strong>
+            </div>
+        </div>
+        
+        <div class="sub-question">2. Déterminer le rang des matrices suivantes :</div>
+        
+        <div class="solution">
+            <div class="

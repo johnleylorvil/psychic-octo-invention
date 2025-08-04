@@ -1,0 +1,122 @@
+/* ==========================================================================
+   1. PAGE D'ACCUEIL (HOME) - BANNIÈRE PRINCIPALE / HÉROS
+   ========================================================================== */
+
+.hero-banner {
+  padding: 4rem 2rem;
+  background-color: var(--warm-beige); /* Fond de la section */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hero-content {
+  text-align: center;
+  background-color: #FFFFFF;
+  padding: 3rem 4rem;
+  border-radius: 20px;
+  max-width: 800px;
+  box-shadow: var(--shadow-medium);
+}
+
+.hero-content h1 {
+  font-size: 3rem; /* 48px */
+  font-weight: 800;
+  margin-bottom: 1rem;
+}
+
+.hero-content p {
+  font-size: 1.125rem; /* 18px */
+  color: var(--text-subtle);
+  max-width: 600px;
+  margin: 0 auto 2rem auto;
+}
+
+/* Styles pour le carrousel lui-même (si vous en utilisez un) */
+/* Note : ces styles sont génériques. Une bibliothèque comme Swiper.js
+   aura ses propres classes à styliser. */
+.carousel-wrapper {
+    position: relative;
+}
+
+.carousel-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: var(--shadow-soft);
+}
+
+.carousel-nav.prev {
+    left: -60px; /* Positionnement à l'extérieur du contenu */
+}
+
+.carousel-nav.next {
+    right: -60px; /* Positionnement à l'extérieur du contenu */
+}
+
+
+/* ==========================================================================
+   2. SECTIONS GÉNÉRIQUES
+   ========================================================================== */
+
+.page-section {
+  padding: 4rem 2rem;
+}
+
+.section-title {
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+  color: var(--text-dark);
+}
+
+/* Grille pour produits vedettes, combos, etc. */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+
+/* ==========================================================================
+   3. SECTION APPEL À L'ACTION (CTA) ORANGE
+   ========================================================================== */
+
+.cta-section {
+  background: var(--gradient-primary);
+  color: var(--text-light);
+  padding: 4rem 2rem;
+  text-align: center;
+  border-radius: 20px;
+  margin: 2rem; /* Marge pour la faire ressortir */
+}
+
+.cta-section h2 {
+  color: var(--text-light);
+  font-family: var(--font-secondary);
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.cta-section p {
+  max-width: 600px;
+  margin: 0 auto 2rem auto;
+  opacity: 0.9;
+}
+
+.cta-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap; /* Pour les petits écrans */
+}

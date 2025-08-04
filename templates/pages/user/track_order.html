@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Suivi de Commande #{{ order.id }} - Afèpanou Marketplace{% endblock %}
+
+{% block content %}
+<div class="user-dashboard-container container">
+    <aside class="user-sidebar">
+        <h3>Bonjour, {{ user.first_name|default:user.username }}</h3>
+        <ul>
+            <li><a href="{% url 'account' %}">Mon Compte</a></li>
+            <li><a href="{% url 'orders' %}" class="active">Mes Commandes</a></li>
+            <li><a href="#">Adresses de livraison</a></li>
+            <li><a href="{% url 'logout' %}">Déconnexion</a></li>
+        </ul>
+    </aside>
+
+    <section class="user-content">
+        <h2>Suivi de la Commande #{{ order.id }}</h2>
+        <a href="{% url 'orders' %}" class="back-link">&larr; Retour à mes commandes</a>
+        
+        <div class="tracking-timeline">
+            <div class="timeline-step completed">
+                <div class="timeline-icon"><i class="fas fa-receipt"></i></div>
+                <div class="timeline-content">
+                    <strong>Commande Passée</strong>
+                    <small>{{ order.created_at|date:"d M Y, H:i" }}</small>
+                </div>
+            </div>
+            <div class="timeline-step {% if order.status in 'processing,shipped,delivered' %}completed{% endif %}">
+                <div class="timeline-icon"><i class="fas fa-box-open"></i></div>
+                <div class="timeline-content"><strong>En Préparation</strong></div>
+            </div>
+            <div class="timeline-step {% if order.status in 'shipped,delivered' %}completed{% endif %}">
+                <div class="timeline-icon"><i class="fas fa-truck"></i></div>
+                <div class="timeline-content"><strong>Expédiée</strong></div>
+            </div>
+            <div class="timeline-step {% if order.status == 'delivered' %}completed{% endif %}">
+                <div class="timeline-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="timeline-content"><strong>Livrée</strong></div>
+            </div>
+        </div>
+
+        <div class="order-details-summary">
+            <h4>Articles de cette commande</h4>
+            {% for item in order.items.all %}
+                <div class="summary-item">
+                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                    <div class="item-info">
+                        <span>{{ item.product.name }} (x{{ item.quantity }})</span>
+                    </div>
+                    <span class="item-price">{{ item.price }} HTG</span>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

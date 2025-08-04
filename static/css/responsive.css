@@ -1,0 +1,111 @@
+/* ==========================================================================
+   STYLES POUR TABLETTES (jusqu'à 992px)
+   ========================================================================== */
+
+@media (max-width: 992px) {
+  /* Ajustement du header */
+  .main-header {
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .main-nav ul {
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap; /* Permet aux liens de passer à la ligne */
+  }
+  
+  .search-bar {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .search-bar input {
+    width: 60%;
+  }
+
+  /* Ajustement des sections de page */
+  .page-section, .hero-banner, .cta-section {
+    padding: 3rem 1.5rem;
+  }
+
+  .section-title {
+    font-size: 2rem;
+  }
+  
+  .hero-content {
+    padding: 2rem;
+  }
+
+  .hero-content h1 {
+    font-size: 2.5rem;
+  }
+
+  /* Cache les flèches de navigation du carrousel sur les écrans plus petits */
+  .carousel-nav {
+      display: none;
+  }
+}
+
+
+/* ==========================================================================
+   STYLES POUR MOBILES (jusqu'à 768px)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  html {
+    font-size: 15px; /* Réduit la taille de base de la police */
+  }
+
+  /* Le header devient plus simple */
+  .main-header {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  
+  .main-nav, .search-bar {
+    display: none; /* Cache la navigation et la recherche pour un menu burger (à implémenter en JS) */
+  }
+
+  /* Vous ajouteriez une classe .burger-menu ici, à afficher */
+  /* .burger-menu { display: block; } */
+
+
+  .cta-actions {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .btn {
+    width: 100%;
+    max-width: 300px;
+  }
+  
+  .product-grid {
+    grid-template-columns: 1fr; /* Une seule colonne pour les produits */
+  }
+}
+
+/* ==========================================================================
+   PETITS AJUSTEMENTS (jusqu'à 480px)
+   ========================================================================== */
+
+@media (max-width: 480px) {
+  .hero-content {
+    padding: 1.5rem 1rem;
+  }
+
+  .hero-content h1 {
+    font-size: 2rem;
+  }
+  
+  .hero-content p {
+    font-size: 1rem;
+  }
+
+  .page-section, .hero-banner, .cta-section {
+    padding: 2rem 1rem;
+    margin: 1rem;
+  }
+}

@@ -1,0 +1,125 @@
+{% comment %}
+  Ce composant attend une liste d'objets 'banners'.
+  Chaque 'banner' devrait avoir :
+  - banner.title
+  - banner.subtitle
+  - banner.button_text
+  - banner.button_link (une URL)
+  
+  NOTE : Ce composant nécessite une bibliothèque JS (ex: Swiper.js) pour l'animation du carrousel.
+{% endcomment %}
+
+<style>
+    .hero-banner-card-style {
+        /* Fond de couleur terreuse derrière le carrousel */
+        background-color: #D35400; /* Utilisation de --secondary-orange */
+        padding: 40px 0;
+        position: relative; /* Contexte pour les flèches de navigation */
+    }
+
+    /* La slide est un conteneur qui centre la carte blanche */
+    .hero-banner-card-style .swiper-slide {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px; /* Espace pour que la carte ne touche pas les bords sur mobile */
+        background: transparent; /* Le fond de la slide est transparent */
+    }
+    
+    /* La "carte" blanche qui contient le texte */
+    .hero-banner-card-style .hero-content {
+        background-color: #FFFFFF;
+        border-radius: 20px;
+        padding: 3rem 4rem;
+        max-width: 800px;
+        width: 100%;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        border: 1px solid #eee;
+    }
+
+    /* Style du texte à l'intérieur de la carte */
+    .hero-banner-card-style .hero-content h1 {
+        color: #E67E22; /* Utilisation de --primary-orange */
+        font-family: 'Lora', serif;
+        font-size: 2.8rem;
+        margin-bottom: 1rem;
+    }
+
+    .hero-banner-card-style .hero-content p {
+        color: #555555; /* Utilisation de --text-subtle */
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+    }
+
+    /* Style de la pagination (les points en bas) */
+    .hero-banner-card-style .swiper-pagination {
+        position: static; /* Les points sont sous la carte, pas dessus */
+        margin-top: 25px;
+    }
+    .hero-banner-card-style .swiper-pagination-bullet {
+        background-color: rgba(255, 255, 255, 0.5);
+        width: 10px;
+        height: 10px;
+    }
+    .hero-banner-card-style .swiper-pagination-bullet-active {
+        background-color: #FFFFFF;
+    }
+    
+    /* Style des flèches de navigation */
+    .hero-banner-card-style .carousel-nav {
+        color: #D35400;
+        background-color: #FFFFFF;
+        border-radius: 50%;
+        width: 45px;
+        height: 45px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+    .hero-banner-card-style .carousel-nav::after {
+        font-size: 18px; /* Taille de l'icône de flèche */
+        font-weight: 700;
+    }
+</style>
+
+<section class="hero-banner-card-style">
+    <div style="position: relative; max-width: 1000px; margin: 0 auto;">
+        <div class="swiper hero-carousel">
+            <div class="swiper-wrapper">
+                
+                {% for banner in banners %}
+                <div class="swiper-slide">
+                    <div class="hero-content">
+                        <h1>{{ banner.title }}</h1>
+                        <p>{{ banner.subtitle }}</p>
+                        <a href="{{ banner.button_link }}" class="btn btn-primary">{{ banner.button_text }}</a>
+                    </div>
+                </div>
+                {% endfor %}
+
+                {% if not banners %}
+                <div class="swiper-slide">
+                    <div class="hero-content">
+                        <h1>Croissance Économique Locale</h1>
+                        <p>Découvrez les meilleurs produits haïtiens pour soutenir l'entrepreneuriat local et construire un avenir prospère ensemble.</p>
+                        <a href="{% url 'store' %}" class="btn btn-primary">Explorer Maintenant</a>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="hero-content">
+                        <h1>Qualité et Tradition</h1>
+                        <p>Chaque article est sélectionné pour son authenticité et son histoire. Achetez avec confiance.</p>
+                        <a href="{% url 'store' %}" class="btn btn-primary">Voir les Nouveautés</a>
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+
+            <div class="swiper-pagination"></div>
+        </div>
+
+        <div class="swiper-button-prev carousel-nav prev"></div>
+        <div class="swiper-button-next carousel-nav next"></div>
+    </div>
+</section>

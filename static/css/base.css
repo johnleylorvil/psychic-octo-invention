@@ -1,0 +1,103 @@
+/* ==========================================================================
+   1. VARIABLES CSS
+   ========================================================================== */
+
+:root {
+  /* Palette de couleurs "Growth-Driven Minimalism" */
+  --primary-orange: #E67E22;
+  --secondary-orange: #D35400;
+  --forest-green: #2D5016;
+  --terracotta: #CC6B49;
+  --warm-beige: #F5E6D3;
+  --cream: #F8F4E6;
+
+  /* Couleurs de texte */
+  --text-dark: #333333;
+  --text-light: #FFFFFF;
+  --text-subtle: #555555;
+
+  /* Dégradés */
+  --gradient-primary: linear-gradient(90deg, var(--primary-orange), var(--secondary-orange));
+
+  /* Ombres */
+  --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-medium: 0 8px 24px rgba(0, 0, 0, 0.1);
+
+  /* Typographie */
+  --font-primary: 'Poppins', sans-serif; /* Suggestion de police moderne et lisible */
+  --font-secondary: 'Lora', serif; /* Suggestion pour les titres, plus élégant */
+
+  /* Transitions */
+  --transition-fast: all 0.2s ease-in-out;
+  --transition-medium: all 0.4s ease-in-out;
+}
+
+/* ==========================================================================
+   2. STYLES DE BASE & RÉINITIALISATION (RESET)
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px; /* Définit la base pour les unités rem */
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-primary);
+  color: var(--text-dark);
+  background-color: var(--cream); /* Fond de page général de couleur crème */
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ==========================================================================
+   3. TYPOGRAPHIE
+   ========================================================================== */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-secondary);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--primary-orange); /* Les titres principaux reprennent la couleur primaire */
+}
+
+h1 {
+  font-size: 2.5rem; /* ~40px */
+}
+
+h2 {
+  font-size: 2rem; /* ~32px */
+}
+
+h3 {
+  font-size: 1.5rem; /* ~24px */
+}
+
+p {
+  margin-bottom: 1rem;
+}
+
+a {
+  color: var(--secondary-orange);
+  text-decoration: none;
+  transition: var(--transition-fast);
+}
+
+a:hover {
+  text-decoration: underline;
+  color: var(--primary-orange);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}

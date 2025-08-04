@@ -1,0 +1,414 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Commande Confirmée - Afèpanou Marketplace{% endblock %}
+
+{% block content %}
+
+<style>
+    .success-container {
+        max-width: 800px;
+        margin: 3rem auto;
+        padding: 0 20px;
+        text-align: center;
+    }
+
+    .success-box {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        padding: 3rem 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .success-box::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(90deg, #28a745, #20c997, #17a2b8);
+    }
+
+    .success-icon {
+        margin-bottom: 2rem;
+        position: relative;
+    }
+
+    .success-icon i {
+        font-size: 5rem;
+        color: #28a745;
+        animation: successPulse 2s ease-in-out infinite;
+        display: inline-block;
+    }
+
+    @keyframes successPulse {
+        0%, 100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1.1);
+            opacity: 0.8;
+        }
+    }
+
+    .success-box h1 {
+        font-size: 2.5rem;
+        color: #333;
+        margin-bottom: 1.5rem;
+        font-weight: 700;
+    }
+
+    .success-message {
+        font-size: 1.2rem;
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+    }
+
+    .order-details {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 2rem 0;
+        border-left: 4px solid #28a745;
+    }
+
+    .order-id {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #28a745;
+        margin-bottom: 0.5rem;
+    }
+
+    .order-total {
+        font-size: 1.2rem;
+        color: #333;
+        font-weight: 600;
+    }
+
+    .success-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 2rem;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 14px 24px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        min-width: 180px;
+        justify-content: center;
+    }
+
+    .btn-primary {
+        background: #E67E22;
+        color: white;
+        border-color: #E67E22;
+    }
+
+    .btn-primary:hover {
+        background: #D35400;
+        border-color: #D35400;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(230, 126, 34, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-secondary {
+        background: white;
+        color: #666;
+        border-color: #ddd;
+    }
+
+    .btn-secondary:hover {
+        background: #f8f9fa;
+        color: #333;
+        border-color: #ccc;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        text-decoration: none;
+    }
+
+    .delivery-info {
+        background: #e7f3ff;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 2rem 0;
+        border-left: 4px solid #17a2b8;
+    }
+
+    .delivery-info h3 {
+        color: #17a2b8;
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .delivery-info p {
+        color: #0c5460;
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    .contact-info {
+        background: #fff3cd;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 2rem 0;
+        border-left: 4px solid #ffc107;
+    }
+
+    .contact-info h3 {
+        color: #856404;
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .contact-info p {
+        color: #856404;
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    .social-share {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid #eee;
+    }
+
+    .social-share h4 {
+        color: #666;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+    }
+
+    .social-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+    }
+
+    .social-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        color: white;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-size: 1.2rem;
+    }
+
+    .social-btn.facebook {
+        background: #3b5998;
+    }
+
+    .social-btn.whatsapp {
+        background: #25d366;
+    }
+
+    .social-btn.twitter {
+        background: #1da1f2;
+    }
+
+    .social-btn:hover {
+        transform: translateY(-3px) scale(1.1);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+        color: white;
+        text-decoration: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .success-container {
+            margin: 2rem auto;
+        }
+        
+        .success-box {
+            padding: 2rem 1.5rem;
+        }
+        
+        .success-box h1 {
+            font-size: 2rem;
+        }
+        
+        .success-message {
+            font-size: 1.1rem;
+        }
+        
+        .success-actions {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .btn {
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .social-buttons {
+            gap: 0.5rem;
+        }
+    }
+
+    .confetti {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background: #E67E22;
+        animation: confetti-fall 3s linear infinite;
+    }
+
+    @keyframes confetti-fall {
+        0% {
+            transform: translateY(-100vh) rotate(0deg);
+            opacity: 1;
+        }
+        100% {
+            transform: translateY(100vh) rotate(720deg);
+            opacity: 0;
+        }
+    }
+</style>
+
+<div class="success-container">
+    <div class="success-box">
+        <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        
+        <h1>Commande Confirmée !</h1>
+        
+        <div class="success-message">
+            <p>Félicitations ! Votre commande a été traitée avec succès.</p>
+        </div>
+
+        <div class="order-details">
+            <div class="order-id">Commande #{{ order.id }}</div>
+            <div class="order-total">Total payé : {{ order.total }} HTG</div>
+        </div>
+
+        <div class="delivery-info">
+            <h3><i class="fas fa-truck"></i> Informations de Livraison</h3>
+            <p>
+                Votre commande sera livrée sous 24-48h à Port-au-Prince.<br>
+                Vous recevrez un SMS de confirmation avec les détails de livraison.
+            </p>
+        </div>
+
+        <div class="contact-info">
+            <h3><i class="fas fa-phone-alt"></i> Besoin d'aide ?</h3>
+            <p>
+                Notre équipe est disponible au <strong>+509 1234 5678</strong><br>
+                ou par email à <strong>support@afepanou.ht</strong>
+            </p>
+        </div>
+
+        <div class="success-actions">
+            <a href="{% url 'store' %}" class="btn btn-secondary">
+                <i class="fas fa-shopping-bag"></i>
+                Continuer mes achats
+            </a>
+            <a href="{% url 'orders' %}" class="btn btn-primary">
+                <i class="fas fa-list-alt"></i>
+                Voir mes commandes
+            </a>
+        </div>
+
+        <div class="social-share">
+            <h4>Partagez votre expérience Afèpanou</h4>
+            <div class="social-buttons">
+                <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" 
+                   target="_blank" class="social-btn facebook" title="Partager sur Facebook">
+                    <i class="fab fa-facebook-f"></i>
+                </a>
+                <a href="https://wa.me/?text=Je viens de commander sur Afèpanou Marketplace !" 
+                   target="_blank" class="social-btn whatsapp" title="Partager sur WhatsApp">
+                    <i class="fab fa-whatsapp"></i>
+                </a>
+                <a href="https://twitter.com/intent/tweet?text=Excellente expérience d'achat sur @AfeapanouHT !" 
+                   target="_blank" class="social-btn twitter" title="Partager sur Twitter">
+                    <i class="fab fa-twitter"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Créer des confettis animés
+    function createConfetti() {
+        const colors = ['#E67E22', '#D35400', '#28a745', '#17a2b8', '#ffc107'];
+        const container = document.querySelector('.success-box');
+        
+        for (let i = 0; i < 50; i++) {
+            setTimeout(() => {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = Math.random() * 3 + 's';
+                confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                
+                container.appendChild(confetti);
+                
+                // Supprimer le confetti après l'animation
+                setTimeout(() => {
+                    if (confetti.parentNode) {
+                        confetti.parentNode.removeChild(confetti);
+                    }
+                }, 5000);
+            }, i * 100);
+        }
+    }
+    
+    // Lancer les confettis
+    createConfetti();
+    
+    // Notification de succès
+    showNotification('Commande confirmée avec succès ! 🎉', 'success');
+    
+    // Mettre à jour le compteur du panier (il devrait être à 0)
+    updateCartIcon(0);
+    
+    // Animation d'entrée
+    const successBox = document.querySelector('.success-box');
+    successBox.style.opacity = '0';
+    successBox.style.transform = 'translateY(30px)';
+    
+    setTimeout(() => {
+        successBox.style.transition = 'all 0.6s ease';
+        successBox.style.opacity = '1';
+        successBox.style.transform = 'translateY(0)';
+    }, 100);
+    
+    // Confettis supplémentaires toutes les 5 secondes
+    setInterval(createConfetti, 8000);
+});
+</script>
+{% endblock %}

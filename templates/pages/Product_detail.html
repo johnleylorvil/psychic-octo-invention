@@ -1,0 +1,447 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ product.name }} - Afèpanou Marketplace{% endblock %}
+
+{% block content %}
+
+<style>
+    .product-detail-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 20px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+        align-items: start;
+    }
+
+    .product-gallery {
+        position: sticky;
+        top: 100px;
+    }
+
+    .main-image {
+        width: 100%;
+        height: 500px;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        margin-bottom: 1rem;
+    }
+
+    .main-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .main-image:hover img {
+        transform: scale(1.05);
+    }
+
+    .thumbnail-images {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+
+    .thumbnail {
+        width: 80px;
+        height: 80px;
+        border-radius: 8px;
+        overflow: hidden;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: border-color 0.2s ease;
+    }
+
+    .thumbnail.active {
+        border-color: #E67E22;
+    }
+
+    .thumbnail img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .product-info {
+        padding: 1rem 0;
+    }
+
+    .product-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 0.5rem;
+        line-height: 1.2;
+    }
+
+    .product-category {
+        display: inline-block;
+        background: #f8f9fa;
+        color: #666;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        margin-bottom: 1rem;
+        text-transform: capitalize;
+    }
+
+    .product-price {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #D35400;
+        margin: 1rem 0;
+    }
+
+    .product-short-description {
+        color: #666;
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+    }
+
+    .add-to-cart-form {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+
+    .quantity-selector {
+        margin-bottom: 1rem;
+    }
+
+    .quantity-selector label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #333;
+    }
+
+    .quantity-selector input {
+        width: 80px;
+        padding: 12px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        font-size: 1rem;
+        text-align: center;
+        transition: border-color 0.2s ease;
+    }
+
+    .quantity-selector input:focus {
+        outline: none;
+        border-color: #E67E22;
+    }
+
+    .add-to-cart-btn {
+        width: 100%;
+        background: #E67E22;
+        color: white;
+        border: none;
+        padding: 16px 24px;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .add-to-cart-btn:hover {
+        background: #D35400;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(230, 126, 34, 0.3);
+    }
+
+    .add-to-cart-btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .stock-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #28a745;
+        font-weight: 500;
+        margin-bottom: 1rem;
+    }
+
+    .stock-status.out-of-stock {
+        color: #dc3545;
+    }
+
+    .product-meta {
+        border-top: 1px solid #eee;
+        padding-top: 1rem;
+        margin-top: 1rem;
+    }
+
+    .meta-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        color: #666;
+    }
+
+    .meta-item strong {
+        color: #333;
+    }
+
+    .product-full-description {
+        max-width: 1200px;
+        margin: 3rem auto;
+        padding: 0 20px;
+    }
+
+    .product-full-description h2 {
+        font-size: 1.8rem;
+        color: #333;
+        margin-bottom: 1rem;
+    }
+
+    .product-full-description hr {
+        border: none;
+        height: 2px;
+        background: linear-gradient(to right, #E67E22, #D35400);
+        margin-bottom: 2rem;
+    }
+
+    .description-content {
+        font-size: 1rem;
+        line-height: 1.8;
+        color: #555;
+    }
+
+    .back-to-store {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #666;
+        text-decoration: none;
+        margin-bottom: 1rem;
+        transition: color 0.2s ease;
+    }
+
+    .back-to-store:hover {
+        color: #E67E22;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .product-detail-container {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+        
+        .main-image {
+            height: 300px;
+        }
+        
+        .product-title {
+            font-size: 1.5rem;
+        }
+        
+        .product-price {
+            font-size: 2rem;
+        }
+    }
+</style>
+
+<div class="product-detail-container">
+    <div class="product-gallery">
+        <div class="main-image">
+            <img src="{{ product.image }}" alt="{{ product.name }}" id="main-product-image">
+        </div>
+        <div class="thumbnail-images">
+            <div class="thumbnail active">
+                <img src="{{ product.image }}" alt="Image principale" onclick="changeMainImage('{{ product.image }}', this)">
+            </div>
+            {# Espace pour d'autres images si disponibles #}
+        </div>
+    </div>
+
+    <div class="product-info">
+        <a href="{% url 'store' %}?category={{ product.category }}" class="back-to-store">
+            <i class="fas fa-arrow-left"></i> Retour à la boutique
+        </a>
+        
+        <div class="product-category">{{ product.category|title }}</div>
+        
+        <h1 class="product-title">{{ product.name }}</h1>
+        
+        <div class="product-price">{{ product.price }} HTG</div>
+        
+        <div class="product-short-description">
+            {{ product.description|truncatewords:20 }}
+        </div>
+        
+        <form class="add-to-cart-form">
+            {% csrf_token %}
+            <div class="quantity-selector">
+                <label for="quantity">Quantité :</label>
+                <input type="number" id="quantity" name="quantity" value="1" min="1" max="{{ product.stock }}">
+            </div>
+            
+            <button 
+                type="submit" 
+                class="add-to-cart-btn"
+                data-product-id="{{ product.id }}"
+                {% if product.stock <= 0 %}disabled{% endif %}>
+                <i class="fas fa-shopping-cart"></i>
+                {% if product.stock > 0 %}
+                    Ajouter au Panier
+                {% else %}
+                    Rupture de Stock
+                {% endif %}
+            </button>
+        </form>
+        
+        <div class="stock-status {% if product.stock <= 0 %}out-of-stock{% endif %}">
+            <i class="fas fa-{% if product.stock > 0 %}check-circle{% else %}times-circle{% endif %}"></i>
+            <strong>Disponibilité :</strong>
+            {% if product.stock > 0 %}
+                En Stock ({{ product.stock }} disponible{{ product.stock|pluralize }})
+            {% else %}
+                Rupture de Stock
+            {% endif %}
+        </div>
+
+        <div class="product-meta">
+            <div class="meta-item">
+                <span>Catégorie :</span>
+                <strong>{{ product.category|title }}</strong>
+            </div>
+            <div class="meta-item">
+                <span>ID Produit :</span>
+                <strong>#{{ product.id }}</strong>
+            </div>
+            {% if product.category == 'services' %}
+            <div class="meta-item">
+                <span>Type :</span>
+                <strong>Service</strong>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="product-full-description">
+    <h2>Description Détaillée</h2>
+    <hr>
+    <div class="description-content">
+        {{ product.description|linebreaks }}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function changeMainImage(imageUrl, thumbnail) {
+    // Changer l'image principale
+    document.getElementById('main-product-image').src = imageUrl;
+    
+    // Mettre à jour les classes active des thumbnails
+    document.querySelectorAll('.thumbnail').forEach(thumb => {
+        thumb.classList.remove('active');
+    });
+    thumbnail.parentElement.classList.add('active');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Gestion du formulaire d'ajout au panier
+    const form = document.querySelector('.add-to-cart-form');
+    
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const button = this.querySelector('.add-to-cart-btn');
+            const productId = button.dataset.productId;
+            const quantityInput = this.querySelector('#quantity');
+            const quantity = quantityInput.value;
+            const csrftoken = getCookie('csrftoken');
+            
+            // Vérification de la quantité
+            if (quantity < 1) {
+                showNotification('Veuillez sélectionner une quantité valide', 'error');
+                return;
+            }
+            
+            // Désactiver le bouton temporairement
+            button.disabled = true;
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ajout en cours...';
+            
+            fetch("{% url 'add_to_cart' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    product_id: productId,
+                    quantity: parseInt(quantity)
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Mettre à jour le compteur du panier
+                    updateCartIcon(data.cart_item_count);
+                    
+                    // Animation de succès
+                    button.innerHTML = '<i class="fas fa-check"></i> Ajouté au Panier !';
+                    button.style.background = '#28a745';
+                    
+                    // Notification de succès
+                    showNotification('Produit ajouté au panier avec succès !', 'success');
+                    
+                    // Remettre le bouton normal après 3 secondes
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.style.background = '#E67E22';
+                        button.disabled = false;
+                    }, 3000);
+                    
+                } else {
+                    throw new Error(data.message || 'Erreur lors de l\'ajout');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                showNotification('Erreur : ' + error.message, 'error');
+                
+                // Remettre le bouton normal
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+        });
+    }
+    
+    // Validation de la quantité en temps réel
+    const quantityInput = document.getElementById('quantity');
+    if (quantityInput) {
+        quantityInput.addEventListener('input', function() {
+            const max = parseInt(this.getAttribute('max'));
+            const value = parseInt(this.value);
+            
+            if (value > max) {
+                this.value = max;
+                showNotification(`Quantité maximale disponible : ${max}`, 'warning');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

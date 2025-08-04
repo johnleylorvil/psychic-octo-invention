@@ -1,0 +1,524 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Votre Panier - Afèpanou Marketplace{% endblock %}
+
+{% block content %}
+
+<style>
+    .cart-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 20px;
+    }
+
+    .cart-container h1 {
+        font-size: 2.5rem;
+        color: #333;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .cart-layout {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+        align-items: start;
+    }
+
+    .cart-items-list {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+
+    .cart-header {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr 60px;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #555;
+        border-bottom: 1px solid #eee;
+    }
+
+    .cart-item-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr 60px;
+        gap: 1rem;
+        padding: 1.5rem;
+        border-bottom: 1px solid #f0f0f0;
+        align-items: center;
+        transition: background 0.2s ease;
+    }
+
+    .cart-item-row:hover {
+        background: #fafafa;
+    }
+
+    .cart-item-row:last-child {
+        border-bottom: none;
+    }
+
+    .cart-product-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .cart-product-info img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .cart-product-info div h3 {
+        margin: 0 0 0.25rem 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .cart-product-info div a {
+        color: #333;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .cart-product-info div a:hover {
+        color: #E67E22;
+    }
+
+    .cart-product-info div small {
+        color: #666;
+        font-size: 0.85rem;
+    }
+
+    .cart-item-price {
+        font-weight: 600;
+        color: #D35400;
+        font-size: 1.1rem;
+    }
+
+    .cart-quantity-input {
+        width: 80px;
+        padding: 8px 12px;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        text-align: center;
+        font-size: 1rem;
+        transition: border-color 0.2s ease;
+    }
+
+    .cart-quantity-input:focus {
+        outline: none;
+        border-color: #E67E22;
+    }
+
+    .cart-item-subtotal {
+        font-weight: 700;
+        color: #333;
+        font-size: 1.1rem;
+    }
+
+    .remove-from-cart-btn {
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .remove-from-cart-btn:hover {
+        background: #c82333;
+        transform: scale(1.05);
+    }
+
+    .order-summary {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        padding: 1.5rem;
+        height: fit-content;
+        position: sticky;
+        top: 100px;
+    }
+
+    .order-summary h2 {
+        font-size: 1.5rem;
+        color: #333;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    .summary-line {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+        color: #666;
+    }
+
+    .summary-line:last-of-type {
+        margin-bottom: 1rem;
+    }
+
+    .summary-total {
+        display: flex;
+        justify-content: space-between;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #333;
+        padding-top: 1rem;
+        border-top: 2px solid #eee;
+        margin-bottom: 1.5rem;
+    }
+
+    .btn {
+        display: block;
+        width: 100%;
+        padding: 14px 20px;
+        background: #E67E22;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+        text-align: center;
+        transition: all 0.3s ease;
+        border: none;
+        font-size: 1rem;
+        cursor: pointer;
+    }
+
+    .btn:hover {
+        background: #D35400;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(230, 126, 34, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    .cart-empty {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .cart-empty i {
+        font-size: 4rem;
+        color: #ccc;
+        margin-bottom: 1rem;
+    }
+
+    .cart-empty h2 {
+        font-size: 2rem;
+        color: #333;
+        margin-bottom: 1rem;
+    }
+
+    .cart-empty p {
+        font-size: 1.1rem;
+        color: #666;
+        margin-bottom: 2rem;
+    }
+
+    .cart-empty .btn {
+        max-width: 300px;
+        margin: 0 auto;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .cart-layout {
+            grid-template-columns: 1fr;
+        }
+        
+        .cart-header,
+        .cart-item-row {
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+        
+        .cart-header {
+            display: none; /* Cacher les en-têtes sur mobile */
+        }
+        
+        .cart-item-row {
+            display: block;
+            padding: 1rem;
+        }
+        
+        .cart-product-info {
+            margin-bottom: 1rem;
+        }
+        
+        .cart-item-price,
+        .cart-item-subtotal {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .cart-item-price::before {
+            content: "Prix: ";
+            font-weight: normal;
+            color: #666;
+        }
+        
+        .cart-item-subtotal::before {
+            content: "Sous-total: ";
+            font-weight: normal;
+            color: #666;
+        }
+        
+        .cart-item-quantity {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .cart-item-quantity::before {
+            content: "Quantité: ";
+            font-weight: normal;
+            color: #666;
+        }
+        
+        .remove-from-cart-btn {
+            width: 100%;
+            border-radius: 6px;
+            height: 44px;
+        }
+    }
+
+    .loading {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+</style>
+
+<div class="cart-container">
+    <h1>Votre Panier</h1>
+    
+    {% if cart_items %}
+    <div class="cart-layout">
+        <div class="cart-items-list">
+            <div class="cart-header">
+                <div class="header-product">Produit</div>
+                <div class="header-price">Prix</div>
+                <div class="header-quantity">Quantité</div>
+                <div class="header-subtotal">Sous-total</div>
+                <div></div>
+            </div>
+
+            {% for item in cart_items %}
+            <div class="cart-item-row" id="cart-item-{{ item.product.id }}">
+                <div class="cart-product-info">
+                    <img src="{{ item.product.image }}" alt="{{ item.product.name }}">
+                    <div>
+                        <h3><a href="{% url 'product_detail' slug=item.product.slug %}">{{ item.product.name }}</a></h3>
+                        <small>Catégorie: {{ item.product.category|title }}</small>
+                    </div>
+                </div>
+
+                <div class="cart-item-price">{{ item.product.price }} HTG</div>
+
+                <div class="cart-item-quantity">
+                    <input 
+                        type="number" 
+                        class="cart-quantity-input" 
+                        value="{{ item.quantity }}" 
+                        min="1"
+                        max="{{ item.product.stock }}"
+                        data-product-id="{{ item.product.id }}">
+                </div>
+
+                <div class="cart-item-subtotal">{{ item.total_price }} HTG</div>
+
+                <div class="cart-item-remove">
+                    <button 
+                        class="remove-from-cart-btn"
+                        data-product-id="{{ item.product.id }}"
+                        title="Supprimer cet article">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <aside class="order-summary">
+            <h2>Résumé de la Commande</h2>
+            <div class="summary-line">
+                <span>Sous-total ({{ cart_items|length }} article{{ cart_items|length|pluralize }})</span>
+                <span id="summary-subtotal">{{ cart_total }} HTG</span>
+            </div>
+            <div class="summary-line">
+                <span>Livraison</span>
+                <span>Gratuite</span>
+            </div>
+            <div class="summary-total">
+                <span>Total</span>
+                <span id="summary-total">{{ cart_total }} HTG</span>
+            </div>
+            <a href="{% url 'checkout' %}" class="btn">Passer à la Caisse</a>
+        </aside>
+    </div>
+
+    {% else %}
+    <div class="cart-empty">
+        <i class="fas fa-shopping-cart"></i>
+        <h2>Votre panier est vide</h2>
+        <p>Découvrez nos produits et services exceptionnels !</p>
+        <a href="{% url 'store' %}" class="btn">Découvrir nos produits</a>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const csrftoken = getCookie('csrftoken');
+
+    // --- MISE À JOUR DE LA QUANTITÉ ---
+    document.querySelectorAll('.cart-quantity-input').forEach(input => {
+        input.addEventListener('change', function() {
+            const productId = this.dataset.productId;
+            const quantity = this.value;
+            const row = document.getElementById(`cart-item-${productId}`);
+            
+            // Validation de la quantité
+            if (quantity < 1) {
+                this.value = 1;
+                showNotification('La quantité minimum est 1', 'warning');
+                return;
+            }
+            
+            const maxQuantity = parseInt(this.getAttribute('max'));
+            if (quantity > maxQuantity) {
+                this.value = maxQuantity;
+                showNotification(`Quantité maximum disponible: ${maxQuantity}`, 'warning');
+                return;
+            }
+            
+            // Ajout de l'état de chargement
+            row.classList.add('loading');
+            
+            fetch("{% url 'update_cart' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrftoken
+                },
+                body: `product_id=${productId}&quantity=${quantity}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    // Mise à jour du sous-total de l'article
+                    row.querySelector('.cart-item-subtotal').textContent = data.item_subtotal;
+                    
+                    // Mise à jour des totaux
+                    document.getElementById('summary-subtotal').textContent = data.cart_total;
+                    document.getElementById('summary-total').textContent = data.cart_total;
+                    
+                    // Mise à jour du compteur du panier
+                    updateCartIcon(data.cart_item_count);
+                    
+                    showNotification('Quantité mise à jour', 'success');
+                } else {
+                    throw new Error(data.message || 'Erreur lors de la mise à jour');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                showNotification('Erreur lors de la mise à jour: ' + error.message, 'error');
+                
+                // Remettre l'ancienne valeur en cas d'erreur
+                this.value = this.defaultValue;
+            })
+            .finally(() => {
+                // Retirer l'état de chargement
+                row.classList.remove('loading');
+            });
+        });
+    });
+
+    // --- SUPPRESSION D'UN ARTICLE ---
+    document.querySelectorAll('.remove-from-cart-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const productId = this.dataset.productId;
+            const row = document.getElementById(`cart-item-${productId}`);
+            
+            // Confirmation de suppression
+            if (!confirm('Êtes-vous sûr de vouloir supprimer cet article ?')) {
+                return;
+            }
+            
+            // Ajout de l'état de chargement
+            row.classList.add('loading');
+            this.disabled = true;
+            
+            fetch("{% url 'remove_from_cart' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrftoken
+                },
+                body: `product_id=${productId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    // Animation de suppression
+                    row.style.transform = 'translateX(-100%)';
+                    row.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        row.remove();
+                        
+                        // Mise à jour des totaux
+                        document.getElementById('summary-subtotal').textContent = data.cart_total;
+                        document.getElementById('summary-total').textContent = data.cart_total;
+                        
+                        // Mise à jour du compteur du panier
+                        updateCartIcon(data.cart_item_count);
+                        
+                        // Si plus d'articles, recharger la page pour afficher le panier vide
+                        if (document.querySelectorAll('.cart-item-row').length === 0) {
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 500);
+                        }
+                    }, 300);
+                    
+                    showNotification('Article supprimé du panier', 'success');
+                } else {
+                    throw new Error(data.message || 'Erreur lors de la suppression');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                showNotification('Erreur lors de la suppression: ' + error.message, 'error');
+                
+                // Retirer l'état de chargement en cas d'erreur
+                row.classList.remove('loading');
+                this.disabled = false;
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

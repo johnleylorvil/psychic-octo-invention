@@ -1,0 +1,458 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Notre Boutique - Afèpanou Marketplace{% endblock %}
+
+{% block content %}
+<style>
+    /* ======================================= */
+    /* STYLE POUR LE STORE ET LES FILTRES */
+    /* ======================================= */
+    
+    .store-container {
+        display: flex;
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 20px;
+    }
+
+    /* Conteneur principal de la barre de filtres */
+    .filter-sidebar {
+        background-color: #FFFFFF;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        padding: 1rem 1.5rem;
+        align-self: flex-start;
+        height: fit-content;
+    }
+
+    .filter-sidebar h3 {
+        font-size: 1.5rem;
+        color: #333;
+        text-align: left;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    /* Styles pour chaque widget de filtre */
+    .filter-widget {
+        border-bottom: 1px solid #f0f0f0;
+        padding: 1.25rem 0;
+    }
+    .filter-widget:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .filter-widget-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .filter-widget-header .icon {
+        transition: transform 0.3s ease;
+    }
+
+    /* Comportement du menu pliable */
+    .filter-widget-body {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease-out, margin-top 0.4s ease-out;
+    }
+    
+    .filter-widget.open .filter-widget-body {
+        max-height: 1000px;
+        margin-top: 1rem;
+    }
+    
+    .filter-widget.open .icon {
+        transform: rotate(180deg);
+    }
+
+    /* Style des options de filtre */
+    .filter-option {
+        margin-bottom: 0.75rem;
+    }
+
+    .filter-option a {
+        display: block;
+        text-decoration: none;
+        color: #666;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        padding: 4px 0;
+    }
+
+    .filter-option a:hover {
+        color: #E67E22;
+        text-decoration: none;
+    }
+    
+    .filter-option a.active {
+        color: #D35400;
+        font-weight: 700;
+    }
+
+    /* Section des produits */
+    .store-products {
+        flex: 1;
+    }
+
+    .store-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .product-count {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .active-filters {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+    }
+    .af_content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .active-filters h4 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1rem;
+        color: #333;
+    }
+
+    .active-filters span {
+        background: #E67E22;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        margin-right: 0.5rem;
+    }
+
+    /* Grille des produits */
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .product-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        overflow: hidden;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .product-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+
+    .product-image {
+        position: relative;
+        height: 200px;
+        overflow: hidden;
+    }
+
+    .product-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .product-card:hover .product-image img {
+        transform: scale(1.05);
+    }
+
+    .product-info {
+        padding: 1rem;
+    }
+
+    .product-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+        line-height: 1.3;
+    }
+
+    .product-title a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .product-title a:hover {
+        color: #E67E22;
+    }
+
+    .product-price {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #D35400;
+        margin-bottom: 1rem;
+    }
+
+    .add-to-cart-form {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .quantity-input {
+        width: 60px;
+        padding: 6px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        text-align: center;
+    }
+
+    .add-to-cart-btn {
+        flex: 1;
+        background: #E67E22;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+
+    .add-to-cart-btn:hover {
+        background: #D35400;
+    }
+
+    /* Pagination */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+    }
+
+    .pagination a, .pagination span {
+        padding: 8px 12px;
+        text-decoration: none;
+        color: #666;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+    }
+
+    .pagination a:hover {
+        background: #E67E22;
+        color: white;
+        border-color: #E67E22;
+    }
+
+    .pagination .current {
+        background: #D35400;
+        color: white;
+        border-color: #D35400;
+    }
+
+    .btn {
+        display: inline-block;
+        padding: 6px 12px;
+        background: #dc3545;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn:hover {
+        background: #c82333;
+        color: white;
+    }
+</style>
+
+<div class="store-container">
+    <aside class="filter-sidebar" style="flex: 0 0 280px;">
+        <form method="get" id="filter-form">
+            <h3>Filtres</h3>
+
+            <div class="filter-widget open">
+                <div class="filter-widget-header">
+                    <span>Catégories</span>
+                    <i class="fas fa-chevron-down icon"></i>
+                </div>
+                <div class="filter-widget-body" style="max-height: 1000px;">
+                    <div class="filter-option">
+                        <a href="{% url 'store' %}" class="{% if not selected_category_slug %}active{% endif %}">Toutes les catégories</a>
+                    </div>
+                    {% for cat in categories %}
+                        <div class="filter-option">
+                            <a href="{% url 'store' %}?category={{ cat.slug }}" class="{% if selected_category_slug == cat.slug %}active{% endif %}">{{ cat.name }}</a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </form>
+    </aside>
+
+    <section class="store-products">
+        <div class="store-toolbar">
+            <div class="product-count">
+                Affichage de <strong>{{ products|length }}</strong> produit{{ products|length|pluralize }}
+            </div>
+        </div>
+
+        {% if search_query or selected_category_slug %}
+        <div class="active-filters">
+            <h4>Filtres actifs :</h4>
+            <div class="af_content">
+                {% if search_query %}
+                    <span>Recherche : "{{ search_query }}"</span>
+                {% endif %}
+                {% if selected_category_slug %}
+                    <span>Catégorie : {{ selected_category_slug|title }}</span>
+                {% endif %}
+                <a href="{% url 'store' %}" class="btn" style="float: right;">Effacer les filtres</a>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="product-grid" id="product-display-area">
+            {% for product in products %}
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="{{ product.image }}" alt="{{ product.name }}" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">
+                            <a href="{% url 'product_detail' slug=product.slug %}">{{ product.name }}</a>
+                        </h3>
+                        <div class="product-price">{{ product.price }} HTG</div>
+                        <form class="add-to-cart-form">
+                            {% csrf_token %}
+                            <input type="number" class="quantity-input" value="1" min="1" max="{{ product.stock }}" id="quantity-{{ product.id }}">
+                            <button 
+                                type="submit" 
+                                class="add-to-cart-btn"
+                                data-product-id="{{ product.id }}">
+                                Ajouter au Panier
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% empty %}
+                <div style="text-align: center; width: 100%; padding: 3rem; grid-column: 1 / -1;">
+                    <i class="fas fa-search" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
+                    <h3 style="color: #666; margin-bottom: 0.5rem;">Aucun produit trouvé</h3>
+                    <p style="color: #999;">Essayez d'autres filtres ou termes de recherche.</p>
+                    <a href="{% url 'store' %}" class="btn" style="background: #E67E22; margin-top: 1rem;">Voir tous les produits</a>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Script pour les filtres pliables
+    document.querySelectorAll('.filter-widget-header').forEach(header => {
+        header.addEventListener('click', () => {
+            const widget = header.closest('.filter-widget');
+            widget.classList.toggle('open');
+            
+            const body = widget.querySelector('.filter-widget-body');
+            if (widget.classList.contains('open')) {
+                body.style.maxHeight = body.scrollHeight + 'px';
+            } else {
+                body.style.maxHeight = null;
+            }
+        });
+    });
+
+    // Ouvre par défaut les widgets ayant la classe 'open'
+    document.querySelectorAll('.filter-widget.open .filter-widget-body').forEach(body => {
+        body.style.maxHeight = body.scrollHeight + 'px';
+    });
+
+    // Gestion de l'ajout au panier depuis la grille
+    document.querySelectorAll('.add-to-cart-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const button = this.querySelector('.add-to-cart-btn');
+            const productId = button.dataset.productId;
+            const quantityInput = this.querySelector('.quantity-input');
+            const quantity = quantityInput.value;
+            const csrftoken = getCookie('csrftoken');
+            
+            // Désactiver le bouton temporairement
+            button.disabled = true;
+            button.textContent = 'Ajout...';
+            
+            fetch("{% url 'add_to_cart' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    product_id: productId,
+                    quantity: parseInt(quantity)
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Mettre à jour le compteur du panier
+                    updateCartIcon(data.cart_item_count);
+                    
+                    // Notification de succès
+                    showNotification('Produit ajouté au panier !', 'success');
+                    
+                    // Animation du bouton
+                    button.textContent = '✓ Ajouté';
+                    button.style.background = '#28a745';
+                    
+                    setTimeout(() => {
+                        button.textContent = 'Ajouter au Panier';
+                        button.style.background = '#E67E22';
+                        button.disabled = false;
+                    }, 2000);
+                } else {
+                    showNotification('Erreur: ' + data.message, 'error');
+                    button.disabled = false;
+                    button.textContent = 'Ajouter au Panier';
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                showNotification('Erreur lors de l\'ajout au panier', 'error');
+                button.disabled = false;
+                button.textContent = 'Ajouter au Panier';
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Accueil - Afèpanou Marketplace{% endblock %}
+
+{% block extra_css %}
+    {# On charge toutes les feuilles de style nécessaires #}
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    <link rel="stylesheet" href="{% static 'css/sectionew.css' %}">
+{% endblock %}
+
+
+{% block content %}
+
+    {# --- 1. DIAPORAMA "HERO" (Inchangé) --- #}
+    <section class="hero-slideshow">
+        <div class="swiper">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide" style="background-image: url('https://f005.backblazeb2.com/file/afepanou/tech-gadgets-banner.png');"></div>
+                <div class="swiper-slide" style="background-image: url('https://f005.backblazeb2.com/file/afepanou/patriotic-marketplace-hero.png');"></div>
+                <div class="swiper-slide" style="background-image: url('https://f005.backblazeb2.com/file/afepanou/banners/services/banniere_cours_informatique.png');"></div>
+                <div class="swiper-slide" style="background-image: url('https://f005.backblazeb2.com/file/afepanou/professional-services-hero.jpg');"></div>
+                <div class="swiper-slide" style="background-image: url('https://f005.backblazeb2.com/file/afepanou/banners/agricole/banniere_mangues.png');"></div>
+            </div>
+            <div class="swiper-pagination"></div>
+            <div class="swiper-button-prev"></div>
+            <div class="swiper-button-next"></div>
+        </div>
+    </section>
+
+    {# --- 2. Section "Marques Populaires" (RESTaurÉE) --- #}
+    <section class="popular-brands-section">
+        <h2 class="section-title animate-on-scroll">Nos Marques Populaires</h2>
+        <div class="brand-logos animate-on-scroll">
+            <img src="https://logovector.net/wp-content/uploads/2013/08/versace-logo-vector.png" alt="Versace">
+            <img src="https://logovector.net/wp-content/uploads/2012/03/coach-logo-vector.png" alt="Coach">
+            <img src="https://logovector.net/wp-content/uploads/2012/11/burberry-logo-vector.png" alt="Burberry">
+            <img src="https://logovector.net/wp-content/uploads/2013/11/prada-logo-vector-400x400.png" alt="Prada">
+            <img src="https://logovector.net/wp-content/uploads/2013/03/gucci-logo-vector-2015.png" alt="Gucci">
+        </div>
+    </section>
+
+    {# --- 3. Section "Nos Boutiques à la Une" (RESTaurÉE) --- #}
+    <section class="featured-brands-section">
+        <div class="featured-brands-content animate-on-scroll">
+            <h2>Nos Boutiques à la Une</h2>
+            <p>Découvrez l'excellence de nos vendeurs vedettes. Le meilleur de l'artisanat, de la mode et de la technologie, réuni en une seule destination.</p>
+            <a href="#" class="btn btn-primary">Explorer les boutiques</a>
+        </div>
+        <div class="image-collage-wrapper animate-on-scroll">
+            <div class="collage-card collage-card-1"><img src="https://f005.backblazeb2.com/file/afepanou/featured/tissage-paniers-culture-authentique.png" alt="Produit aléatoire 1"></div>
+            <div class="collage-card collage-card-2"><img src="https://f005.backblazeb2.com/file/afepanou/produits/patriotiques/tshirt_drapeau_haiti.png" alt="Produit aléatoire 2"></div>
+            <div class="collage-card collage-card-3"><img src="https://f005.backblazeb2.com/file/afepanou/produits/premiere-necessite/bouteille_huile.png" alt="Produit aléatoire 3"></div>
+        </div>
+    </section>
+
+    {# --- 4. NOUVELLE SECTION : "Explorez Nos Collections" AVEC IMAGES --- #}
+    <section class="page-section features-section">
+        <h2 class="section-title">Explorez Nos Collections</h2>
+        <p class="section-subtitle">
+            Plongez dans l'univers riche et diversifié du commerce haïtien avec nos collections spécialisées.
+        </p>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-card-image"><img src="https://f005.backblazeb2.com/file/afepanou/featured/tissage-paniers-culture-authentique.png" alt="Artisanat haïtien"></div>
+                <div class="card-content">
+                    <h3>Marketplace Communautaire</h3>
+                    <p>Rejoignez une communauté dynamique de commerçants et d'entrepreneurs qui partagent la vision d'une croissance économique durable et inclusive.</p>
+                    <a href="#" class="btn-discover">En Savoir Plus</a>
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-card-image"><img src="https://f005.backblazeb2.com/file/afepanou/featured/multiservicesphotoadminlegal.png" alt="Services diversifiés"></div>
+                <div class="card-content">
+                    <h3>Services Diversifiés</h3>
+                    <p>De la consultation professionnelle aux services techniques spécialisés, trouvez tous les services dont vous avez besoin auprès d'experts haïtiens.</p>
+                    <a href="#" class="btn-discover">Découvrir</a>
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-card-image"><img src="https://f005.backblazeb2.com/file/afepanou/featured/multiservicesphotoadminlegal.png" alt="Vendre des produits sur Afèpanou"></div>
+                <div class="card-content">
+                    <h3>Vendez sur Afèpanou</h3>
+                    <p>Développez votre business en rejoignant notre plateforme. Accédez aux outils, au support et à la visibilité nécessaires pour votre succès.</p>
+                    <a href="#" class="btn-discover">Commencer</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    {# --- 5. NOUVELLE SECTION : "Histoires de Succès" AVEC IMAGES --- #}
+    <section class="page-section testimonials-section">
+        <h2 class="section-title">Histoires de Succès</h2>
+        <p class="section-subtitle">
+            Découvrez comment Afèpanou transforme la vie des entrepreneurs haïtiens.
+        </p>
+        <div class="features-grid">
+            <div class="testimonial-card">
+                <p class="quote">Grâce à Afèpanou, j'ai pu faire connaître mes créations à travers tout Haïti et augmenter mes revenus de 300%.</p>
+                <div class="testimonial-author">
+                    <img src="https://f005.backblazeb2.com/file/afepanou/featured/multiservicesphotoadminlegal.png" alt="Marie, Artisane de Bijoux" class="author-avatar">
+                    <div class="author-info">
+                        <span class="author-name">Marie, Artisane de Bijoux</span>
+                        <span class="author-details">Port-au-Prince | Artisanat</span>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <p class="quote">Ma production de café bio trouve maintenant des acheteurs réguliers. Afèpanou a révolutionné ma façon de vendre.</p>
+                <div class="testimonial-author">
+                     <img src="https://f005.backblazeb2.com/file/afepanou/produits/premiere-necessite/sac_de_riz.png" alt="Jean, Producteur" class="author-avatar">
+                    <div class="author-info">
+                        <span class="author-name">Jean, Producteur de Café</span>
+                        <span class="author-details">Jacmel | Agriculture</span>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <p class="quote">En tant que consultante, Afèpanou me permet de toucher plus de clients et de développer mon expertise.</p>
+                <div class="testimonial-author">
+                     <img src="https://f005.backblazeb2.com/file/afepanou/services/promo_tutorat_maths.png" alt="Lucie, Consultante" class="author-avatar">
+                    <div class="author-info">
+                        <span class="author-name">Lucie, Consultante Marketing</span>
+                        <span class="author-details">Cap-Haïtien | Services</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const heroSwiper = new Swiper('.hero-slideshow .swiper', {
+            modules: [Swiper.Autoplay, Swiper.Navigation, Swiper.Pagination],
+            loop: true,
+            autoplay: { delay: 4000, disableOnInteraction: false },
+            navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
+            pagination: { el: '.swiper-pagination', clickable: true },
+        });
+    });
+</script>
+{% endblock scripts %}
