@@ -19,6 +19,23 @@
         text-align: center;
     }
 
+    /* Alert des économies */
+    .savings-alert {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        border: 2px solid #28a745;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        text-align: center;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+    }
+
     .checkout-layout {
         display: grid;
         grid-template-columns: 2fr 1fr;
@@ -210,16 +227,38 @@
         margin-bottom: 1.5rem;
     }
 
+    /* Styles pour les combos dans le résumé */
     .summary-item {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         gap: 1rem;
         padding: 1rem 0;
         border-bottom: 1px solid #f0f0f0;
+        position: relative;
     }
 
     .summary-item:last-child {
         border-bottom: none;
+    }
+
+    .combo-summary-item {
+        background: linear-gradient(135deg, #fff5cd 0%, #fef7e0 100%);
+        border-left: 4px solid #ffc107;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+
+    .combo-badge-summary {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #ffc107;
+        color: #333;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
     }
 
     .summary-item img {
@@ -237,9 +276,55 @@
         font-weight: 500;
     }
 
+    .combo-included-products {
+        background: rgba(255, 255, 255, 0.8);
+        padding: 8px;
+        border-radius: 4px;
+        margin: 8px 0;
+        font-size: 0.8rem;
+    }
+
+    .combo-pricing-summary {
+        background: rgba(255, 255, 255, 0.9);
+        padding: 8px;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        margin-top: 8px;
+    }
+
+    .original-price-summary {
+        text-decoration: line-through;
+        color: #666;
+    }
+
+    .discount-summary {
+        color: #28a745;
+        font-weight: 600;
+    }
+
+    .final-price-summary {
+        color: #0066cc;
+        font-weight: 700;
+    }
+
+    .savings-highlight-summary {
+        background: #d4edda;
+        color: #155724;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        margin-top: 4px;
+        text-align: center;
+    }
+
     .summary-item .item-price {
         font-weight: 600;
         color: #D35400;
+        text-align: right;
+    }
+
+    .combo-item-price {
+        color: #0066cc !important;
     }
 
     .summary-line {
@@ -251,6 +336,11 @@
 
     .summary-line:last-of-type {
         margin-bottom: 1rem;
+    }
+
+    .summary-savings {
+        color: #28a745;
+        font-weight: 600;
     }
 
     .summary-total {
@@ -286,6 +376,16 @@
         color: #E67E22;
     }
 
+    .promo-message {
+        background: linear-gradient(135deg, #e7f3ff 0%, #f0f8ff 100%);
+        border: 1px solid #0066cc;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        text-align: center;
+        font-size: 0.9rem;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
         .checkout-layout {
@@ -304,6 +404,14 @@
         
         .checkout-container h1 {
             font-size: 2rem;
+        }
+
+        .combo-summary-item {
+            padding: 1rem;
+        }
+
+        .savings-alert {
+            padding: 1rem;
         }
     }
 
@@ -337,6 +445,21 @@
     <a href="{% url 'cart' %}" class="back-to-cart">
         <i class="fas fa-arrow-left"></i> Retour au panier
     </a>
+
+    <!-- Affichage des économies si il y en a -->
+    {% if total_savings > 0 %}
+    <div class="savings-alert">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 1rem;">
+            <i class="fas fa-piggy-bank" style="font-size: 2rem; color: #28a745;"></i>
+            <div>
+                <h4 style="margin: 0; color: #155724;">Félicitations ! 🎉</h4>
+                <p style="margin: 0; color: #155724; font-size: 1.1rem;">
+                    Vous économisez <strong>{{ total_savings }} HTG</strong> grâce aux offres combo !
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
     
     {% if messages %}
         {% for message in messages %}
@@ -431,32 +554,105 @@
 
             <aside class="checkout-summary">
                 <h3>Résumé de votre commande</h3>
+
+                <!-- Message promotionnel si pas de combos -->
+                {% if total_savings == 0 %}
+                <div class="promo-message">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Astuce :</strong> Découvrez nos <a href="{% url 'store' %}?category=combo" style="color: #0066cc;">offres combo</a> pour économiser !
+                </div>
+                {% endif %}
+
                 <div class="summary-items">
                     {% for item in cart_items %}
-                    <div class="summary-item">
-                        <img src="{{ item.product.image }}" alt="{{ item.product.name }}">
-                        <div class="item-info">
-                            <div>{{ item.product.name }}</div>
-                            <small style="color: #666;">Quantité: {{ item.quantity }}</small>
+                        {% if item.type == 'combo' %}
+                        <!-- Affichage pour les combos -->
+                        <div class="combo-summary-item">
+                            <div class="combo-badge-summary">COMBO</div>
+                            <div class="summary-item" style="border-bottom: none; padding: 0;">
+                                <img src="{{ item.combo.image }}" alt="{{ item.combo.name }}">
+                                <div class="item-info">
+                                    <div style="color: #0066cc; font-weight: 600;">{{ item.combo.name }}</div>
+                                    <small style="color: #666;">{{ item.combo.description }}</small>
+                                    <small style="color: #666; display: block;">Quantité: {{ item.quantity }}</small>
+                                    
+                                    <!-- Produits inclus (version compacte) -->
+                                    <div class="combo-included-products">
+                                        <strong style="font-size: 0.8rem;">Contient :</strong>
+                                        {% for product in item.combo.products %}
+                                            <br><span style="font-size: 0.75rem;">• {{ product.name }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    <!-- Détails des prix -->
+                                    <div class="combo-pricing-summary">
+                                        <div>Prix normal: <span class="original-price-summary">{{ item.combo.original_total }} HTG</span></div>
+                                        <div>Réduction: <span class="discount-summary">-{{ item.combo.discount_amount }} HTG</span></div>
+                                        <div>Prix combo: <span class="final-price-summary">{{ item.combo.final_price }} HTG</span></div>
+                                    </div>
+                                    
+                                    <div class="savings-highlight-summary">
+                                        <i class="fas fa-arrow-down"></i>
+                                        Économie: {{ item.combo.savings }} HTG
+                                    </div>
+                                </div>
+                                <span class="item-price combo-item-price">{{ item.total_price }} HTG</span>
+                            </div>
                         </div>
-                        <span class="item-price">{{ item.total_price }} HTG</span>
-                    </div>
+                        
+                        {% else %}
+                        <!-- Affichage pour les produits normaux -->
+                        <div class="summary-item">
+                            <img src="{{ item.product.image }}" alt="{{ item.product.name }}">
+                            <div class="item-info">
+                                <div>{{ item.product.name }}</div>
+                                <small style="color: #666;">Quantité: {{ item.quantity }}</small>
+                                <small style="color: #666; display: block;">{{ item.product.price }} HTG/unité</small>
+                            </div>
+                            <span class="item-price">{{ item.total_price }} HTG</span>
+                        </div>
+                        {% endif %}
                     {% endfor %}
                 </div>
+                
                 <hr>
+                
+                <!-- Récapitulatif des totaux -->
                 <div class="summary-line">
-                    <span>Sous-total ({{ cart_items|length }} article{{ cart_items|length|pluralize }})</span>
-                    <span>{{ cart_total }} HTG</span>
+                    <span>Sous-total :</span>
+                    <span>
+                        {% if total_savings > 0 %}
+                            {{ cart_total|add:total_savings }} HTG
+                        {% else %}
+                            {{ cart_total }} HTG
+                        {% endif %}
+                    </span>
                 </div>
+                
+                {% if total_savings > 0 %}
                 <div class="summary-line">
-                    <span>Livraison</span>
+                    <span class="summary-savings">Économies combos :</span>
+                    <span class="summary-savings">-{{ total_savings }} HTG</span>
+                </div>
+                {% endif %}
+                
+                <div class="summary-line">
+                    <span>Livraison :</span>
                     <span style="color: #28a745; font-weight: 600;">Gratuite</span>
                 </div>
+                
                 <hr>
+                
                 <div class="summary-total">
-                    <span>Total à payer</span>
+                    <span>Total à payer :</span>
                     <span>{{ cart_total }} HTG</span>
                 </div>
+                
+                {% if total_savings > 0 %}
+                <div style="text-align: center; color: #28a745; font-size: 0.9rem; margin-top: 1rem; font-weight: 600;">
+                    🎉 Vous économisez {{ total_savings }} HTG !
+                </div>
+                {% endif %}
             </aside>
             
         </div>
@@ -522,7 +718,11 @@ document.addEventListener('DOMContentLoaded', function() {
         submitBtn.disabled = true;
         
         // Message de redirection
+        {% if total_savings > 0 %}
+        showNotification('🎉 Excellent choix ! Vous économisez {{ total_savings }} HTG. Redirection vers MonCash...', 'success');
+        {% else %}
         showNotification('Redirection vers MonCash...', 'info');
+        {% endif %}
     });
     
     // Validation en temps réel du téléphone
@@ -554,6 +754,44 @@ document.addEventListener('DOMContentLoaded', function() {
         
         this.value = phone;
     });
+
+    // Animation d'entrée pour les économies
+    const savingsAlert = document.querySelector('.savings-alert');
+    if (savingsAlert) {
+        savingsAlert.style.opacity = '0';
+        savingsAlert.style.transform = 'translateY(-20px)';
+        setTimeout(() => {
+            savingsAlert.style.transition = 'all 0.5s ease';
+            savingsAlert.style.opacity = '1';
+            savingsAlert.style.transform = 'translateY(0)';
+        }, 300);
+    }
 });
+
+// Fonction pour afficher les notifications
+function showNotification(message, type) {
+    const alertClass = type === 'success' ? 'alert-success' : 
+                      type === 'warning' ? 'alert-warning' : 
+                      type === 'info' ? 'alert-info' : 'alert-danger';
+    
+    const alert = document.createElement('div');
+    alert.className = `alert ${alertClass} position-fixed`;
+    alert.style.top = '20px';
+    alert.style.right = '20px';
+    alert.style.zIndex = '9999';
+    alert.style.minWidth = '300px';
+    alert.style.padding = '1rem';
+    alert.style.borderRadius = '8px';
+    alert.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+    alert.innerHTML = message;
+    
+    document.body.appendChild(alert);
+    
+    setTimeout(() => {
+        alert.style.opacity = '0';
+        alert.style.transform = 'translateX(100%)';
+        setTimeout(() => alert.remove(), 300);
+    }, type === 'success' ? 4000 : 3000);
+}
 </script>
 {% endblock %}

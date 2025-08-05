@@ -242,6 +242,203 @@
         background: #D35400;
     }
 
+    /* ======================================= */
+    /* STYLES POUR LES COMBOS */
+    /* ======================================= */
+
+    .combo-offers-section {
+        background: linear-gradient(135deg, #fff5cd 0%, #fff8e1 100%);
+        padding: 30px 15px;
+        border-radius: 15px;
+        margin: 30px 0;
+        border: 2px dashed #ffc107;
+    }
+
+    .combo-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-left: 4px solid #ffc107;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        overflow: hidden;
+        height: 100%;
+    }
+
+    .combo-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    .combo-image {
+        position: relative;
+        height: 200px;
+        overflow: hidden;
+    }
+
+    .combo-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .combo-card:hover .combo-image img {
+        transform: scale(1.05);
+    }
+
+    .combo-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #dc3545;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .combo-type-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: #ffc107;
+        color: #333;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .combo-info {
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .combo-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #0066cc;
+        margin-bottom: 0.5rem;
+    }
+
+    .combo-description {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .combo-products-list {
+        background: rgba(255, 255, 255, 0.7);
+        padding: 10px;
+        border-radius: 6px;
+        margin-bottom: 1rem;
+    }
+
+    .combo-products-list h6 {
+        font-size: 0.9rem;
+        color: #333;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+
+    .combo-products-list ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .combo-products-list li {
+        font-size: 0.8rem;
+        color: #666;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+    }
+
+    .combo-products-list li i {
+        margin-right: 6px;
+        color: #28a745;
+    }
+
+    .pricing-section {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        margin-top: auto;
+    }
+
+    .price-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .price-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .original-price {
+        text-decoration: line-through;
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .savings {
+        color: #28a745;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .final-price {
+        color: #0066cc;
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+
+    .btn-add-combo {
+        background: #ffc107;
+        color: #333;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 6px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-top: 10px;
+        width: 100%;
+    }
+
+    .btn-add-combo:hover {
+        background: #e0a800;
+        transform: translateY(-1px);
+    }
+
+    .btn-combo-detail {
+        background: none;
+        border: 1px solid #0066cc;
+        color: #0066cc;
+        padding: 6px 12px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 0.85rem;
+        margin-top: 8px;
+        display: inline-block;
+        transition: all 0.2s ease;
+    }
+
+    .btn-combo-detail:hover {
+        background: #0066cc;
+        color: white;
+        text-decoration: none;
+    }
+
     /* Pagination */
     .pagination {
         display: flex;
@@ -287,6 +484,26 @@
         background: #c82333;
         color: white;
     }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .store-container {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .filter-sidebar {
+            flex: none;
+        }
+        
+        .combo-offers-section {
+            padding: 20px 10px;
+        }
+        
+        .product-grid {
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        }
+    }
 </style>
 
 <div class="store-container">
@@ -316,7 +533,7 @@
     <section class="store-products">
         <div class="store-toolbar">
             <div class="product-count">
-                Affichage de <strong>{{ products|length }}</strong> produit{{ products|length|pluralize }}
+                Affichage de <strong>{{ products|length }}{% if combos %} + {{ combos|length }} combo{{ combos|length|pluralize }}{% endif %}</strong> article{{ products|length|add:combos|length|pluralize }}
             </div>
         </div>
 
@@ -335,6 +552,80 @@
         </div>
         {% endif %}
 
+        <!-- Section Offres Combo -->
+        {% if combos %}
+        <div class="combo-offers-section">
+            <div class="text-center mb-4">
+                <h3>
+                    <i class="fas fa-fire text-danger me-2"></i>
+                    Offres Combo Spéciales
+                    <span class="badge bg-danger ms-2">ÉCONOMISEZ PLUS!</span>
+                </h3>
+            </div>
+            
+            <div class="product-grid">
+                {% for combo in combos %}
+                <div class="combo-card">
+                    <div class="combo-image">
+                        <img src="{{ combo.image }}" alt="{{ combo.name }}" loading="lazy">
+                        <div class="combo-badge">-{{ combo.discount_percentage }}%</div>
+                        <div class="combo-type-badge">COMBO</div>
+                    </div>
+                    
+                    <div class="combo-info">
+                        <h3 class="combo-title">{{ combo.name }}</h3>
+                        <p class="combo-description">{{ combo.description }}</p>
+                        
+                        <!-- Liste des produits inclus -->
+                        <div class="combo-products-list">
+                            <h6>Inclus dans ce pack:</h6>
+                            <ul>
+                                {% for product in combo.products %}
+                                <li>
+                                    <i class="fas fa-check"></i>
+                                    {{ product.name }} ({{ product.price }} HTG)
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        
+                        <!-- Calculs de prix -->
+                        <div class="pricing-section">
+                            <div class="price-row">
+                                <span>Prix normal:</span>
+                                <span class="original-price">{{ combo.original_total }} HTG</span>
+                            </div>
+                            <div class="price-row">
+                                <span>Vous économisez:</span>
+                                <span class="savings">{{ combo.savings }} HTG</span>
+                            </div>
+                            <hr style="margin: 8px 0;">
+                            <div class="price-row">
+                                <span><strong>Prix combo:</strong></span>
+                                <span class="final-price">{{ combo.final_price }} HTG</span>
+                            </div>
+                            
+                            <!-- Boutons d'action -->
+                            <button class="btn-add-combo" 
+                                    data-combo-id="{{ combo.id }}"
+                                    data-combo-name="{{ combo.name }}">
+                                <i class="fas fa-shopping-cart me-2"></i>
+                                Ajouter le Combo
+                            </button>
+                            <a href="{% url 'combo_detail' combo.id %}" class="btn-combo-detail">
+                                <i class="fas fa-eye me-1"></i>
+                                Voir détails
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Section Produits Normaux -->
+        {% if products %}
         <div class="product-grid" id="product-display-area">
             {% for product in products %}
                 <div class="product-card">
@@ -358,15 +649,19 @@
                         </form>
                     </div>
                 </div>
-            {% empty %}
-                <div style="text-align: center; width: 100%; padding: 3rem; grid-column: 1 / -1;">
-                    <i class="fas fa-search" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
-                    <h3 style="color: #666; margin-bottom: 0.5rem;">Aucun produit trouvé</h3>
-                    <p style="color: #999;">Essayez d'autres filtres ou termes de recherche.</p>
-                    <a href="{% url 'store' %}" class="btn" style="background: #E67E22; margin-top: 1rem;">Voir tous les produits</a>
-                </div>
             {% endfor %}
         </div>
+        {% endif %}
+
+        <!-- Message si aucun produit/combo trouvé -->
+        {% if not products and not combos %}
+        <div style="text-align: center; width: 100%; padding: 3rem;">
+            <i class="fas fa-search" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
+            <h3 style="color: #666; margin-bottom: 0.5rem;">Aucun produit trouvé</h3>
+            <p style="color: #999;">Essayez d'autres filtres ou termes de recherche.</p>
+            <a href="{% url 'store' %}" class="btn" style="background: #E67E22; margin-top: 1rem;">Voir tous les produits</a>
+        </div>
+        {% endif %}
     </section>
 </div>
 
@@ -395,7 +690,7 @@ document.addEventListener('DOMContentLoaded', function () {
         body.style.maxHeight = body.scrollHeight + 'px';
     });
 
-    // Gestion de l'ajout au panier depuis la grille
+    // Gestion de l'ajout au panier depuis la grille (produits normaux)
     document.querySelectorAll('.add-to-cart-form').forEach(form => {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -453,6 +748,98 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     });
+
+    // Gestion de l'ajout des combos au panier
+    document.querySelectorAll('.btn-add-combo').forEach(button => {
+        button.addEventListener('click', function() {
+            const comboId = this.dataset.comboId;
+            const comboName = this.dataset.comboName;
+            const originalText = this.innerHTML;
+            const csrftoken = getCookie('csrftoken');
+            
+            // Désactiver le bouton pendant la requête
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Ajout...';
+            
+            fetch('{% url "add_combo_to_cart" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    'combo_id': comboId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Succès - mettre à jour l'interface
+                    this.innerHTML = '<i class="fas fa-check me-2"></i>Ajouté!';
+                    this.style.background = '#28a745';
+                    
+                    // Mettre à jour le compteur du panier
+                    updateCartIcon(data.cart_item_count);
+                    
+                    // Afficher notification de succès
+                    showNotification(`${comboName} ajouté au panier!`, 'success');
+                    
+                    // Réactiver le bouton après 2 secondes
+                    setTimeout(() => {
+                        this.disabled = false;
+                        this.innerHTML = '<i class="fas fa-shopping-cart me-2"></i>Déjà ajouté';
+                        this.style.background = '#6c757d';
+                    }, 2000);
+                    
+                } else {
+                    // Erreur
+                    this.disabled = false;
+                    this.innerHTML = originalText;
+                    showNotification(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                this.disabled = false;
+                this.innerHTML = originalText;
+                showNotification('Une erreur est survenue', 'error');
+                console.error('Erreur:', error);
+            });
+        });
+    });
 });
+
+// Fonction pour obtenir le token CSRF
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Fonction pour mettre à jour l'icône du panier (à adapter selon votre header)
+function updateCartIcon(count) {
+    const cartBadge = document.querySelector('.cart-count, .badge');
+    if (cartBadge) {
+        cartBadge.textContent = count;
+    }
+}
+
+// Fonction pour afficher les notifications (à adapter selon votre système)
+function showNotification(message, type) {
+    // Vous pouvez utiliser Bootstrap Toast, SweetAlert, ou une simple alert
+    if (type === 'success') {
+        alert('✅ ' + message);
+    } else {
+        alert('❌ ' + message);
+    }
+}
 </script>
-{% endblock %}
+{% endblock %}`

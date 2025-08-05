@@ -9,13 +9,7 @@ from decimal import Decimal
 
 
 def homewert(request):
-
-    
     return render(request, 'pages/home.html')
-
-
-
-
 
 
 # Données des produits en dur pour le MVP
@@ -124,15 +118,94 @@ PRODUCTS_DATA = {
     ]
 }
 
-# Configuration MonCash pour le MVP
+# Données des offres combo
+COMBO_OFFERS = [
+    {
+        'id': 'combo1',
+        'name': 'Pack Cuisine Complète',
+        'description': 'Tout ce qu\'il faut pour votre cuisine',
+        'product_ids': [1, 3, 4],  # Riz + Huile + Haricots noirs
+        'discount_percentage': 15,
+        'image': 'https://f005.backblazeb2.com/file/afepanou/combos/pack-cuisine.png',
+        'category': 'combo'
+    },
+    {
+        'id': 'combo2', 
+        'name': 'Pack Patriote',
+        'description': 'Montrez votre fierté haïtienne',
+        'product_ids': [5, 6, 16],  # T-shirt + Bracelet + Art haïtien
+        'discount_percentage': 20,
+        'image': 'https://f005.backblazeb2.com/file/afepanou/combos/pack-patriote.png',
+        'category': 'combo'
+    },
+    {
+        'id': 'combo3',
+        'name': 'Pack Bien-être Naturel', 
+        'description': 'Produits naturels pour votre bien-être',
+        'product_ids': [9, 10, 11],  # Huile vétiver + Savon + Miel
+        'discount_percentage': 12,
+        'image': 'https://f005.backblazeb2.com/file/afepanou/combos/pack-naturel.png',
+        'category': 'combo'
+    }
+]
+
 # Configuration MonCash pour le MVP
 MONCASH_CONFIG = {
-    'client_id': 'c3f63f2c606c95b19c5ae016c6c19a51',  # À remplacer
-    'client_secret': 'K005ijmj/3GKsMRYdBDvFBiQgKuNhJc',  # À remplacer
+    'client_id': ' a8d0dbc9bb7005c1252869023e6c4e08',  # À remplacer
+    'client_secret': 'l8jZJsXhSB_0M3MTyB8rSzkSbL8Rr22O_DWLqq9FZs8C7qc8W0F4KG7hzgB4lbuZ',  # À remplacer
     'sandbox_base_url': 'https://sandbox.moncashbutton.digicelgroup.com',
-    'live_base_url': 'https://moncashbutton.digicelgroup.com',
+    'live_base_url': 'https://sandbox.moncashbutton.digicelgroup.com',
     'is_sandbox': True  # Changer en False pour la production
 }
+
+def get_combo_details(combo_id):
+    """Récupère les détails d'un combo avec calculs de prix"""
+    combo = None
+    for offer in COMBO_OFFERS:
+        if offer['id'] == combo_id:
+            combo = offer.copy()
+            break
+    
+    if not combo:
+        return None
+    
+    # Récupérer les produits du combo
+    products = []
+    original_total = 0
+    
+    for product_id in combo['product_ids']:
+        product = get_product_by_id(product_id)
+        if product:
+            products.append(product)
+            original_total += product['price']
+    
+    # Calculer le prix avec réduction
+    discount_amount = (original_total * combo['discount_percentage']) / 100
+    final_price = original_total - discount_amount
+    
+    combo.update({
+        'products': products,
+        'original_total': original_total,
+        'discount_amount': int(discount_amount),
+        'final_price': int(final_price),
+        'savings': int(discount_amount)
+    })
+    
+    return combo
+
+def get_all_combos():
+    """Retourne tous les combos avec leurs détails"""
+    combos = []
+    for combo_offer in COMBO_OFFERS:
+        combo_details = get_combo_details(combo_offer['id'])
+        if combo_details:
+            combos.append(combo_details)
+    return combos
+
+def is_combo_in_cart(request, combo_id):
+    """Vérifie si un combo est déjà dans le panier"""
+    cart = get_cart_from_session(request)
+    return f"combo_{combo_id}" in cart
 
 def get_all_products():
     """Retourne tous les produits avec leurs catégories"""
@@ -176,26 +249,53 @@ def get_cart_from_session(request):
     return cart
 
 def get_cart_count(request):
-    """Retourne le nombre total d'articles dans le panier"""
+    """Retourne le nombre total d'articles dans le panier (mis à jour pour les combos)"""
     cart = get_cart_from_session(request)
-    return sum(cart.values())
+    total_count = 0
+    
+    for item_key, quantity in cart.items():
+        if item_key.startswith('combo_'):
+            # Pour les combos, on compte le nombre de produits dans le combo
+            combo_id = item_key.replace('combo_', '')
+            combo = get_combo_details(combo_id)
+            if combo:
+                total_count += len(combo['products']) * quantity
+        else:
+            total_count += quantity
+    
+    return total_count
 
 def get_cart_items(request):
-    """Retourne les items du panier avec les détails des produits"""
+    """Retourne les items du panier avec les détails des produits et combos (mis à jour)"""
     cart = get_cart_from_session(request)
     cart_items = []
     total = 0
     
-    for product_id, quantity in cart.items():
-        product = get_product_by_id(int(product_id))
-        if product:
-            item_total = product['price'] * quantity
-            cart_items.append({
-                'product': product,
-                'quantity': quantity,
-                'total_price': item_total
-            })
-            total += item_total
+    for item_key, quantity in cart.items():
+        if item_key.startswith('combo_'):
+            # C'est un combo
+            combo_id = item_key.replace('combo_', '')
+            combo = get_combo_details(combo_id)
+            if combo:
+                cart_items.append({
+                    'type': 'combo',
+                    'combo': combo,
+                    'quantity': quantity,
+                    'total_price': combo['final_price'] * quantity
+                })
+                total += combo['final_price'] * quantity
+        else:
+            # C'est un produit normal
+            product = get_product_by_id(int(item_key))
+            if product:
+                item_total = product['price'] * quantity
+                cart_items.append({
+                    'type': 'product',
+                    'product': product,
+                    'quantity': quantity,
+                    'total_price': item_total
+                })
+                total += item_total
     
     return cart_items, total
 
@@ -249,21 +349,29 @@ def create_moncash_payment(order_id, amount):
 # VIEWS
 
 def store(request):
-    """Vue principale du store avec filtres"""
+    """Vue principale du store avec filtres et combos (mise à jour)"""
     category = request.GET.get('category', 'all')
     search_query = request.GET.get('q', '')
     
     # Récupération des produits selon la catégorie
     if category == 'all':
         products = get_all_products()
+        # Ajouter les combos quand on affiche tous les produits
+        combos = get_all_combos()
+    elif category == 'combo':
+        products = []
+        combos = get_all_combos()
     else:
         products = get_products_by_category(category)
+        combos = []
     
     # Filtrage par recherche
     if search_query:
         products = [p for p in products if search_query.lower() in p['name'].lower()]
+        if category == 'all' or category == 'combo':
+            combos = [c for c in combos if search_query.lower() in c['name'].lower()]
     
-    # Catégories pour les filtres
+    # Catégories pour les filtres (ajouter combo)
     categories = [
         {'name': 'Nécessités', 'slug': 'necessite'},
         {'name': 'Patriotique', 'slug': 'patriotique'},
@@ -271,10 +379,12 @@ def store(request):
         {'name': 'Industrie', 'slug': 'industrie'},
         {'name': 'Agricole', 'slug': 'agricole'},
         {'name': 'Services', 'slug': 'services'},
+        {'name': 'Offres Combo', 'slug': 'combo'},
     ]
     
     context = {
         'products': products,
+        'combos': combos if category == 'all' or category == 'combo' else [],
         'categories': categories,
         'selected_category_slug': category if category != 'all' else None,
         'search_query': search_query,
@@ -296,6 +406,21 @@ def product_detail(request, slug):
     }
     
     return render(request, 'product_detail.html', context)
+
+def combo_detail(request, combo_id):
+    """Vue détail d'un combo"""
+    combo = get_combo_details(combo_id)
+    if not combo:
+        messages.error(request, 'Combo non trouvé.')
+        return redirect('store')
+    
+    context = {
+        'combo': combo,
+        'cart_item_count': get_cart_count(request),
+        'is_in_cart': is_combo_in_cart(request, combo_id)
+    }
+    
+    return render(request, 'combo_detail.html', context)
 
 @csrf_exempt
 def add_to_cart(request):
@@ -324,7 +449,52 @@ def add_to_cart(request):
             return JsonResponse({
                 'status': 'success',
                 'message': 'Produit ajouté au panier',
-                'cart_item_count': sum(cart.values())
+                'cart_item_count': get_cart_count(request)
+            })
+            
+        except (ValueError, json.JSONDecodeError):
+            return JsonResponse({'status': 'error', 'message': 'Données invalides'})
+    
+    return JsonResponse({'status': 'error', 'message': 'Méthode non autorisée'})
+
+@csrf_exempt
+def add_combo_to_cart(request):
+    """Ajoute un combo au panier via AJAX"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            combo_id = data.get('combo_id')
+            
+            combo = get_combo_details(combo_id)
+            if not combo:
+                return JsonResponse({'status': 'error', 'message': 'Combo non trouvé'})
+            
+            # Vérifier le stock des produits du combo
+            for product in combo['products']:
+                if product['stock'] < 1:
+                    return JsonResponse({
+                        'status': 'error', 
+                        'message': f'Le produit "{product["name"]}" n\'est plus en stock'
+                    })
+            
+            # Gestion du panier en session
+            cart = request.session.get('cart', {})
+            combo_key = f"combo_{combo_id}"
+            
+            if combo_key in cart:
+                return JsonResponse({
+                    'status': 'error', 
+                    'message': 'Ce combo est déjà dans votre panier'
+                })
+            else:
+                cart[combo_key] = 1  # Un combo = quantité 1
+            
+            request.session['cart'] = cart
+            
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Combo ajouté au panier',
+                'cart_item_count': get_cart_count(request)
             })
             
         except (ValueError, json.JSONDecodeError):
@@ -370,7 +540,43 @@ def update_cart(request):
                     'status': 'ok',
                     'item_subtotal': item_subtotal,
                     'cart_total': f"{cart_total} HTG",
-                    'cart_item_count': sum(cart.values())
+                    'cart_item_count': get_cart_count(request)
+                })
+            
+        except (ValueError, TypeError):
+            pass
+    
+    return JsonResponse({'status': 'error', 'message': 'Erreur lors de la mise à jour'})
+
+@csrf_exempt
+def update_combo_cart(request):
+    """Met à jour la quantité d'un combo dans le panier"""
+    if request.method == 'POST':
+        try:
+            combo_id = request.POST.get('combo_id')
+            quantity = int(request.POST.get('quantity', 1))
+            
+            if quantity < 1 or quantity > 5:  # Limiter les combos à 5 max
+                return JsonResponse({'status': 'error', 'message': 'Quantité invalide (1-5)'})
+            
+            cart = request.session.get('cart', {})
+            combo_key = f"combo_{combo_id}"
+            
+            if combo_key in cart:
+                cart[combo_key] = quantity
+                request.session['cart'] = cart
+                
+                # Recalcul des totaux
+                combo = get_combo_details(combo_id)
+                item_subtotal = f"{combo['final_price'] * quantity} HTG"
+                
+                cart_items, cart_total = get_cart_items(request)
+                
+                return JsonResponse({
+                    'status': 'ok',
+                    'item_subtotal': item_subtotal,
+                    'cart_total': f"{cart_total} HTG",
+                    'cart_item_count': get_cart_count(request)
                 })
             
         except (ValueError, TypeError):
@@ -395,7 +601,7 @@ def remove_from_cart(request):
                 return JsonResponse({
                     'status': 'ok',
                     'cart_total': f"{cart_total} HTG",
-                    'cart_item_count': sum(cart.values())
+                    'cart_item_count': get_cart_count(request)
                 })
             
         except Exception:
@@ -403,13 +609,47 @@ def remove_from_cart(request):
     
     return JsonResponse({'status': 'error', 'message': 'Erreur lors de la suppression'})
 
+@csrf_exempt 
+def remove_combo_from_cart(request):
+    """Supprime un combo du panier"""
+    if request.method == 'POST':
+        try:
+            combo_id = request.POST.get('combo_id')
+            combo_key = f"combo_{combo_id}"
+            
+            cart = request.session.get('cart', {})
+            if combo_key in cart:
+                del cart[combo_key]
+                request.session['cart'] = cart
+                
+                cart_items, cart_total = get_cart_items(request)
+                
+                return JsonResponse({
+                    'status': 'ok',
+                    'cart_total': f"{cart_total} HTG",
+                    'cart_item_count': get_cart_count(request)
+                })
+            
+        except Exception:
+            pass
+    
+    return JsonResponse({'status': 'error', 'message': 'Erreur lors de la suppression'})
+
+# Remplacez votre fonction checkout par celle-ci dans views.py
+
 def checkout(request):
-    """Vue de finalisation de commande"""
+    """Vue de finalisation de commande mise à jour pour les combos"""
     cart_items, cart_total = get_cart_items(request)
     
     if not cart_items:
         messages.error(request, 'Votre panier est vide.')
         return redirect('cart')
+    
+    # Calculer les économies totales des combos pour l'affichage
+    total_savings = 0
+    for item in cart_items:
+        if item['type'] == 'combo':
+            total_savings += item['combo']['savings'] * item['quantity']
     
     if request.method == 'POST':
         # Récupération des données du formulaire
@@ -425,7 +665,8 @@ def checkout(request):
             return render(request, 'pages/checkout.html', {
                 'cart_items': cart_items,
                 'cart_total': cart_total,
-                'cart_item_count': get_cart_count(request)
+                'cart_item_count': get_cart_count(request),
+                'total_savings': total_savings
             })
         
         if payment_method == 'moncash':
@@ -446,6 +687,7 @@ def checkout(request):
                     'phone': phone,
                     'cart_items': cart_items,
                     'total': cart_total,
+                    'total_savings': total_savings,
                     'payment_token': payment_response['payment_token']['token']
                 }
                 
@@ -462,7 +704,9 @@ def checkout(request):
     context = {
         'cart_items': cart_items,
         'cart_total': cart_total,
-        'cart_item_count': get_cart_count(request)
+        'cart_item_count': get_cart_count(request),
+        'total_savings': total_savings,
+        'original_total': cart_total + total_savings if total_savings > 0 else cart_total
     }
     
     return render(request, 'pages/checkout.html', context)
@@ -496,8 +740,6 @@ def success(request):
     }
     
     return render(request, 'pages/success.html', context)
-
-
 
 # Vue pour les orders (mentionnée dans success.html)
 def orders(request):
