@@ -1,813 +1,590 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib import messages
-import json
+import datetime
 import requests
+import json
+import logging
 import uuid
-from decimal import Decimal
+from django.http import JsonResponse, HttpResponse
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+from django.core.paginator import Paginator
+from django.db.models import Prefetch, Q, Sum
+from django.conf import settings
+
+# Assurez-vous d'importer tous vos modèles depuis le bon endroit
+from .models import (
+    Banner, Product, MediaContentSection, Category, ProductImage, 
+    Cart, CartItem, User, Order, OrderItem
+)
+
+# Configuration du logging
+logger = logging.getLogger(__name__)
+
+# ==========================================================================
+# CONFIGURATION MONCASH
+# ==========================================================================
+
+# À configurer dans votre settings.py ou variables d'environnement
+MONCASH_CLIENT_ID = getattr(settings, 'MONCASH_CLIENT_ID', None)
+MONCASH_CLIENT_SECRET = getattr(settings, 'MONCASH_CLIENT_SECRET', None)
+
+# Puis vérifier si les valeurs existent
+if not MONCASH_CLIENT_ID or not MONCASH_CLIENT_SECRET:
+    raise ValueError("MONCASH credentials not configured in settings")
+MONCASH_BASE_URL = "https://sandbox.moncashbutton.digicelgroup.com"
+MONCASH_API_URL = f"{MONCASH_BASE_URL}/Api"
+MONCASH_GATEWAY_URL = f"{MONCASH_BASE_URL}/Moncash-middleware"
 
 
-def homewert(request):
-    return render(request, 'pages/home.html')
-
-
-# Données des produits en dur pour le MVP
-PRODUCTS_DATA = {
-    'necessite': [
-        {
-            'id': 1, 'name': 'Sac de Riz Premium', 'price': 1500, 'slug': 'sac-de-riz',
-            'image': 'https://f005.backblazeb2.com/file/afepanou/produits/premiere-necessite/sac_de_riz.png',
-            'description': 'Riz de qualité supérieure, idéal pour toute la famille.',
-            'category': 'necessite', 'stock': 50
-        },
-        {
-            'id': 2, 'name': 'Café Haïtien', 'price': 450, 'slug': 'cafe-haitien',
-            'image': 'https://f005.backblazeb2.com/file/afepanou/produits/premiere-necessite/cafe_haitien.png',
-            'description': 'Café 100% haïtien, torréfié localement.',
-            'category': 'necessite', 'stock': 30
-        },
-        {
-            'id': 3, 'name': 'Bouteille d\'Huile', 'price': 350, 'slug': 'bouteille-huile',
-            'image': 'https://f005.backblazeb2.com/file/afepanou/produits/premiere-necessite/bouteille_huile.png',
-            'description': 'Huile de cuisson de qualité premium.',
-            'category': 'necessite', 'stock': 25
-        },
-        {
-            'id': 4, 'name': 'Conserve Haricots Noirs', 'price': 125, 'slug': 'haricots-noirs',
-            'image': 'https://f005.backblazeb2.com/file/afepanou/produits/premiere-necessite/conserve_haricots_noirs.png',
-            'description': 'Haricots noirs en conserve, prêts à consommer.',
-            'category': 'necessite', 'stock': 60
-        },
-        {
-            'id': 15, 'name': 'Huile Végétale Soleil', 'price': 400, 'slug': 'huile-vegetale-soleil',
-            'image': 'https://f005.backblazeb2.com/file/afepanou/bestproduct/huile-vegetale-soleil.jpg',
-            'description': 'Huile végétale de tournesol, parfaite pour la cuisson.',
-            'category': 'necessite', 'stock': 40
-        }
-    ],
-    'patriotique': [
-        {
-            'id': 5, 'name': 'T-shirt Drapeau Haïti', 'price': 800, 'slug': 'tshirt-drapeau-haiti',
-            'image': 'https://f005.backblazeb2.com/file/afepanou/produits/patriotiques/tshirt_drapeau_haiti.png',
-            'description': 'T-shirt avec le drapeau haïtien, made in Haiti.',
-            'category': 'patriotique', 'stock': 20
-        },
-        {
-            'id': 6, 'name': 'Bracelet Haïti', 'price': 250, 'slug': 'bracelet-haiti',
-            'image': 'https://f005.backblazeb2.com/file/afepanou/produits/patriotiques/bracelet_haiti.png',
-            'description': 'Bracelet aux couleurs d\'Haïti, fait main.',
-            'category': 'patriotique', 'stock': 35
-        },
-        {
-            'id': 16, 'name': 'Art Haïtien', 'price': 2500, 'slug': 'art-haitien',
-            'image': 'https://f005.backblazeb2.com/file/afepanou/featured/artistehaitien.png',
-            'description': 'Œuvre d\'art authentique d\'un artiste haïtien.',
-            'category': 'patriotique', 'stock': 5
-        }
-    ],
-    'artisanat': [
-        {
-            'id': 7, 'name': 'Sac Paille Tressée', 'price': 750, 'slug': 'sac-paille-tressee',
-            'image': 'https://f005.backblazeb2.com/file/afepanou/produits/locaux/artisanat/sac_paille_tressee.png',
-            'description': 'Sac artisanal en paille tressée, fait main par nos artisans.',
-            'category': 'artisanat', 'stock': 15
-        },
-        {
-            'id': 8, 'name': 'Vase Céramique Peint', 'price': 1200, 'slug': 'vase-ceramique-peint',
-            'image': 'https://f005.backblazeb2.com/file/afepanou/produits/locaux/artisanat/vase_ceramique_peint.png',
-            'description': 'Vase en céramique peint à la main, pièce unique.',
-            'category': 'artisanat', 'stock': 8
-        }
-    ],
-    'industrie': [
-        {
-            'id': 9, 'name': 'Huile Vétiver', 'price': 950, 'slug': 'huile-vetiver',
-            'image': 'https://f005.backblazeb2.com/file/afepanou/produits/locaux/petite-industrie/huile_vetiver.png',
-            'description': 'Huile essentielle de vétiver, production locale.',
-            'category': 'industrie', 'stock': 12
-        },
-        {
-            'id': 10, 'name': 'Savon Palma Christi', 'price': 175, 'slug': 'savon-palma-christi',
-            'image': 'https://f005.backblazeb2.com/file/afepanou/produits/locaux/petite-industrie/savon_palma_christi.png',
-            'description': 'Savon naturel à base d\'huile de ricin, fait localement.',
-            'category': 'industrie', 'stock': 25
-        }
-    ],
-    'agricole': [
-        {
-            'id': 11, 'name': 'Pot de Miel', 'price': 650, 'slug': 'pot-de-miel',
-            'image': 'https://f005.backblazeb2.com/file/afepanou/produits/locaux/agricole/pot_de_miel.png',
-            'description': 'Miel pur d\'abeilles, récolté dans nos montagnes.',
-            'category': 'agricole', 'stock': 18
-        }
-    ],
-    'services': [
-        {
-            'id': 12, 'name': 'Cours d\'Anglais', 'price': 3000, 'slug': 'cours-anglais',
-            'image': 'https://f005.backblazeb2.com/file/afepanou/Store%20Services%20Divers/coursanglais.png',
-            'description': 'Cours d\'anglais privés avec professeur certifié.',
-            'category': 'services', 'stock': 10
-        },
-        {
-            'id': 13, 'name': 'Service de Ménage Privé', 'price': 1500, 'slug': 'service-menage-prive',
-            'image': 'https://f005.backblazeb2.com/file/afepanou/Store%20Services%20Divers/metoyageserviceprivee.png',
-            'description': 'Service de ménage professionnel à domicile.',
-            'category': 'services', 'stock': 20
-        }
-    ]
-}
-
-# Données des offres combo
-COMBO_OFFERS = [
-    {
-        'id': 'combo1',
-        'name': 'Pack Cuisine Complète',
-        'description': 'Tout ce qu\'il faut pour votre cuisine',
-        'product_ids': [1, 3, 4],  # Riz + Huile + Haricots noirs
-        'discount_percentage': 15,
-        'image': 'https://f005.backblazeb2.com/file/afepanou/combos/pack-cuisine.png',
-        'category': 'combo'
-    },
-    {
-        'id': 'combo2', 
-        'name': 'Pack Patriote',
-        'description': 'Montrez votre fierté haïtienne',
-        'product_ids': [5, 6, 16],  # T-shirt + Bracelet + Art haïtien
-        'discount_percentage': 20,
-        'image': 'https://f005.backblazeb2.com/file/afepanou/combos/pack-patriote.png',
-        'category': 'combo'
-    },
-    {
-        'id': 'combo3',
-        'name': 'Pack Bien-être Naturel', 
-        'description': 'Produits naturels pour votre bien-être',
-        'product_ids': [9, 10, 11],  # Huile vétiver + Savon + Miel
-        'discount_percentage': 12,
-        'image': 'https://f005.backblazeb2.com/file/afepanou/combos/pack-naturel.png',
-        'category': 'combo'
+def get_moncash_access_token():
+    """Obtenir le token d'accès MonCash selon la documentation"""
+    url = f"{MONCASH_API_URL}/oauth/token"
+    
+    # Authentification Basic avec client_id:client_secret
+    auth = (MONCASH_CLIENT_ID, MONCASH_CLIENT_SECRET)
+    
+    headers = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded'
     }
-]
-
-# Configuration MonCash pour le MVP
-MONCASH_CONFIG = {
-    'client_id': ' a8d0dbc9bb7005c1252869023e6c4e08',  # À remplacer
-    'client_secret': 'l8jZJsXhSB_0M3MTyB8rSzkSbL8Rr22O_DWLqq9FZs8C7qc8W0F4KG7hzgB4lbuZ',  # À remplacer
-    'sandbox_base_url': 'https://sandbox.moncashbutton.digicelgroup.com',
-    'live_base_url': 'https://sandbox.moncashbutton.digicelgroup.com',
-    'is_sandbox': True  # Changer en False pour la production
-}
-
-def get_combo_details(combo_id):
-    """Récupère les détails d'un combo avec calculs de prix"""
-    combo = None
-    for offer in COMBO_OFFERS:
-        if offer['id'] == combo_id:
-            combo = offer.copy()
-            break
     
-    if not combo:
-        return None
-    
-    # Récupérer les produits du combo
-    products = []
-    original_total = 0
-    
-    for product_id in combo['product_ids']:
-        product = get_product_by_id(product_id)
-        if product:
-            products.append(product)
-            original_total += product['price']
-    
-    # Calculer le prix avec réduction
-    discount_amount = (original_total * combo['discount_percentage']) / 100
-    final_price = original_total - discount_amount
-    
-    combo.update({
-        'products': products,
-        'original_total': original_total,
-        'discount_amount': int(discount_amount),
-        'final_price': int(final_price),
-        'savings': int(discount_amount)
-    })
-    
-    return combo
-
-def get_all_combos():
-    """Retourne tous les combos avec leurs détails"""
-    combos = []
-    for combo_offer in COMBO_OFFERS:
-        combo_details = get_combo_details(combo_offer['id'])
-        if combo_details:
-            combos.append(combo_details)
-    return combos
-
-def is_combo_in_cart(request, combo_id):
-    """Vérifie si un combo est déjà dans le panier"""
-    cart = get_cart_from_session(request)
-    return f"combo_{combo_id}" in cart
-
-def get_all_products():
-    """Retourne tous les produits avec leurs catégories"""
-    all_products = []
-    for category, products in PRODUCTS_DATA.items():
-        for product in products:
-            product['category_name'] = category
-            all_products.append(product)
-    return all_products
-
-def get_product_by_id(product_id):
-    """Trouve un produit par son ID"""
-    for category, products in PRODUCTS_DATA.items():
-        for product in products:
-            if product['id'] == product_id:
-                return product
-    return None
-
-def get_product_by_slug(slug):
-    """Trouve un produit par son slug"""
-    for category, products in PRODUCTS_DATA.items():
-        for product in products:
-            if product['slug'] == slug:
-                return product
-    return None
-
-def get_products_by_category(category):
-    """Retourne les produits d'une catégorie"""
-    if category == 'locaux':
-        # Pour la catégorie "locaux", on combine artisanat, industrie et agricole
-        products = []
-        products.extend(PRODUCTS_DATA.get('artisanat', []))
-        products.extend(PRODUCTS_DATA.get('industrie', []))
-        products.extend(PRODUCTS_DATA.get('agricole', []))
-        return products
-    return PRODUCTS_DATA.get(category, [])
-
-def get_cart_from_session(request):
-    """Récupère le panier de la session"""
-    cart = request.session.get('cart', {})
-    return cart
-
-def get_cart_count(request):
-    """Retourne le nombre total d'articles dans le panier (mis à jour pour les combos)"""
-    cart = get_cart_from_session(request)
-    total_count = 0
-    
-    for item_key, quantity in cart.items():
-        if item_key.startswith('combo_'):
-            # Pour les combos, on compte le nombre de produits dans le combo
-            combo_id = item_key.replace('combo_', '')
-            combo = get_combo_details(combo_id)
-            if combo:
-                total_count += len(combo['products']) * quantity
-        else:
-            total_count += quantity
-    
-    return total_count
-
-def get_cart_items(request):
-    """Retourne les items du panier avec les détails des produits et combos (mis à jour)"""
-    cart = get_cart_from_session(request)
-    cart_items = []
-    total = 0
-    
-    for item_key, quantity in cart.items():
-        if item_key.startswith('combo_'):
-            # C'est un combo
-            combo_id = item_key.replace('combo_', '')
-            combo = get_combo_details(combo_id)
-            if combo:
-                cart_items.append({
-                    'type': 'combo',
-                    'combo': combo,
-                    'quantity': quantity,
-                    'total_price': combo['final_price'] * quantity
-                })
-                total += combo['final_price'] * quantity
-        else:
-            # C'est un produit normal
-            product = get_product_by_id(int(item_key))
-            if product:
-                item_total = product['price'] * quantity
-                cart_items.append({
-                    'type': 'product',
-                    'product': product,
-                    'quantity': quantity,
-                    'total_price': item_total
-                })
-                total += item_total
-    
-    return cart_items, total
-
-def get_moncash_token():
-    """Obtient le token MonCash pour l'authentification"""
-    base_url = MONCASH_CONFIG['sandbox_base_url'] if MONCASH_CONFIG['is_sandbox'] else MONCASH_CONFIG['live_base_url']
-    url = f"{base_url}/Api/oauth/token"
-    
-    auth = (MONCASH_CONFIG['client_id'], MONCASH_CONFIG['client_secret'])
     data = {
         'scope': 'read,write',
         'grant_type': 'client_credentials'
     }
     
     try:
-        response = requests.post(url, auth=auth, data=data, timeout=10)
-        if response.status_code == 200:
-            return response.json().get('access_token')
-    except requests.RequestException:
-        pass
-    return None
-
-def create_moncash_payment(order_id, amount):
-    """Crée un paiement MonCash"""
-    token = get_moncash_token()
-    if not token:
+        response = requests.post(url, auth=auth, headers=headers, data=data)
+        response.raise_for_status()
+        
+        token_data = response.json()
+        return token_data.get('access_token')
+        
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Erreur lors de l'obtention du token MonCash: {e}")
         return None
-    
-    base_url = MONCASH_CONFIG['sandbox_base_url'] if MONCASH_CONFIG['is_sandbox'] else MONCASH_CONFIG['live_base_url']
-    url = f"{base_url}/Api/v1/CreatePayment"
-    
-    headers = {
-        'Authorization': f'Bearer {token}',
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-    }
-    
-    data = {
-        'amount': int(amount),
-        'orderId': str(order_id)
-    }
-    
+
+def verify_payment_by_transaction(transaction_id):
+    """Vérifier un paiement par transaction ID selon la documentation"""
     try:
-        response = requests.post(url, headers=headers, json=data, timeout=10)
-        if response.status_code == 202:
+        access_token = get_moncash_access_token()
+        if not access_token:
+            return None
+        
+        api_url = f"{MONCASH_API_URL}/v1/RetrieveTransactionPayment"
+        
+        headers = {
+            'Authorization': f'Bearer {access_token}',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+        
+        data = {
+            'transactionId': transaction_id
+        }
+        
+        response = requests.post(api_url, headers=headers, json=data)
+        
+        if response.status_code == 200:
             return response.json()
-    except requests.RequestException:
-        pass
-    return None
+        else:
+            logger.error(f"Erreur lors de la vérification: {response.status_code} - {response.text}")
+            return None
+            
+    except Exception as e:
+        logger.error(f"Erreur dans verify_payment_by_transaction: {str(e)}")
+        return None
 
-# VIEWS
+def create_order_from_session(request, transaction_id, payment_details):
+    """Créer une commande à partir des données de session"""
+    try:
+        order_data = request.session.get('order_data')
+        if not order_data:
+            return None
+        
+        # Créer la commande avec les détails du paiement
+        order = Order.objects.create(
+            user=request.user if request.user.is_authenticated else None,
+            order_id=order_data['order_id'],
+            transaction_id=transaction_id,
+            payment_method='moncash',
+            payment_status='completed',
+            total_amount=payment_details.get('cost', order_data['total_amount']),
+            status='confirmed',
+            payer_phone=payment_details.get('payer', ''),
+            payment_reference=payment_details.get('reference', ''),
+        )
+        
+        # Créer les items de commande à partir des données de session
+        for item_data in order_data.get('cart_items', []):
+            try:
+                product = Product.objects.get(id=item_data['product_id'])
+                OrderItem.objects.create(
+                    order=order,
+                    product=product,
+                    quantity=item_data['quantity'],
+                    price=item_data['price'],
+                )
+            except Product.DoesNotExist:
+                logger.warning(f"Produit {item_data['product_id']} non trouvé lors de la création de commande")
+                continue
+        
+        return order
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de la création de la commande: {str(e)}")
+        return None
 
-def store(request):
-    """Vue principale du store avec filtres et combos (mise à jour)"""
-    category = request.GET.get('category', 'all')
-    search_query = request.GET.get('q', '')
+# ==========================================================================
+# VUES PRINCIPALES
+# ==========================================================================
+
+def homewert(request):
+    """
+    Affiche la page d'accueil avec :
+    - Un slideshow de bannières.
+    - Une section "collage" avec des images de produits aléatoires.
+    - Une grille de produits vedettes sélectionnés aléatoirement.
+    """
+
+    # --- 1. Bannières pour le Slideshow ---
+    banners = Banner.objects.filter(is_active=True).order_by('sort_order')
+
+    # --- 2. Images pour la Section "Collage" (Section 3) ---
+    collage_products = Product.objects.filter(
+        is_active=True, 
+        images__isnull=False
+    ).distinct().order_by('?')[:3]
+
+    def get_product_image_url(product):
+        if not product:
+            return None
+        image = product.images.filter(is_primary=True).first() or product.images.first()
+        return image.image_url if image else None
+
+    collage_image_1 = get_product_image_url(collage_products[0] if len(collage_products) > 0 else None)
+    collage_image_2 = get_product_image_url(collage_products[1] if len(collage_products) > 1 else None)
+    collage_image_3 = get_product_image_url(collage_products[2] if len(collage_products) > 2 else None)
+
+    # --- 3. Produits Vedettes (aléatoires) ---
+    featured_products = Product.objects.filter(
+        is_active=True,
+        is_featured=True
+    ).order_by('?')[:8]
+
+    context = {
+        'banners': banners,
+        'collage_image_1': collage_image_1,
+        'collage_image_2': collage_image_2,
+        'collage_image_3': collage_image_3,
+        'featured_products': featured_products,
+    }
     
-    # Récupération des produits selon la catégorie
-    if category == 'all':
-        products = get_all_products()
-        # Ajouter les combos quand on affiche tous les produits
-        combos = get_all_combos()
-    elif category == 'combo':
-        products = []
-        combos = get_all_combos()
+    return render(request, 'pages/home.html', context)
+
+# ===================================================================
+# FONCTION HELPER POUR LE PANIER
+# ===================================================================
+def _get_cart(request):
+    """
+    Récupère le panier de l'utilisateur ou en crée un.
+    """
+    if request.user.is_authenticated:
+        cart, created = Cart.objects.get_or_create(user=request.user, is_active=True)
     else:
-        products = get_products_by_category(category)
-        combos = []
-    
-    # Filtrage par recherche
+        session_key = request.session.session_key
+        if not session_key:
+            request.session.create()
+            session_key = request.session.session_key
+        
+        cart, created = Cart.objects.get_or_create(session_id=session_key, user=None, defaults={'is_active': True})
+    return cart
+
+# ===================================================================
+# VUES POUR LA BOUTIQUE (STORE)
+# ===================================================================
+def store(request):
+    """Affiche la page principale de la boutique avec filtres, recherche"""
+    primary_image_prefetch = Prefetch('images', queryset=ProductImage.objects.filter(is_primary=True), to_attr='primary_image_list')
+    products_list = Product.objects.filter(is_active=True).select_related('category', 'seller').prefetch_related(primary_image_prefetch)
+
+    # Filtrage par Catégorie
+    selected_category_slug = request.GET.get('category')
+    if selected_category_slug:
+        try:
+            category = get_object_or_404(Category, slug=selected_category_slug)
+            child_categories = category.children.all()
+            category_ids = [category.id] + [child.id for child in child_categories]
+            products_list = products_list.filter(category__id__in=category_ids)
+        except:
+            products_list = products_list.none()
+
+    # Filtrage par Recherche
+    search_query = request.GET.get('q')
     if search_query:
-        products = [p for p in products if search_query.lower() in p['name'].lower()]
-        if category == 'all' or category == 'combo':
-            combos = [c for c in combos if search_query.lower() in c['name'].lower()]
+        products_list = products_list.filter(
+            Q(name__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(tags__icontains=search_query)
+        ).distinct()
+
+    # Tri
+    sort_option = request.GET.get('sort')
+    if sort_option == 'price_asc':
+        products_list = products_list.order_by('price')
+    elif sort_option == 'price_desc':
+        products_list = products_list.order_by('-price')
+    elif sort_option == 'date_desc':
+        products_list = products_list.order_by('-created_at')
+
+    # Pagination
+    paginator = Paginator(products_list, 12)
+    products = paginator.get_page(request.GET.get('page'))
     
-    # Catégories pour les filtres (ajouter combo)
-    categories = [
-        {'name': 'Nécessités', 'slug': 'necessite'},
-        {'name': 'Patriotique', 'slug': 'patriotique'},
-        {'name': 'Artisanat', 'slug': 'artisanat'},
-        {'name': 'Industrie', 'slug': 'industrie'},
-        {'name': 'Agricole', 'slug': 'agricole'},
-        {'name': 'Services', 'slug': 'services'},
-        {'name': 'Offres Combo', 'slug': 'combo'},
-    ]
-    
+    all_categories = Category.objects.filter(is_active=True)
+
     context = {
         'products': products,
-        'combos': combos if category == 'all' or category == 'combo' else [],
-        'categories': categories,
-        'selected_category_slug': category if category != 'all' else None,
+        'categories': all_categories,
+        'selected_category_slug': selected_category_slug,
         'search_query': search_query,
-        'cart_item_count': get_cart_count(request)
     }
     
     return render(request, 'pages/store.html', context)
 
 def product_detail(request, slug):
-    """Vue détail d'un produit"""
-    product = get_product_by_slug(slug)
-    if not product:
-        messages.error(request, 'Produit non trouvé.')
-        return redirect('store')
-    
-    context = {
-        'product': product,
-        'cart_item_count': get_cart_count(request)
-    }
-    
-    return render(request, 'product_detail.html', context)
+    """Affiche les détails d'un seul produit."""
+    product = get_object_or_404(Product.objects.filter(is_active=True), slug=slug)
+    context = {'product': product}
+    return render(request, 'pages/product_detail.html', context)
 
-def combo_detail(request, combo_id):
-    """Vue détail d'un combo"""
-    combo = get_combo_details(combo_id)
-    if not combo:
-        messages.error(request, 'Combo non trouvé.')
-        return redirect('store')
-    
-    context = {
-        'combo': combo,
-        'cart_item_count': get_cart_count(request),
-        'is_in_cart': is_combo_in_cart(request, combo_id)
-    }
-    
-    return render(request, 'combo_detail.html', context)
-
-@csrf_exempt
-def add_to_cart(request):
-    """Ajoute un produit au panier via AJAX"""
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            product_id = int(data.get('product_id'))
-            quantity = int(data.get('quantity', 1))
-            
-            product = get_product_by_id(product_id)
-            if not product:
-                return JsonResponse({'status': 'error', 'message': 'Produit non trouvé'})
-            
-            # Gestion du panier en session
-            cart = request.session.get('cart', {})
-            product_id_str = str(product_id)
-            
-            if product_id_str in cart:
-                cart[product_id_str] += quantity
-            else:
-                cart[product_id_str] = quantity
-            
-            request.session['cart'] = cart
-            
-            return JsonResponse({
-                'status': 'success',
-                'message': 'Produit ajouté au panier',
-                'cart_item_count': get_cart_count(request)
-            })
-            
-        except (ValueError, json.JSONDecodeError):
-            return JsonResponse({'status': 'error', 'message': 'Données invalides'})
-    
-    return JsonResponse({'status': 'error', 'message': 'Méthode non autorisée'})
-
-@csrf_exempt
-def add_combo_to_cart(request):
-    """Ajoute un combo au panier via AJAX"""
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            combo_id = data.get('combo_id')
-            
-            combo = get_combo_details(combo_id)
-            if not combo:
-                return JsonResponse({'status': 'error', 'message': 'Combo non trouvé'})
-            
-            # Vérifier le stock des produits du combo
-            for product in combo['products']:
-                if product['stock'] < 1:
-                    return JsonResponse({
-                        'status': 'error', 
-                        'message': f'Le produit "{product["name"]}" n\'est plus en stock'
-                    })
-            
-            # Gestion du panier en session
-            cart = request.session.get('cart', {})
-            combo_key = f"combo_{combo_id}"
-            
-            if combo_key in cart:
-                return JsonResponse({
-                    'status': 'error', 
-                    'message': 'Ce combo est déjà dans votre panier'
-                })
-            else:
-                cart[combo_key] = 1  # Un combo = quantité 1
-            
-            request.session['cart'] = cart
-            
-            return JsonResponse({
-                'status': 'success',
-                'message': 'Combo ajouté au panier',
-                'cart_item_count': get_cart_count(request)
-            })
-            
-        except (ValueError, json.JSONDecodeError):
-            return JsonResponse({'status': 'error', 'message': 'Données invalides'})
-    
-    return JsonResponse({'status': 'error', 'message': 'Méthode non autorisée'})
-
+# ===================================================================
+# VUES POUR LE PANIER (CART)
+# ===================================================================
 def cart(request):
-    """Vue du panier"""
-    cart_items, cart_total = get_cart_items(request)
+    """Affiche la page du panier."""
+    cart = _get_cart(request)
+    cart_items = cart.items.select_related('product', 'product__seller').prefetch_related('product__images')
+    cart_total = sum(item.total_price for item in cart_items)
     
     context = {
         'cart_items': cart_items,
         'cart_total': cart_total,
-        'cart_item_count': get_cart_count(request)
     }
-    
     return render(request, 'pages/cart.html', context)
 
-@csrf_exempt
+def get_cart_count(request):
+    """Renvoie le nombre total d'articles dans le panier (pour AJAX)."""
+    cart = _get_cart(request)
+    total_items = cart.items.aggregate(total=Sum('quantity'))['total'] or 0
+    return JsonResponse({'cart_item_count': total_items})
+
+@require_POST
+def add_to_cart(request):
+    """Ajoute un produit au panier ou met à jour sa quantité (pour AJAX)."""
+    cart = _get_cart(request)
+    product_id = request.POST.get('product_id')
+    quantity = int(request.POST.get('quantity', 1))
+    product = get_object_or_404(Product, id=product_id)
+
+    cart_item, created = CartItem.objects.get_or_create(
+        cart=cart, product=product, defaults={'quantity': quantity}
+    )
+    
+    if not created:
+        cart_item.quantity += quantity
+        cart_item.save()
+
+    total_items = cart.items.aggregate(total=Sum('quantity'))['total'] or 0
+        
+    return JsonResponse({
+        'status': 'ok',
+        'message': f'"{product.name}" a été ajouté au panier.',
+        'cart_item_count': total_items 
+    })
+
+@require_POST
 def update_cart(request):
-    """Met à jour la quantité d'un produit dans le panier"""
-    if request.method == 'POST':
-        try:
-            product_id = request.POST.get('product_id')
-            quantity = int(request.POST.get('quantity', 1))
-            
-            if quantity < 1:
-                return JsonResponse({'status': 'error', 'message': 'Quantité invalide'})
-            
-            cart = request.session.get('cart', {})
-            if product_id in cart:
-                cart[product_id] = quantity
-                request.session['cart'] = cart
-                
-                # Recalcul des totaux
-                product = get_product_by_id(int(product_id))
-                item_subtotal = f"{product['price'] * quantity} HTG"
-                
-                cart_items, cart_total = get_cart_items(request)
-                
-                return JsonResponse({
-                    'status': 'ok',
-                    'item_subtotal': item_subtotal,
-                    'cart_total': f"{cart_total} HTG",
-                    'cart_item_count': get_cart_count(request)
-                })
-            
-        except (ValueError, TypeError):
-            pass
+    """Met à jour la quantité d'un article sur la page panier (pour AJAX)."""
+    cart = _get_cart(request)
+    product_id = request.POST.get('product_id')
+    quantity = int(request.POST.get('quantity'))
+    cart_item = get_object_or_404(CartItem, cart=cart, product_id=product_id)
     
-    return JsonResponse({'status': 'error', 'message': 'Erreur lors de la mise à jour'})
+    if quantity > 0:
+        cart_item.quantity = quantity
+        cart_item.save()
+    else:
+        cart_item.delete()
 
-@csrf_exempt
-def update_combo_cart(request):
-    """Met à jour la quantité d'un combo dans le panier"""
-    if request.method == 'POST':
-        try:
-            combo_id = request.POST.get('combo_id')
-            quantity = int(request.POST.get('quantity', 1))
-            
-            if quantity < 1 or quantity > 5:  # Limiter les combos à 5 max
-                return JsonResponse({'status': 'error', 'message': 'Quantité invalide (1-5)'})
-            
-            cart = request.session.get('cart', {})
-            combo_key = f"combo_{combo_id}"
-            
-            if combo_key in cart:
-                cart[combo_key] = quantity
-                request.session['cart'] = cart
-                
-                # Recalcul des totaux
-                combo = get_combo_details(combo_id)
-                item_subtotal = f"{combo['final_price'] * quantity} HTG"
-                
-                cart_items, cart_total = get_cart_items(request)
-                
-                return JsonResponse({
-                    'status': 'ok',
-                    'item_subtotal': item_subtotal,
-                    'cart_total': f"{cart_total} HTG",
-                    'cart_item_count': get_cart_count(request)
-                })
-            
-        except (ValueError, TypeError):
-            pass
-    
-    return JsonResponse({'status': 'error', 'message': 'Erreur lors de la mise à jour'})
+    cart_total = sum(item.total_price for item in cart.items.all())
+    total_items = cart.items.aggregate(total=Sum('quantity'))['total'] or 0
+        
+    return JsonResponse({
+        'status': 'ok',
+        'item_subtotal': f'{cart_item.total_price:.2f} HTG',
+        'cart_total': f'{cart_total:.2f} HTG',
+        'cart_item_count': total_items
+    })
 
-@csrf_exempt
+@require_POST
 def remove_from_cart(request):
-    """Supprime un produit du panier"""
-    if request.method == 'POST':
-        try:
-            product_id = request.POST.get('product_id')
-            
-            cart = request.session.get('cart', {})
-            if product_id in cart:
-                del cart[product_id]
-                request.session['cart'] = cart
-                
-                cart_items, cart_total = get_cart_items(request)
-                
-                return JsonResponse({
-                    'status': 'ok',
-                    'cart_total': f"{cart_total} HTG",
-                    'cart_item_count': get_cart_count(request)
-                })
-            
-        except Exception:
-            pass
-    
-    return JsonResponse({'status': 'error', 'message': 'Erreur lors de la suppression'})
+    """Supprime un article du panier sur la page panier (pour AJAX)."""
+    cart = _get_cart(request)
+    product_id = request.POST.get('product_id')
+    get_object_or_404(CartItem, cart=cart, product_id=product_id).delete()
 
-@csrf_exempt 
-def remove_combo_from_cart(request):
-    """Supprime un combo du panier"""
-    if request.method == 'POST':
-        try:
-            combo_id = request.POST.get('combo_id')
-            combo_key = f"combo_{combo_id}"
-            
-            cart = request.session.get('cart', {})
-            if combo_key in cart:
-                del cart[combo_key]
-                request.session['cart'] = cart
-                
-                cart_items, cart_total = get_cart_items(request)
-                
-                return JsonResponse({
-                    'status': 'ok',
-                    'cart_total': f"{cart_total} HTG",
-                    'cart_item_count': get_cart_count(request)
-                })
-            
-        except Exception:
-            pass
-    
-    return JsonResponse({'status': 'error', 'message': 'Erreur lors de la suppression'})
+    cart_total = sum(item.total_price for item in cart.items.all())
+    total_items = cart.items.aggregate(total=Sum('quantity'))['total'] or 0
 
-# Remplacez votre fonction checkout par celle-ci dans views.py
+    return JsonResponse({
+        'status': 'ok',
+        'cart_total': f'{cart_total:.2f} HTG',
+        'cart_item_count': total_items
+    })
+
+# ==========================================================================
+# VUES POUR LE CHECKOUT ET MONCASH
+# ==========================================================================
 
 def checkout(request):
-    """Vue de finalisation de commande mise à jour pour les combos"""
-    cart_items, cart_total = get_cart_items(request)
+    """Vue pour la page de paiement."""
+    cart = _get_cart(request)
+    cart_items = cart.items.select_related('product').prefetch_related('product__images').all()
+    cart_total = sum(item.total_price for item in cart_items)
     
     if not cart_items:
-        messages.error(request, 'Votre panier est vide.')
         return redirect('cart')
-    
-    # Calculer les économies totales des combos pour l'affichage
-    total_savings = 0
-    for item in cart_items:
-        if item['type'] == 'combo':
-            total_savings += item['combo']['savings'] * item['quantity']
-    
-    if request.method == 'POST':
-        # Récupération des données du formulaire
-        full_name = request.POST.get('full_name')
-        address = request.POST.get('address')
-        commune = request.POST.get('commune')
-        department = request.POST.get('department')
-        phone = request.POST.get('phone')
-        payment_method = request.POST.get('payment_method')
-        
-        if not all([full_name, address, commune, department, phone, payment_method]):
-            messages.error(request, 'Veuillez remplir tous les champs.')
-            return render(request, 'pages/checkout.html', {
-                'cart_items': cart_items,
-                'cart_total': cart_total,
-                'cart_item_count': get_cart_count(request),
-                'total_savings': total_savings
-            })
-        
-        if payment_method == 'moncash':
-            # Génération d'un order_id unique
-            order_id = str(uuid.uuid4())[:8].upper()
-            
-            # Création du paiement MonCash
-            payment_response = create_moncash_payment(order_id, cart_total)
-            
-            if payment_response and 'payment_token' in payment_response:
-                # Sauvegarde de la commande en session
-                request.session['pending_order'] = {
-                    'order_id': order_id,
-                    'full_name': full_name,
-                    'address': address,
-                    'commune': commune,
-                    'department': department,
-                    'phone': phone,
-                    'cart_items': cart_items,
-                    'total': cart_total,
-                    'total_savings': total_savings,
-                    'payment_token': payment_response['payment_token']['token']
-                }
-                
-                # Redirection vers MonCash
-                base_url = MONCASH_CONFIG['sandbox_base_url'] if MONCASH_CONFIG['is_sandbox'] else MONCASH_CONFIG['live_base_url']
-                payment_url = f"{base_url}/Moncash-middleware/Payment/Redirect?token={payment_response['payment_token']['token']}"
-                
-                return redirect(payment_url)
-            else:
-                messages.error(request, 'Erreur lors de l\'initialisation du paiement MonCash.')
-        else:
-            messages.error(request, 'Méthode de paiement non supportée pour le moment.')
     
     context = {
         'cart_items': cart_items,
         'cart_total': cart_total,
-        'cart_item_count': get_cart_count(request),
-        'total_savings': total_savings,
-        'original_total': cart_total + total_savings if total_savings > 0 else cart_total
     }
-    
     return render(request, 'pages/checkout.html', context)
 
-def success(request):
-    """Page de succès après paiement"""
-    # Récupération de la commande en attente
-    pending_order = request.session.get('pending_order')
-    
-    if not pending_order:
-        messages.error(request, 'Aucune commande en cours.')
-        return redirect('store')
-    
-    # Simulation de la validation du paiement
-    # Dans un vrai système, il faudrait vérifier le paiement avec l'API MonCash
-    
-    # Création de l'objet order pour l'affichage
-    order = {
-        'id': pending_order['order_id'],
-        'total': pending_order['total'],
-        'status': 'completed'
-    }
-    
-    # Vider le panier et la commande en attente
-    request.session['cart'] = {}
-    del request.session['pending_order']
-    
-    context = {
-        'order': order,
-        'cart_item_count': 0
-    }
-    
-    return render(request, 'pages/success.html', context)
+@require_POST
+def process_payment(request):
+    """Traite le paiement MonCash (AJAX)"""
+    try:
+        # Récupération des données du panier
+        cart = _get_cart(request)
+        cart_items = cart.items.select_related('product').all()
+        
+        if not cart_items:
+            return JsonResponse({'success': False, 'error': 'Panier vide'})
+        
+        total_amount = sum(item.total_price for item in cart_items)
+        
+        if total_amount <= 0:
+            return JsonResponse({'success': False, 'error': 'Montant invalide'})
+        
+        # Obtenir le token d'accès
+        access_token = get_moncash_access_token()
+        if not access_token:
+            return JsonResponse({'success': False, 'error': 'Erreur d\'authentification MonCash'})
+        
+        # Génération d'un orderId unique
+        order_id = str(uuid.uuid4())
+        
+        # Préparation de la requête selon la documentation
+        api_url = f"{MONCASH_API_URL}/v1/CreatePayment"
+        
+        headers = {
+            'Authorization': f'Bearer {access_token}',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+        
+        payment_data = {
+            'amount': int(total_amount),  # MonCash attend un entier
+            'orderId': order_id
+        }
+        
+        # Envoi de la requête
+        response = requests.post(api_url, headers=headers, json=payment_data)
+        
+        if response.status_code == 202:  # Succès selon la doc
+            response_data = response.json()
+            payment_token = response_data.get('payment_token', {}).get('token')
+            
+            if payment_token:
+                # Sauvegarde des informations de commande en session
+                cart_items_data = []
+                for item in cart_items:
+                    cart_items_data.append({
+                        'product_id': item.product.id,
+                        'quantity': item.quantity,
+                        'price': float(item.product.price),
+                        'name': item.product.name
+                    })
+                
+                request.session['order_data'] = {
+                    'order_id': order_id,
+                    'total_amount': float(total_amount),
+                    'payment_token': payment_token,
+                    'cart_items': cart_items_data
+                }
+                
+                # URL de redirection selon la documentation
+                redirect_url = f"{MONCASH_GATEWAY_URL}/Payment/Redirect?token={payment_token}"
+                
+                return JsonResponse({
+                    'success': True,
+                    'redirect_url': redirect_url,
+                    'order_id': order_id
+                })
+            else:
+                logger.error(f"Token de paiement manquant dans la réponse: {response_data}")
+                return JsonResponse({'success': False, 'error': 'Token de paiement non reçu'})
+        else:
+            logger.error(f"Erreur API MonCash: {response.status_code} - {response.text}")
+            return JsonResponse({'success': False, 'error': 'Erreur lors de la création du paiement'})
+            
+    except Exception as e:
+        logger.error(f"Erreur dans process_payment: {str(e)}")
+        return JsonResponse({'success': False, 'error': 'Erreur interne du serveur'})
 
-# Vue pour les orders (mentionnée dans success.html)
-def orders(request):
-    """Liste des commandes utilisateur"""
-    # Pour le MVP, redirection vers le store
-    messages.info(request, 'Fonctionnalité des commandes en développement.')
-    return redirect('store')
-
-# ENDPOINTS MONCASH REQUIS
-
-@csrf_exempt
 def moncash_return(request):
-    """Endpoint de retour MonCash après paiement (succès ou échec)"""
-    # MonCash redirige ici après le paiement
-    transaction_id = request.GET.get('transactionId')
-    
-    if transaction_id:
-        # Paiement réussi - vérifier le statut
-        token = get_moncash_token()
-        if token:
-            # Vérification du paiement avec l'API MonCash
-            base_url = MONCASH_CONFIG['sandbox_base_url'] if MONCASH_CONFIG['is_sandbox'] else MONCASH_CONFIG['live_base_url']
-            url = f"{base_url}/Api/v1/RetrieveTransactionPayment"
+    """Gestion du retour après paiement MonCash"""
+    try:
+        # Récupération des paramètres de retour
+        transaction_id = request.GET.get('transactionId')
+        order_data = request.session.get('order_data')
+        
+        if not transaction_id or not order_data:
+            logger.warning("Données manquantes lors du retour MonCash")
+            return redirect('checkout')
+        
+        # Vérification du paiement via l'API
+        payment_verified = verify_payment_by_transaction(transaction_id)
+        
+        if payment_verified and payment_verified.get('status') == 200:
+            payment_details = payment_verified.get('payment', {})
             
-            headers = {
-                'Authorization': f'Bearer {token}',
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            }
+            if payment_details.get('message') == 'successful':
+                # Création de la commande
+                order = create_order_from_session(request, transaction_id, payment_details)
+                
+                if order:
+                    # Nettoyage du panier et de la session
+                    cart = _get_cart(request)
+                    cart.items.all().delete()
+                    request.session.pop('order_data', None)
+                    
+                    # Sauvegarde de l'ID de commande pour la page de succès
+                    request.session['last_order_id'] = order.order_id
+                    
+                    return redirect('success')
+                else:
+                    logger.error("Erreur lors de la création de la commande")
+                    return redirect('checkout')
+            else:
+                logger.warning(f"Paiement non réussi: {payment_details}")
+                return redirect('checkout')
+        else:
+            logger.error(f"Échec de la vérification du paiement: {payment_verified}")
+            return redirect('checkout')
             
-            data = {'transactionId': transaction_id}
-            
-            try:
-                response = requests.post(url, headers=headers, json=data, timeout=10)
-                if response.status_code == 200:
-                    payment_data = response.json()
-                    if payment_data.get('payment', {}).get('message') == 'successful':
-                        # Paiement confirmé - rediriger vers success
-                        return redirect('success')
-            except requests.RequestException:
-                pass
-    
-    # En cas d'erreur ou paiement échoué
-    messages.error(request, 'Le paiement a échoué ou a été annulé.')
-    return redirect('checkout')
+    except Exception as e:
+        logger.error(f"Erreur dans moncash_return: {str(e)}")
+        return redirect('checkout')
 
 @csrf_exempt
 def moncash_notify(request):
-    """Endpoint de notification MonCash (webhook)"""
+    """Gestion des notifications MonCash (webhook)"""
     if request.method == 'POST':
         try:
-            # MonCash envoie les données de notification ici
-            data = json.loads(request.body)
+            # Log de la notification reçue
+            logger.info(f"Notification MonCash reçue: {request.body}")
             
-            transaction_id = data.get('transactionId')
-            order_id = data.get('reference')  # Votre order_id
-            status = data.get('message')
+            # Traitement de la notification si nécessaire
+            # (validation supplémentaire, mise à jour du statut, etc.)
             
-            # Log des données reçues (pour debug)
-            print(f"MonCash Notification: Transaction {transaction_id}, Order {order_id}, Status: {status}")
+            return HttpResponse("OK", status=200)
             
-            # Ici vous pouvez mettre à jour le statut de la commande dans votre base
-            # Pour le MVP, on fait juste un log
-            
-            # Répondre OK à MonCash
-            return JsonResponse({'status': 'received'})
-            
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        except Exception as e:
+            logger.error(f"Erreur dans moncash_notify: {str(e)}")
+            return HttpResponse("Error", status=500)
     
-    return JsonResponse({'error': 'Method not allowed'}, status=405)
+    return HttpResponse("Method not allowed", status=405)
+
+def success(request):
+    """Vue pour la page de succès de commande."""
+    order_id = request.session.get('last_order_id')
+    context = {
+        'order': {'id': order_id or 'AF-12345'}
+    }
+    # Nettoyage de la session
+    request.session.pop('last_order_id', None)
+    return render(request, 'pages/success.html', context)
+
+# ==========================================================================
+# VUES POUR LES COMBOS (si applicable)
+# ==========================================================================
+
+def combo_detail(request, combo_id):
+    """Vue pour les détails d'un combo"""
+    # Implémentation selon vos besoins
+    pass
+
+@require_POST
+def add_combo_to_cart(request):
+    """Ajouter un combo au panier"""
+    # Implémentation selon vos besoins
+    pass
+
+@require_POST
+def update_combo_cart(request):
+    """Mettre à jour un combo dans le panier"""
+    # Implémentation selon vos besoins
+    pass
+
+@require_POST
+def remove_combo_from_cart(request):
+    """Supprimer un combo du panier"""
+    # Implémentation selon vos besoins
+    pass
+
+# ==========================================================================
+# VUES UTILISATEUR
+# ==========================================================================
+
+def orders(request):
+    """Vue pour la page d'historique des commandes."""
+    # Si l'utilisateur est connecté, récupérer ses vraies commandes
+    if request.user.is_authenticated:
+        user_orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    else:
+        user_orders = []
+    
+    context = {
+        'user_orders': user_orders,
+        'user': request.user if request.user.is_authenticated else {'username': 'Invité', 'first_name': 'Invité'}
+    }
+    return render(request, 'pages/user/orders.html', context)
+
+def track_order(request, order_id):
+    """Vue pour la page de suivi de commande."""
+    try:
+        if request.user.is_authenticated:
+            order = get_object_or_404(Order, order_id=order_id, user=request.user)
+        else:
+            order = get_object_or_404(Order, order_id=order_id)
+        
+        context = {
+            'order': order,
+            'user': request.user if request.user.is_authenticated else {'username': 'Invité', 'first_name': 'Invité'}
+        }
+    except Order.DoesNotExist:
+        # Données d'exemple si la commande n'existe pas
+        context = {
+            'order': {
+                'id': order_id,
+                'created_at': datetime.datetime.now(),
+                'status': 'not_found',
+                'items': {'all': []}
+            },
+            'user': {'username': 'Invité', 'first_name': 'Invité'}
+        }
+    
+    return render(request, 'pages/user/track_order.html', context)

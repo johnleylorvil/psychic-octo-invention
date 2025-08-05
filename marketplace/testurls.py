@@ -27,6 +27,8 @@ urlpatterns = [
     path('checkout/', testview.checkout, name='checkout'),
     path('success/', testview.success, name='success'),
     path('orders/', testview.orders, name='orders'),
+    # urls.py - Ajout de l'URL pour process_payment
+    path('process-payment/', testview.process_payment, name='process_payment'),
     
     # Endpoints MonCash
     path('moncash/return/', testview.moncash_return, name='moncash_return'),
