@@ -1005,7 +1005,7 @@ def moncash_notify(request):
             return JsonResponse({'error': 'Server error'}, status=500)
     
     logger.warning(f"⚠️ Méthode non autorisée: {request.method}")
-    return JsonResponse({'error': 'Method not allowed'}, status=405)
+    return redirect('home')
 
 def signup_view(request):
     """Vue pour l'inscription d'un nouvel utilisateur."""
