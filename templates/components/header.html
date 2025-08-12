@@ -3,34 +3,41 @@
 <style>
     /* Navigation principale */
     .main-nav ul { display: flex; list-style: none; margin: 0; padding: 0; align-items: center; }
-    .main-nav a { 
+    .main-nav a, .account-menu .dropdown-menu a { 
         display: flex; 
         align-items: center;
         gap: 8px; /* Espace entre l'icône et le texte */
         padding: 30px 18px; 
         text-decoration: none; 
-        color: #333; 
+        color: var(--text-dark, #333); 
         font-weight: 500;
         transition: color 0.2s ease-in-out;
     }
-    .main-nav a:hover { color: #E67E22; }
+    .main-nav a:hover, .account-menu a:hover { color: var(--primary-orange, #E67E22); }
 
-    /* Implémentation du menu déroulant */
+    /* Implémentation du menu déroulant (Générique) */
     .has-dropdown .dropdown-menu {
         display: none; /* Caché par défaut */
         position: absolute;
         top: 100%;
-        left: 0;
+        /* Aligner à droite pour le menu utilisateur */
+        right: 0; 
+        left: auto;
         background: white;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        box-shadow: var(--shadow-medium, 0 8px 24px rgba(0, 0, 0, 0.1));
         list-style: none;
         padding: 10px 0;
-        border-radius: 5px;
-        min-width: 200px;
+        border-radius: 8px;
+        min-width: 220px;
         z-index: 1001;
         opacity: 0;
         transform: translateY(10px);
         transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    /* S'assurer que le dropdown de la nav principale reste aligné à gauche */
+    .main-nav .has-dropdown .dropdown-menu {
+        left: 0;
+        right: auto;
     }
     .has-dropdown:hover .dropdown-menu {
         display: block; /* Affiché au survol */
@@ -38,17 +45,18 @@
         transform: translateY(0);
     }
     .dropdown-menu a {
-        padding: 12px 20px !important;
+        padding: 12px 20px !important; /* !important pour surcharger le padding de base */
         width: 100%;
         box-sizing: border-box;
+        color: var(--text-subtle, #555);
     }
 
     /* Style du compteur de panier */
     .cart-count {
         position: absolute;
-        top: -10px;
-        right: -10px;
-        background-color: #D35400;
+        top: -8px;
+        right: -8px;
+        background-color: var(--secondary-orange, #D35400);
         color: white;
         border-radius: 50%;
         width: 20px;
@@ -60,11 +68,7 @@
         font-weight: 600;
         transition: all 0.3s ease;
     }
-    
-    .cart-count.animate {
-        animation: bounceCart 0.5s ease;
-    }
-    
+    .cart-count.animate { animation: bounceCart 0.5s ease; }
     @keyframes bounceCart {
         0% { transform: scale(1); }
         50% { transform: scale(1.3); }
@@ -72,7 +76,7 @@
     }
 </style>
 
-<div class="top-bar" style="background-color: #E67E22; color: white; padding: 8px 20px; font-size: 14px; text-align: center;">
+<div class="top-bar" style="background-color: var(--primary-orange, #E67E22); color: white; padding: 8px 20px; font-size: 14px; text-align: center;">
     <div class="top-bar-container" style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
         <span><i class="fas fa-phone-alt" style="margin-right: 5px;"></i>Contact: +509 1234 5678</span>
         <span>Livraison Rapide sur Port-au-Prince!</span>
@@ -83,7 +87,7 @@
     <div class="header-container" style=" display: flex; justify-content: center; align-items: center; width: 100%; padding: 0 20px; display: flex; align-items: center; height: 80px; justify-content: space-between;">
         
         <div class="header-logo">
-            <a href="{% url 'home' %}" style="font-family: 'Lora', serif; font-size: 26px; font-weight: 700; color: #D35400; text-decoration: none;">Afèpanou</a>
+            <a href="{% url 'home' %}" style="font-family: 'Lora', serif; font-size: 26px; font-weight: 700; color: var(--secondary-orange, #D35400); text-decoration: none;">Afèpanou</a>
         </div>
 
         <nav class="main-nav">
@@ -106,15 +110,34 @@
             <div class="header-center">
                 <form action="{% url 'store' %}" method="get" class="search-bar" style="display: flex; align-items: center; background: #f5f5f5; border-radius: 20px; padding: 5px 15px;">
                     <i class="fas fa-search" style="color: #888;"></i>
-                    <input type="text" name="q" placeholder="Rechercher..." style="border: none; background: transparent; outline: none; padding: 5px 10px; width: 150px;">
+                    <input type="text" name="q" placeholder="Rechercher..." value="{{ search_query|default:'' }}" style="border: none; background: transparent; outline: none; padding: 5px 10px; width: 150px;">
                 </form>
             </div>
 
             <div class="header-actions" style="display: flex; align-items: center; gap: 20px;">
-                <div class="account-menu" style="position: relative;">
-                    <a href="#" class="account-btn" style="color: #333; font-size: 20px;"><i class="fas fa-user"></i></a>
-                </div>
+                
+                <div class="account-menu has-dropdown" style="position: relative;">
+                    
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'dashboard' %}" class="account-btn" style="color: #333; font-size: 20px;" title="Mon compte">
+                            <i class="fas fa-user-check"></i>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="{% url 'dashboard' %}"><i class="fas fa-tachometer-alt"></i> Mon Tableau de Bord</a></li>
+                            <li><a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Déconnexion</a></li>
+                        </ul>
 
+                    {% else %}
+                        <a href="{% url 'login' %}" class="account-btn" style="color: #333; font-size: 20px;" title="Se connecter">
+                            <i class="fas fa-user"></i>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> Se Connecter</a></li>
+                            <li><a href="{% url 'signup' %}"><i class="fas fa-user-plus"></i> S'inscrire</a></li>
+                        </ul>
+                    {% endif %}
+
+                </div>
                 <a href="{% url 'cart' %}" class="cart-icon" style="color: #333; font-size: 20px; text-decoration: none; position: relative;">
                     <i class="fas fa-shopping-cart"></i>
                     <span id="cart-item-count" class="cart-count" {% if cart_item_count > 0 %}style="display: flex;"{% else %}style="display: none;"{% endif %}>

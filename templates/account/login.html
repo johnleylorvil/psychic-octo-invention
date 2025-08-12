@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Connexion{% endblock %}
+
+{% block extra_head %}
+<style>
+    .account-page-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 80vh;
+        padding: 2rem 1rem;
+        background-color: var(--cream);
+    }
+    .account-card {
+        width: 100%;
+        max-width: 450px;
+        background-color: var(--warm-beige);
+        border-radius: 12px;
+        box-shadow: var(--shadow-medium);
+        overflow: hidden;
+    }
+    .account-card .card-header {
+        background-color: var(--forest-green);
+        padding: 1.5rem;
+    }
+    .account-card .card-header h3 {
+        color: var(--text-light);
+        text-align: center;
+        margin: 0;
+    }
+    .account-card .card-body {
+        padding: 2rem;
+    }
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    .form-group label {
+        display: block;
+        font-family: var(--font-primary);
+        font-weight: 600;
+        color: var(--text-subtle);
+        margin-bottom: 0.5rem;
+    }
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        font-family: var(--font-primary);
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        background-color: #fff;
+        transition: var(--transition-fast);
+    }
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-orange);
+        box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.2);
+    }
+    .btn-submit {
+        width: 100%;
+        padding: 0.85rem;
+        border: none;
+        border-radius: 8px;
+        background: var(--gradient-primary);
+        color: var(--text-light);
+        font-family: var(--font-primary);
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition-fast);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .btn-submit:hover {
+        box-shadow: var(--shadow-soft);
+        transform: translateY(-2px);
+    }
+    .account-footer {
+        text-align: center;
+        margin-top: 1.5rem;
+        font-size: 0.9rem;
+    }
+    .alert {
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        border-radius: 8px;
+        color: var(--text-light);
+        background-color: var(--terracotta); /* Pour les erreurs */
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="account-page-wrapper">
+    <div class="account-card">
+        <div class="card-header">
+            <h3>Connexion</h3>
+        </div>
+        <div class="card-body">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="{{ form.username.id_for_label }}">Nom d'utilisateur</label>
+                    <input type="text" name="{{ form.username.name }}" id="{{ form.username.id_for_label }}" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.password.id_for_label }}">Mot de passe</label>
+                    <input type="password" name="{{ form.password.name }}" id="{{ form.password.id_for_label }}" class="form-control" required>
+                </div>
+                
+                <button type="submit" class="btn-submit">Se connecter</button>
+            </form>
+            
+            <div class="account-footer">
+                <p>Pas encore de compte ? <a href="{% url 'signup' %}">Inscrivez-vous ici</a>.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

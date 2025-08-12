@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}Tableau de Bord{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<style>
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--warm-beige);
+    }
+    .dashboard-header h2 {
+        color: var(--forest-green);
+        margin: 0;
+    }
+    .btn-logout {
+        padding: 0.6rem 1.2rem;
+        border: 2px solid var(--secondary-orange);
+        color: var(--secondary-orange);
+        background-color: transparent;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: var(--transition-fast);
+    }
+    .btn-logout:hover {
+        background-color: var(--secondary-orange);
+        color: var(--text-light);
+        text-decoration: none;
+    }
+    .dashboard-card {
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: var(--shadow-soft);
+        margin-bottom: 2rem;
+    }
+    .dashboard-card .card-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--warm-beige);
+    }
+    .dashboard-card .card-header h4 {
+        margin: 0;
+        color: var(--forest-green);
+    }
+    .dashboard-card .card-body {
+        padding: 1.5rem;
+    }
+    #map { 
+        height: 450px; 
+        border-radius: 8px;
+    }
+    .orders-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.95rem;
+    }
+    .orders-table th {
+        font-family: var(--font-secondary);
+        font-weight: 700;
+        color: var(--forest-green);
+        text-align: left;
+        padding: 0.8rem 1rem;
+        background-color: var(--warm-beige);
+    }
+    .orders-table td {
+        padding: 0.8rem 1rem;
+        border-bottom: 1px solid var(--warm-beige);
+    }
+    .orders-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+    .status-badge {
+        display: inline-block;
+        padding: 0.3rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-light);
+    }
+    .status-paid { background-color: var(--forest-green); }
+    .status-pending { background-color: var(--terracotta); }
+    .status-delivered { background-color: var(--forest-green); }
+    .status-shipped, .status-processing { background-color: var(--primary-orange); }
+    .status-cancelled { background-color: #777; }
+
+    .leaflet-popup-content-wrapper { border-radius: 8px !important; }
+    .order-popup h5 { margin-bottom: 5px; font-size: 1rem; color: var(--secondary-orange); font-family: var(--font-secondary); }
+    .order-popup p { margin: 2px 0; font-size: 0.9rem; font-family: var(--font-primary); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success">{{ message }}</div> {% endfor %}
+    {% endif %}
+
+    <div class="dashboard-header">
+        <h2>Bienvenue, {{ user.first_name }} !</h2>
+        <a href="{% url 'logout' %}" class="btn-logout">Déconnexion</a>
+    </div>
+
+    <div class="dashboard-card">
+        <div class="card-header">
+            <h4>Suivi de vos Commandes en Cours</h4>
+        </div>
+        <div class="card-body">
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <div class="dashboard-card">
+        <div class="card-header">
+            <h4>Historique de vos Commandes</h4>
+        </div>
+        <div class="card-body" style="padding: 0;">
+            <div class="table-responsive">
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th>N° Commande</th>
+                            <th>Date</th>
+                            <th>Total</th>
+                            <th>Paiement</th>
+                            <th>Livraison</th>
+                            <th>Tracking</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td><strong>{{ order.order_number }}</strong></td>
+                            <td>{{ order.created_at|date:"d M, Y" }}</td>
+                            <td>{{ order.total_amount }} HTG</td>
+                            <td>
+                                <span class="status-badge {% if order.payment_status == 'paid' %}status-paid{% else %}status-pending{% endif %}">
+                                    {{ order.get_payment_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="status-badge status-{{ order.status|lower }}">
+                                    {{ order.get_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ order.tracking_number|default:"N/A" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 2rem;">Vous n'avez passé aucune commande.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{ orders_json_for_map|json_script:"orders-data" }}
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // On attend un instant infime avec setTimeout.
+    // C'est une astuce pour s'assurer que le CSS a bien été appliqué
+    // et que la div #map a bien sa hauteur de 450px avant d'initialiser la carte.
+    setTimeout(function() {
+        // --- Début du code d'initialisation de la carte ---
+
+        const mapContainer = document.getElementById('map');
+        const ordersData = JSON.parse(document.getElementById('orders-data').textContent);
+        const markers = [];
+
+        // Filtrer les commandes pour ne garder que celles en cours de livraison
+        const ordersToTrack = ordersData.filter(order => 
+            !order.status.toLowerCase().includes('annul') && 
+            !order.status.toLowerCase().includes('livr')
+        );
+
+        if (ordersToTrack.length === 0) {
+            // Si aucune commande n'est en cours, on affiche un message et on n'initialise pas la carte.
+            mapContainer.innerHTML = '<p style="text-align:center; padding-top: 2rem; color: var(--text-subtle);">Aucune commande en cours de livraison à suivre.</p>';
+            return; // On arrête l'exécution du script ici
+        }
+
+        // Si on a des commandes à suivre, on initialise la carte
+        const map = L.map(mapContainer).setView([19.0, -72.5], 8);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        ordersToTrack.forEach(order => {
+            const marker = L.marker([order.lat, order.lng]).addTo(map);
+            
+            const popupContent = `
+                <div class="order-popup">
+                    <h5>Commande ${order.order_number}</h5>
+                    <p><strong>Statut:</strong> ${order.status}</p>
+                    <p><strong>Adresse:</strong> ${order.address}</p>
+                </div>
+            `;
+            
+            marker.bindPopup(popupContent);
+            markers.push(marker);
+        });
+
+        if (markers.length > 0) {
+            const group = new L.featureGroup(markers);
+            map.fitBounds(group.getBounds().pad(0.5));
+        }
+
+        // CORRECTION FINALE : On force la carte à recalculer sa taille.
+        // C'est une sécurité qui résout 99% des problèmes d'affichage.
+        map.invalidateSize();
+
+        // --- Fin du code d'initialisation de la carte ---
+    }, 100); // Un délai de 100 millisecondes est généralement suffisant.
+});
+</script>
+{% endblock %}

@@ -28,6 +28,10 @@ urlpatterns = [
     path('success/', testview.success, name='success'),
     path('orders/', testview.orders, name='orders'),
     # urls.py - Ajout de l'URL pour process_payment
+    path('compte/inscription/', testview.signup_view, name='signup'),
+    path('compte/connexion/', testview.login_view, name='login'),
+    path('compte/deconnexion/', testview.logout_view, name='logout'),
+    path('compte/dashboard/', testview.dashboard_view, name='dashboard'),
     
     
     # Endpoints MonCash

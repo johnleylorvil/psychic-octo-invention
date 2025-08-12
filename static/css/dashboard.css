@@ -1,0 +1,158 @@
+/* ==========================================================================
+   Styles pour le Tableau de Bord Utilisateur (Dashboard)
+   ========================================================================== */
+
+/* --- Conteneur Principal --- */
+.dashboard-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --- En-tête du Dashboard --- */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--warm-beige);
+}
+
+.dashboard-header h2 {
+    color: var(--forest-green);
+    margin: 0;
+}
+
+.btn-logout {
+    padding: 0.6rem 1.2rem;
+    border: 2px solid var(--terracotta);
+    color: var(--terracotta);
+    background-color: transparent;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition-fast);
+}
+
+.btn-logout:hover {
+    background-color: var(--terracotta);
+    color: var(--text-light);
+}
+
+/* --- Cartes de Contenu --- */
+.dashboard-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: var(--shadow-soft);
+    margin-bottom: 2.5rem;
+}
+
+.dashboard-card .card-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--warm-beige);
+}
+
+.dashboard-card .card-header h4 {
+    margin: 0;
+    color: var(--forest-green);
+    font-family: var(--font-secondary);
+}
+
+.dashboard-card .card-body {
+    padding: 1.5rem;
+}
+
+/* --- Carte & Tableau --- */
+#map { 
+    height: 450px; 
+    border-radius: 8px;
+    background-color: var(--warm-beige); /* Couleur de fond pendant le chargement */
+}
+
+.orders-table-wrapper {
+    overflow-x: auto; /* Assure la responsivité sur mobile */
+}
+
+.orders-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.orders-table th {
+    font-family: var(--font-secondary);
+    font-weight: 700;
+    color: var(--forest-green);
+    text-align: left;
+    padding: 1rem 1.25rem;
+    background-color: var(--warm-beige);
+}
+
+.orders-table td {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--warm-beige);
+    color: var(--text-subtle);
+    vertical-align: middle;
+}
+
+.orders-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.orders-table td strong {
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+/* --- Badges de Statut --- */
+.status-badge {
+    display: inline-block;
+    padding: 0.35rem 0.85rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-light);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.status-paid, .status-delivered { background-color: var(--forest-green); }
+.status-pending { background-color: var(--terracotta); }
+.status-shipped, .status-processing, .status-en-traitement, .status-confirmée { background-color: var(--primary-orange); }
+.status-cancelled, .status-annulée { background-color: #777; }
+
+
+/* --- Styles pour les Popups de la Carte --- */
+.leaflet-popup-content-wrapper { 
+    border-radius: 8px !important; 
+    box-shadow: var(--shadow-soft);
+}
+.order-popup h5 { 
+    margin: 0 0 8px 0; 
+    font-size: 1rem; 
+    color: var(--secondary-orange); 
+    font-family: var(--font-secondary); 
+    border-bottom: 1px solid var(--warm-beige);
+    padding-bottom: 5px;
+}
+.order-popup p { 
+    margin: 4px 0; 
+    font-size: 0.9rem; 
+    font-family: var(--font-primary); 
+}
+.order-popup p strong {
+    color: var(--text-dark);
+}

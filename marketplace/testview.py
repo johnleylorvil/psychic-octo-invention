@@ -7,7 +7,14 @@ import requests
 import uuid
 import logging
 from decimal import Decimal
-
+from django.shortcuts import render, redirect
+from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .forms import SignUpForm
+from .models import Order
+import json
 
 # Configuration du logger
 logger = logging.getLogger(__name__)
@@ -999,3 +1006,97 @@ def moncash_notify(request):
     
     logger.warning(f"⚠️ Méthode non autorisée: {request.method}")
     return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+def signup_view(request):
+    """Vue pour l'inscription d'un nouvel utilisateur."""
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(request, f"Bienvenue, {user.first_name}! Votre compte a été créé avec succès.")
+            return redirect('dashboard')
+        else:
+            messages.error(request, "Veuillez corriger les erreurs ci-dessous.")
+    else:
+        form = SignUpForm()
+    
+    return render(request, 'account/signup.html', {'form': form})
+
+def login_view(request):
+    """Vue pour la connexion d'un utilisateur."""
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                messages.info(request, f"Heureux de vous revoir, {user.first_name}!")
+                return redirect('dashboard')
+            else:
+                messages.error(request, "Nom d'utilisateur ou mot de passe incorrect.")
+        else:
+            messages.error(request, "Nom d'utilisateur ou mot de passe incorrect.")
+    
+    form = AuthenticationForm()
+    return render(request, 'account/login.html', {'form': form})
+
+def logout_view(request):
+    """Vue pour la déconnexion."""
+    logout(request)
+    messages.info(request, "Vous avez été déconnecté avec succès.")
+    return redirect('home') # Redirige vers votre page d'accueil
+
+
+@login_required
+def dashboard_view(request):
+    """Tableau de bord de l'utilisateur avec ses commandes et le suivi sur une carte."""
+    
+    # Récupérer les commandes de l'utilisateur connecté
+    orders = Order.objects.filter(user=request.user).order_by('-created_at')
+
+    # Dictionnaire de coordonnées simulées pour les villes d'Haïti
+    # Dans une application réelle, vous devriez géocoder les adresses
+    # et stocker la latitude/longitude dans le modèle Order.
+    city_coords = {
+        'Port-au-Prince': {'lat': 18.5392, 'lng': -72.3364},
+        'Carrefour': {'lat': 18.5333, 'lng': -72.4},
+        'Delmas': {'lat': 18.55, 'lng': -72.3},
+        'Pétion-Ville': {'lat': 18.5167, 'lng': -72.2833},
+        'Cap-Haïtien': {'lat': 19.76, 'lng': -72.2},
+        'Gonaïves': {'lat': 19.45, 'lng': -72.6833},
+        'Saint-Marc': {'lat': 19.1075, 'lng': -72.6936},
+        'Les Cayes': {'lat': 18.2, 'lng': -73.75},
+        'Jacmel': {'lat': 18.2333, 'lng': -72.5333},
+    }
+
+    # Préparer les données des commandes pour le JavaScript de la carte
+    orders_for_map = []
+    for order in orders:
+        city = order.shipping_city
+        coords = city_coords.get(city, city_coords['Port-au-Prince']) # Coordonnées par défaut si la ville n'est pas trouvée
+
+        orders_for_map.append({
+            'order_number': order.order_number,
+            'status': order.get_status_display(), # 'get_FOO_display' pour les champs 'choices'
+            'payment_status': order.get_payment_status_display(),
+            'address': f"{order.shipping_address}, {order.shipping_city}",
+            'lat': coords['lat'],
+            'lng': coords['lng'],
+            'total': float(order.total_amount),
+            'date': order.created_at.strftime('%d/%m/%Y'),
+        })
+    
+    context = {
+        'orders': orders,
+        'orders_json_for_map': json.dumps(orders_for_map),
+    }
+    return render(request, 'account/dashboard.html', context)
