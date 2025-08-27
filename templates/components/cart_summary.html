@@ -1,0 +1,88 @@
+{% load static %}
+<div class="cart-summary" id="cart-summary">
+    <div class="cart-summary__header">
+        <h3 class="cart-summary__title">
+            <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+            Panye ou an
+        </h3>
+        <span class="cart-summary__count" id="cart-count">{{ cart.items.count|default:0 }}</span>
+    </div>
+    
+    {% if cart and cart.items.exists %}
+        <div class="cart-summary__content">
+            <div class="cart-summary__items" id="cart-items">
+                {% for item in cart.items.all %}
+                    <div class="cart-item-mini" data-item-id="{{ item.id }}">
+                        <div class="cart-item-mini__image">
+                            {% if item.product.images.first %}
+                                <img src="{{ item.product.images.first.image.url }}" 
+                                     alt="{{ item.product.name }}"
+                                     loading="lazy">
+                            {% else %}
+                                <div class="product-image-placeholder">
+                                    <i class="fas fa-image"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="cart-item-mini__details">
+                            <h4 class="cart-item-mini__name">{{ item.product.name|truncatechars:25 }}</h4>
+                            <div class="cart-item-mini__meta">
+                                <span class="cart-item-mini__quantity">{{ item.quantity }}x</span>
+                                <span class="cart-item-mini__price">{{ item.get_total_price }} HTG</span>
+                            </div>
+                        </div>
+                        
+                        <button class="cart-item-mini__remove" 
+                                data-item-id="{{ item.id }}"
+                                aria-label="Retire {{ item.product.name }} nan panye a">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <div class="cart-summary__footer">
+                <div class="cart-summary__total">
+                    <strong>Total: <span id="cart-total">{{ cart.get_total_price }}</span> HTG</strong>
+                </div>
+                
+                <div class="cart-summary__actions">
+                    <a href="{% url 'cart' %}" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-eye"></i>
+                        Wè panye a
+                    </a>
+                    <a href="{% url 'checkout' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-credit-card"></i>
+                        Peye
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="cart-summary__empty">
+            <i class="fas fa-shopping-cart cart-summary__empty-icon" aria-hidden="true"></i>
+            <p class="cart-summary__empty-text">Panye ou an vid</p>
+            <a href="{% url 'store' %}" class="btn btn-primary btn-sm">
+                <i class="fas fa-shopping-bag"></i>
+                Kòmanse fè makèt
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+// Cart summary functionality will be handled by cart.js
+document.addEventListener('DOMContentLoaded', function() {
+    const cartSummary = document.getElementById('cart-summary');
+    const removeButtons = cartSummary.querySelectorAll('.cart-item-mini__remove');
+    
+    removeButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const itemId = this.getAttribute('data-item-id');
+            removeFromCart(itemId, true); // true for mini cart update
+        });
+    });
+});
+</script>

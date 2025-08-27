@@ -1,0 +1,67 @@
+{% load static %}
+<div class="search-bar" role="search">
+    <form method="GET" action="{% url 'store' %}" class="search-form" id="search-form">
+        <div class="search-input-group">
+            <input type="text" 
+                   name="search" 
+                   id="search-input"
+                   class="search-input" 
+                   placeholder="Rechèche pwodwi, kategori oswa vandè..."
+                   value="{{ request.GET.search|default:'' }}"
+                   aria-label="Rechercher des produits"
+                   autocomplete="off">
+            
+            <button type="submit" class="search-btn" aria-label="Lancer la recherche">
+                <i class="fas fa-search" aria-hidden="true"></i>
+            </button>
+        </div>
+        
+        <!-- Advanced search filters (hidden by default) -->
+        <div class="search-filters" id="search-filters" style="display: none;">
+            <div class="filter-group">
+                <label for="category-filter">Kategori:</label>
+                <select name="category" id="category-filter" class="filter-select">
+                    <option value="">Tout kategori yo</option>
+                    <!-- Categories will be populated dynamically -->
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="price-min">Pri minimum (HTG):</label>
+                <input type="number" name="price_min" id="price-min" class="filter-input" 
+                       value="{{ request.GET.price_min }}" min="0" step="1">
+            </div>
+            
+            <div class="filter-group">
+                <label for="price-max">Pri maksimòm (HTG):</label>
+                <input type="number" name="price_max" id="price-max" class="filter-input" 
+                       value="{{ request.GET.price_max }}" min="0" step="1">
+            </div>
+        </div>
+        
+        <button type="button" class="filters-toggle" id="filters-toggle" aria-expanded="false">
+            <i class="fas fa-sliders-h" aria-hidden="true"></i>
+            Filtè yo
+        </button>
+    </form>
+    
+    <!-- Search suggestions dropdown -->
+    <div class="search-suggestions" id="search-suggestions" style="display: none;">
+        <ul class="suggestions-list" id="suggestions-list" role="listbox">
+            <!-- Suggestions will be populated via JavaScript -->
+        </ul>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filtersToggle = document.getElementById('filters-toggle');
+    const searchFilters = document.getElementById('search-filters');
+    
+    filtersToggle.addEventListener('click', function() {
+        const isVisible = searchFilters.style.display !== 'none';
+        searchFilters.style.display = isVisible ? 'none' : 'block';
+        filtersToggle.setAttribute('aria-expanded', !isVisible);
+    });
+});
+</script>

@@ -1,0 +1,96 @@
+{% load static %}
+<nav class="category-nav" role="navigation" aria-label="Navigation des catégories">
+    <div class="category-nav__container">
+        <h2 class="category-nav__title">Kategori yo</h2>
+        
+        {% if categories %}
+            <ul class="category-nav__list" role="menubar">
+                {% for category in categories %}
+                    <li class="category-nav__item" role="none">
+                        <a href="{% url 'category_detail' slug=category.slug %}" 
+                           class="category-nav__link{% if current_category.id == category.id %} category-nav__link--active{% endif %}"
+                           role="menuitem"
+                           aria-current="{% if current_category.id == category.id %}page{% endif %}">
+                            
+                            {% if category.icon %}
+                                <i class="category-nav__icon {{ category.icon }}" aria-hidden="true"></i>
+                            {% else %}
+                                <i class="category-nav__icon fas fa-tag" aria-hidden="true"></i>
+                            {% endif %}
+                            
+                            <span class="category-nav__text">{{ category.name }}</span>
+                            
+                            {% if category.products.count %}
+                                <span class="category-nav__count">({{ category.products.count }})</span>
+                            {% endif %}
+                        </a>
+                        
+                        {% if category.subcategories.exists %}
+                            <ul class="category-nav__submenu" role="menu" aria-label="Sous-catégories de {{ category.name }}">
+                                {% for subcategory in category.subcategories.all %}
+                                    <li class="category-nav__submenu-item" role="none">
+                                        <a href="{% url 'category_detail' slug=subcategory.slug %}" 
+                                           class="category-nav__submenu-link{% if current_category.id == subcategory.id %} category-nav__submenu-link--active{% endif %}"
+                                           role="menuitem"
+                                           aria-current="{% if current_category.id == subcategory.id %}page{% endif %}">
+                                            {{ subcategory.name }}
+                                            {% if subcategory.products.count %}
+                                                <span class="category-nav__count">({{ subcategory.products.count }})</span>
+                                            {% endif %}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="category-nav__empty">
+                <i class="fas fa-tags category-nav__empty-icon" aria-hidden="true"></i>
+                <p class="category-nav__empty-text">Pa gen kategori disponib kounye a</p>
+            </div>
+        {% endif %}
+        
+        <!-- Quick category filters for mobile -->
+        <div class="category-nav__mobile-filters" id="mobile-category-filters">
+            <button class="category-nav__mobile-toggle" id="category-filter-toggle" aria-expanded="false">
+                <i class="fas fa-filter" aria-hidden="true"></i>
+                Filtre kategori yo
+            </button>
+            
+            <div class="category-nav__mobile-dropdown" id="category-dropdown" style="display: none;">
+                {% for category in categories %}
+                    <a href="{% url 'category_detail' slug=category.slug %}" 
+                       class="category-nav__mobile-link{% if current_category.id == category.id %} category-nav__mobile-link--active{% endif %}">
+                        {{ category.name }}
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</nav>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Mobile category filter toggle
+    const categoryToggle = document.getElementById('category-filter-toggle');
+    const categoryDropdown = document.getElementById('category-dropdown');
+    
+    if (categoryToggle && categoryDropdown) {
+        categoryToggle.addEventListener('click', function() {
+            const isVisible = categoryDropdown.style.display !== 'none';
+            categoryDropdown.style.display = isVisible ? 'none' : 'block';
+            categoryToggle.setAttribute('aria-expanded', !isVisible);
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('#mobile-category-filters')) {
+                categoryDropdown.style.display = 'none';
+                categoryToggle.setAttribute('aria-expanded', false);
+            }
+        });
+    }
+});
+</script>

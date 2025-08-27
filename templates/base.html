@@ -1,25 +1,26 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr-HT">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% include 'base/meta.html' %}
     
     <title>{% block title %}Afèpanou - La Croissance Économique Locale{% endblock %}</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-
+    <!-- External CSS Libraries -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
-    <link rel="stylesheet" href="{% static 'css/store.css' %}">
+    
+    <!-- Main CSS - Design System -->
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     <link rel="stylesheet" href="{% static 'css/components.css' %}">
     <link rel="stylesheet" href="{% static 'css/pages.css' %}">
     <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
-    <link rel="stylesheet" href="{% static 'css/product_detail.css' %}">
+    
+    <!-- Page-specific CSS -->
+    {% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/store.css' %}">
+    <link rel="stylesheet" href="{% static 'css/Product_detail.css' %}">
     <link rel="stylesheet" href="{% static 'css/checkout.css' %}">
     <link rel="stylesheet" href="{% static 'css/cart.css' %}">
     <link rel="stylesheet" href="{% static 'css/home.css' %}">
@@ -27,37 +28,36 @@
     <link rel="stylesheet" href="{% static 'css/sectionew.css' %}">
     <link rel="stylesheet" href="{% static 'css/account.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-    <style>
-        main {
-            /* Décale le début du contenu principal pour qu'il ne soit pas caché sous le header */
-            /* Hauteur approximative de la top-bar + main-header */
-        }
-    </style>
+    {% endblock %}
 
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="skip-link">Aller au contenu principal</a>
 
-    <header>
+    <header role="banner">
         {% include 'components/header.html' %}
     </header>
 
-    <main>
-        {% block content %}
-        {% endblock %}
+    <main id="main-content" role="main">
+        {% include 'base/messages.html' %}
+        {% block content %}{% endblock %}
     </main>
 
-    <footer>
+    <footer role="contentinfo">
         {% include 'components/footer.html' %}
     </footer>
 
+    <!-- External JavaScript Libraries -->
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
 
+    <!-- Application JavaScript -->
+    <script src="{% static 'js/main.js' %}"></script>
     <script src="{% static 'js/form-validation.js' %}"></script>
     <script src="{% static 'js/cart.js' %}"></script>
-    <script src="{% static 'js/main.js' %}"></script>
 
-    {% block scripts %}
-    {% endblock %}
+    <!-- Page-specific JavaScript -->
+    {% block extra_js %}{% endblock %}
 
 </body>
 </html>

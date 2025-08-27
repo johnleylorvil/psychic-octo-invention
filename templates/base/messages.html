@@ -1,0 +1,42 @@
+{% if messages %}
+<div class="messages-container" role="alert" aria-live="polite">
+    {% for message in messages %}
+        <div class="message message--{{ message.tags|default:'info' }}" id="message-{{ forloop.counter }}">
+            <div class="message__content">
+                <i class="message__icon fas 
+                    {% if message.tags == 'error' %}fa-exclamation-circle
+                    {% elif message.tags == 'warning' %}fa-exclamation-triangle  
+                    {% elif message.tags == 'success' %}fa-check-circle
+                    {% else %}fa-info-circle{% endif %}">
+                </i>
+                <span class="message__text">{{ message }}</span>
+            </div>
+            <button class="message__close" onclick="dismissMessage('message-{{ forloop.counter }}')" aria-label="Fermer le message">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    {% endfor %}
+</div>
+
+<script>
+    function dismissMessage(messageId) {
+        const message = document.getElementById(messageId);
+        if (message) {
+            message.style.animation = 'slideOut 0.3s ease-out forwards';
+            setTimeout(() => message.remove(), 300);
+        }
+    }
+
+    // Auto-dismiss success messages after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        const successMessages = document.querySelectorAll('.message--success');
+        successMessages.forEach(function(message) {
+            setTimeout(function() {
+                if (message.parentNode) {
+                    dismissMessage(message.id);
+                }
+            }, 5000);
+        });
+    });
+</script>
+{% endif %}

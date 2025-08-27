@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Kategori yo - Afèpanou{% endblock %}
+
+{% block meta_description %}Dekouvri tout kategori pwodwi yo nan Afèpanou. Jwenn pwodwi otantik Ayisyen yo nan kategori sa yo.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/category.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="category-page">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="{% url 'home' %}">Akèy</a>
+                <i class="fas fa-chevron-right"></i>
+                <span>Kategori yo</span>
+            </div>
+            
+            <h1 class="page-title text-h1">Kategori yo</h1>
+            <p class="page-description">
+                Dekouvri pwodwi otantik Ayisyen yo nan kategori divès nou yo
+            </p>
+        </div>
+    </div>
+
+    <!-- Category Grid -->
+    <div class="category-grid-section">
+        <div class="container">
+            {% if categories %}
+                <div class="category-grid">
+                    {% for category in categories %}
+                        <div class="category-card">
+                            <a href="{% url 'category_detail' slug=category.slug %}" class="category-card__link">
+                                <div class="category-card__image">
+                                    {% if category.image %}
+                                        <img src="{{ category.image.url }}" 
+                                             alt="{{ category.name }}"
+                                             loading="lazy">
+                                    {% else %}
+                                        <div class="category-card__placeholder">
+                                            <i class="{{ category.icon|default:'fas fa-tag' }} category-card__icon"></i>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if category.products.count %}
+                                        <div class="category-card__badge">
+                                            {{ category.products.count }} pwodwi{% if category.products.count != 1 %}yo{% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="category-card__content">
+                                    <h3 class="category-card__title">{{ category.name }}</h3>
+                                    
+                                    {% if category.description %}
+                                        <p class="category-card__description">
+                                            {{ category.description|truncatechars:80 }}
+                                        </p>
+                                    {% endif %}
+                                    
+                                    {% if category.subcategories.exists %}
+                                        <div class="category-card__subcategories">
+                                            <span class="subcategories-label">Sous-kategori yo:</span>
+                                            <ul class="subcategories-list">
+                                                {% for subcategory in category.subcategories.all|slice:":3" %}
+                                                    <li>{{ subcategory.name }}</li>
+                                                {% endfor %}
+                                                {% if category.subcategories.count > 3 %}
+                                                    <li class="subcategories-more">+{{ category.subcategories.count|add:"-3" }} plis</li>
+                                                {% endif %}
+                                            </ul>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="category-card__footer">
+                                    <span class="category-card__cta">
+                                        Gade pwodwi yo
+                                        <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                                    </span>
+                                </div>
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state__icon">
+                        <i class="fas fa-tags"></i>
+                    </div>
+                    <h3 class="empty-state__title">Pa gen kategori disponib kounye a</h3>
+                    <p class="empty-state__description">
+                        Nou ap travay ak vandè yo pou nou ka gen pwodwi divès nan platfòm nan.
+                    </p>
+                    <a href="{% url 'home' %}" class="btn btn-primary">
+                        <i class="fas fa-home"></i>
+                        Retounen nan akèy la
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Featured Categories Section -->
+    {% if featured_categories %}
+        <div class="featured-categories-section">
+            <div class="container">
+                <h2 class="section-title text-h2">Kategori Popilè yo</h2>
+                
+                <div class="featured-categories-grid">
+                    {% for category in featured_categories %}
+                        <div class="featured-category">
+                            <a href="{% url 'category_detail' slug=category.slug %}" class="featured-category__link">
+                                <div class="featured-category__image">
+                                    {% if category.image %}
+                                        <img src="{{ category.image.url }}" 
+                                             alt="{{ category.name }}"
+                                             loading="lazy">
+                                    {% endif %}
+                                    <div class="featured-category__overlay">
+                                        <h3 class="featured-category__title">{{ category.name }}</h3>
+                                        <p class="featured-category__count">
+                                            {{ category.products.count }} pwodwi{% if category.products.count != 1 %}yo{% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Statistics Section -->
+    {% if stats %}
+        <div class="stats-section">
+            <div class="container">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card__icon">
+                            <i class="fas fa-tags"></i>
+                        </div>
+                        <div class="stat-card__content">
+                            <h3 class="stat-card__number">{{ stats.total_categories }}</h3>
+                            <p class="stat-card__label">Total Kategori</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-card__icon">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <div class="stat-card__content">
+                            <h3 class="stat-card__number">{{ stats.total_products }}</h3>
+                            <p class="stat-card__label">Total Pwodwi</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-card__icon">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <div class="stat-card__content">
+                            <h3 class="stat-card__number">{{ stats.total_sellers }}</h3>
+                            <p class="stat-card__label">Vandè Aktif</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add smooth hover effects
+    const categoryCards = document.querySelectorAll('.category-card');
+    
+    categoryCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-8px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+    
+    // Lazy load category images
+    const images = document.querySelectorAll('img[loading="lazy"]');
+    const imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                img.classList.add('animate-fadeIn');
+                observer.unobserve(img);
+            }
+        });
+    });
+    
+    images.forEach(img => {
+        imageObserver.observe(img);
+    });
+});
+</script>
+{% endblock %}

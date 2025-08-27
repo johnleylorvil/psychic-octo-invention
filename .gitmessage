@@ -1,0 +1,42 @@
+# <type>: <subject>
+
+# <body>
+
+# <footer>
+
+# Type should be one of the following:
+# * feat: A new feature
+# * fix: A bug fix
+# * docs: Documentation only changes
+# * style: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
+# * refactor: A code change that neither fixes a bug nor adds a feature
+# * perf: A code change that improves performance
+# * test: Adding missing tests or correcting existing tests
+# * build: Changes that affect the build system or external dependencies
+# * ci: Changes to our CI configuration files and scripts
+# * chore: Other changes that don't modify src or test files
+# * revert: Reverts a previous commit
+
+# Subject line rules:
+# * Use the imperative mood ("Add feature" not "Added feature")
+# * Don't capitalize the first letter
+# * No dot (.) at the end
+# * Limit to 50 characters
+
+# Body rules:
+# * Use the imperative mood
+# * Include motivation for the change and contrasts with previous behavior
+# * Wrap at 72 characters
+
+# Footer rules:
+# * Reference issues and pull requests
+# * Breaking changes should start with "BREAKING CHANGE:"
+# * Remember to update CHANGELOG.md for significant changes
+
+# Examples:
+# feat: add MonCash payment integration
+# fix: resolve cart calculation bug for HTG currency
+# docs: update API documentation for product endpoints
+# 
+# Closes #123
+# BREAKING CHANGE: API endpoint structure changed for authentication
