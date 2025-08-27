@@ -1,39 +1,32 @@
 {% load static %}
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="{% block meta_description %}Afèpanou - Marketplace haïtien pour la croissance économique locale. Découvrez et achetez des produits authentiques haïtiens{% endblock %}">
-<meta name="keywords" content="{% block meta_keywords %}Haïti, marketplace, e-commerce, produits locaux, MonCash, économie locale{% endblock %}">
-<meta name="author" content="Afèpanou Team">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-<!-- Open Graph meta tags for social sharing -->
+<!-- SEO Meta Tags -->
+<meta name="description" content="{% block meta_description %}Afèpanou - Marketplace haïtien pour la croissance économique locale. Découvrez et achetez des produits authentiques haïtiens.{% endblock %}">
+<meta name="keywords" content="{% block meta_keywords %}Haiti, marketplace, e-commerce, produits haïtiens, MonCash, économie locale{% endblock %}">
+<meta name="author" content="Afèpanou">
+
+<!-- Open Graph / Facebook -->
 <meta property="og:type" content="website">
-<meta property="og:title" content="{% block og_title %}{% block title %}Afèpanou - La Croissance Économique Locale{% endblock %}{% endblock %}">
-<meta property="og:description" content="{% block og_description %}Marketplace haïtien pour la croissance économique locale{% endblock %}">
-<meta property="og:image" content="{% block og_image %}{% static 'images/og-image.jpg' %}{% endblock %}">
-<meta property="og:url" content="{% block og_url %}{{ request.build_absolute_uri }}{% endblock %}">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+<meta property="og:title" content="{% block og_title %}{% block title %}Afèpanou - Croissance Économique Locale{% endblock %}{% endblock %}">
+<meta property="og:description" content="{% block og_description %}{{ block.super }}{% endblock %}">
+<meta property="og:image" content="{% block og_image %}{% static 'images/afepanou-og-image.jpg' %}{% endblock %}">
 
-<!-- Twitter meta tags -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{% block twitter_title %}{% block title %}Afèpanou - La Croissance Économique Locale{% endblock %}{% endblock %}">
-<meta name="twitter:description" content="{% block twitter_description %}Marketplace haïtien pour la croissance économique locale{% endblock %}">
-<meta name="twitter:image" content="{% block twitter_image %}{% static 'images/twitter-image.jpg' %}{% endblock %}">
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image">
+<meta property="twitter:url" content="{{ request.build_absolute_uri }}">
+<meta property="twitter:title" content="{% block twitter_title %}{{ block.super }}{% endblock %}">
+<meta property="twitter:description" content="{% block twitter_description %}{{ block.super }}{% endblock %}">
+<meta property="twitter:image" content="{% block twitter_image %}{{ block.super }}{% endblock %}">
 
 <!-- Favicon -->
 <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
 <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
 <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
 
-<!-- Preconnect to external resources -->
+<!-- Preconnect for performance -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
-
-<!-- Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-<!-- Theme color for mobile browsers -->
-<meta name="theme-color" content="#E67E22">
-<meta name="msapplication-TileColor" content="#E67E22">
-
-<!-- CSRF token for AJAX requests -->
-<meta name="csrf-token" content="{{ csrf_token }}">

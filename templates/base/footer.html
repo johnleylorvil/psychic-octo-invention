@@ -1,0 +1,144 @@
+{% load static %}
+<footer class="site-footer">
+    <!-- Main Footer -->
+    <div class="footer-main">
+        <div class="container">
+            <div class="row">
+                <!-- About Section -->
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="footer-section">
+                        <h5 class="footer-title">À propos d'Afèpanou</h5>
+                        <p class="footer-description">
+                            Afèpanou connecte les vendeurs locaux haïtiens aux consommateurs, 
+                            favorisant la croissance économique et l'entrepreneuriat en Haïti.
+                        </p>
+                        <div class="social-links">
+                            <a href="#" class="social-link" aria-label="Facebook">
+                                <i class="fab fa-facebook-f" aria-hidden="true"></i>
+                            </a>
+                            <a href="#" class="social-link" aria-label="Instagram">
+                                <i class="fab fa-instagram" aria-hidden="true"></i>
+                            </a>
+                            <a href="#" class="social-link" aria-label="Twitter">
+                                <i class="fab fa-twitter" aria-hidden="true"></i>
+                            </a>
+                            <a href="#" class="social-link" aria-label="LinkedIn">
+                                <i class="fab fa-linkedin-in" aria-hidden="true"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <div class="footer-section">
+                        <h5 class="footer-title">Liens Rapides</h5>
+                        <ul class="footer-links">
+                            <li><a href="{% url 'marketplace:home' %}">Accueil</a></li>
+                            <li><a href="{% url 'marketplace:categories' %}">Catégories</a></li>
+                            <li><a href="{% url 'marketplace:sellers' %}">Vendeurs</a></li>
+                            <li><a href="{% url 'pages:about' %}">À Propos</a></li>
+                            <li><a href="{% url 'pages:contact' %}">Contact</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Customer Service -->
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="footer-section">
+                        <h5 class="footer-title">Service Client</h5>
+                        <ul class="footer-links">
+                            <li><a href="{% url 'pages:help' %}">Centre d'Aide</a></li>
+                            <li><a href="{% url 'pages:shipping' %}">Livraison</a></li>
+                            <li><a href="{% url 'pages:returns' %}">Retours</a></li>
+                            <li><a href="{% url 'pages:faq' %}">FAQ</a></li>
+                            <li><a href="{% url 'account:become_seller' %}">Devenir Vendeur</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Contact Info -->
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="footer-section">
+                        <h5 class="footer-title">Nous Contacter</h5>
+                        <div class="contact-info">
+                            <div class="contact-item">
+                                <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+                                <span>Port-au-Prince, Haïti</span>
+                            </div>
+                            <div class="contact-item">
+                                <i class="fas fa-phone" aria-hidden="true"></i>
+                                <a href="tel:+50928123456">+509 28 12 34 56</a>
+                            </div>
+                            <div class="contact-item">
+                                <i class="fas fa-envelope" aria-hidden="true"></i>
+                                <a href="mailto:info@afepanou.com">info@afepanou.com</a>
+                            </div>
+                        </div>
+                        
+                        <!-- Newsletter Signup -->
+                        <div class="newsletter-signup mt-3">
+                            <h6>Newsletter</h6>
+                            <form class="newsletter-form" method="post" action="{% url 'newsletter:subscribe' %}">
+                                {% csrf_token %}
+                                <div class="input-group">
+                                    <input type="email" class="form-control" placeholder="Votre email" name="email" required>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Methods -->
+    <div class="footer-payments">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="payment-methods">
+                        <span class="payment-text">Paiement sécurisé avec:</span>
+                        <img src="{% static 'images/payments/moncash-logo.png' %}" alt="MonCash" class="payment-logo">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="footer-badges">
+                        <img src="{% static 'images/badges/secure-shopping.png' %}" alt="Achat sécurisé" class="badge-img">
+                        <img src="{% static 'images/badges/made-in-haiti.png' %}" alt="Made in Haiti" class="badge-img">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Bottom -->
+    <div class="footer-bottom">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="copyright">
+                        &copy; {% now "Y" %} Afèpanou. Tous droits réservés.
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <div class="footer-legal">
+                        <a href="{% url 'pages:privacy' %}">Politique de Confidentialité</a>
+                        <span class="separator">|</span>
+                        <a href="{% url 'pages:terms' %}">Conditions d'Utilisation</a>
+                        <span class="separator">|</span>
+                        <a href="{% url 'pages:cookies' %}">Cookies</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Back to Top Button -->
+<button id="backToTop" class="back-to-top" aria-label="Retour en haut">
+    <i class="fas fa-arrow-up" aria-hidden="true"></i>
+</button>

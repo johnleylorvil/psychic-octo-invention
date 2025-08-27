@@ -1,96 +1,80 @@
 {% load static %}
-<nav class="category-nav" role="navigation" aria-label="Navigation des catégories">
-    <div class="category-nav__container">
-        <h2 class="category-nav__title">Kategori yo</h2>
-        
-        {% if categories %}
-            <ul class="category-nav__list" role="menubar">
-                {% for category in categories %}
-                    <li class="category-nav__item" role="none">
-                        <a href="{% url 'category_detail' slug=category.slug %}" 
-                           class="category-nav__link{% if current_category.id == category.id %} category-nav__link--active{% endif %}"
-                           role="menuitem"
-                           aria-current="{% if current_category.id == category.id %}page{% endif %}">
-                            
-                            {% if category.icon %}
-                                <i class="category-nav__icon {{ category.icon }}" aria-hidden="true"></i>
-                            {% else %}
-                                <i class="category-nav__icon fas fa-tag" aria-hidden="true"></i>
-                            {% endif %}
-                            
-                            <span class="category-nav__text">{{ category.name }}</span>
-                            
-                            {% if category.products.count %}
-                                <span class="category-nav__count">({{ category.products.count }})</span>
-                            {% endif %}
-                        </a>
-                        
-                        {% if category.subcategories.exists %}
-                            <ul class="category-nav__submenu" role="menu" aria-label="Sous-catégories de {{ category.name }}">
-                                {% for subcategory in category.subcategories.all %}
-                                    <li class="category-nav__submenu-item" role="none">
-                                        <a href="{% url 'category_detail' slug=subcategory.slug %}" 
-                                           class="category-nav__submenu-link{% if current_category.id == subcategory.id %} category-nav__submenu-link--active{% endif %}"
-                                           role="menuitem"
-                                           aria-current="{% if current_category.id == subcategory.id %}page{% endif %}">
-                                            {{ subcategory.name }}
-                                            {% if subcategory.products.count %}
-                                                <span class="category-nav__count">({{ subcategory.products.count }})</span>
-                                            {% endif %}
-                                        </a>
-                                    </li>
-                                {% endfor %}
-                            </ul>
-                        {% endif %}
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <div class="category-nav__empty">
-                <i class="fas fa-tags category-nav__empty-icon" aria-hidden="true"></i>
-                <p class="category-nav__empty-text">Pa gen kategori disponib kounye a</p>
-            </div>
-        {% endif %}
-        
-        <!-- Quick category filters for mobile -->
-        <div class="category-nav__mobile-filters" id="mobile-category-filters">
-            <button class="category-nav__mobile-toggle" id="category-filter-toggle" aria-expanded="false">
-                <i class="fas fa-filter" aria-hidden="true"></i>
-                Filtre kategori yo
-            </button>
-            
-            <div class="category-nav__mobile-dropdown" id="category-dropdown" style="display: none;">
-                {% for category in categories %}
-                    <a href="{% url 'category_detail' slug=category.slug %}" 
-                       class="category-nav__mobile-link{% if current_category.id == category.id %} category-nav__mobile-link--active{% endif %}">
-                        {{ category.name }}
-                    </a>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-</nav>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Mobile category filter toggle
-    const categoryToggle = document.getElementById('category-filter-toggle');
-    const categoryDropdown = document.getElementById('category-dropdown');
-    
-    if (categoryToggle && categoryDropdown) {
-        categoryToggle.addEventListener('click', function() {
-            const isVisible = categoryDropdown.style.display !== 'none';
-            categoryDropdown.style.display = isVisible ? 'none' : 'block';
-            categoryToggle.setAttribute('aria-expanded', !isVisible);
-        });
-        
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('#mobile-category-filters')) {
-                categoryDropdown.style.display = 'none';
-                categoryToggle.setAttribute('aria-expanded', false);
-            }
-        });
-    }
-});
-</script>
+<div class="category-navigation">
+    <nav class="categories-menu" role="navigation" aria-label="Navigation par catégorie">
+        <ul class="nav-list">
+            <li class="nav-item">
+                <a href="{% url 'marketplace:home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                    <i class="fas fa-home" aria-hidden="true"></i>
+                    <span>Accueil</span>
+                </a>
+            </li>
+            
+            <!-- Main Categories -->
+            {% for category in main_categories %}
+            <li class="nav-item dropdown">
+                <a 
+                    href="{% url 'marketplace:category' slug=category.slug %}" 
+                    class="nav-link dropdown-toggle"
+                    data-bs-toggle="dropdown" 
+                    aria-expanded="false"
+                    role="button"
+                >
+                    {% if category.icon %}
+                        <i class="{{ category.icon }}" aria-hidden="true"></i>
+                    {% else %}
+                        <i class="fas fa-tag" aria-hidden="true"></i>
+                    {% endif %}
+                    <span>{{ category.name }}</span>
+                    {% if category.children.exists %}
+                        <i class="fas fa-chevron-down dropdown-icon" aria-hidden="true"></i>
+                    {% endif %}
+                </a>
+                
+                <!-- Subcategories Dropdown -->
+                {% if category.children.exists %}
+                <ul class="dropdown-menu">
+                    <li>
+                        <a class="dropdown-item view-all" href="{% url 'marketplace:category' slug=category.slug %}">
+                            <strong>Voir tout {{ category.name }}</strong>
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    {% for subcategory in category.children.all %}
+                    <li>
+                        <a class="dropdown-item" href="{% url 'marketplace:category' slug=subcategory.slug %}">
+                            {{ subcategory.name }}
+                            <small class="text-muted">({{ subcategory.product_count }})</small>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </li>
+            {% endfor %}
+            
+            <!-- Special Links -->
+            <li class="nav-item">
+                <a href="{% url 'marketplace:featured' %}" class="nav-link">
+                    <i class="fas fa-star" aria-hidden="true"></i>
+                    <span>Populaires</span>
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a href="{% url 'marketplace:new_arrivals' %}" class="nav-link">
+                    <i class="fas fa-plus-circle" aria-hidden="true"></i>
+                    <span>Nouveautés</span>
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a href="{% url 'marketplace:deals' %}" class="nav-link deals-link">
+                    <i class="fas fa-fire" aria-hidden="true"></i>
+                    <span>Promotions</span>
+                    <span class="badge bg-danger ms-1">HOT</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>

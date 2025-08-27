@@ -1,36 +1,146 @@
-{% comment %}
-  Ce composant attend un objet 'product' avec les attributs :
-  - product.id
-  - product.get_absolute_url (ou une URL vers la page de détail)
-  - product.image.url
-  - product.name
-  - product.price
-{% endcomment %}
+{% load static %}
 
-<div class="product-card animate-on-scroll">
-    <a href="{{ product.get_absolute_url }}">
-        <div class="product-card-image">
-            {% if product.image %}
-                <img src="{{ product.image.url }}" alt="{{ product.name }}">
-            {% else %}
-                {# Placeholder si pas d'image #}
-                <img src="https://via.placeholder.com/300x200.png?text=Afèpanou" alt="Image non disponible">
-            {% endif %}
+<div class="product-card" data-product-id="{{ product.id }}">
+    <div class="card h-100">
+        <!-- Product Image -->
+        <div class="product-image-container">
+            <a href="{% url 'marketplace:product_detail' slug=product.slug %}" class="product-image-link">
+                {% if product.main_image %}
+                    <img 
+                        src="{{ product.main_image.url }}" 
+                        alt="{{ product.name }}" 
+                        class="card-img-top product-image"
+                        loading="lazy"
+                    >
+                {% else %}
+                    <div class="placeholder-image">
+                        <i class="fas fa-image" aria-hidden="true"></i>
+                        <span class="visually-hidden">Image du produit non disponible</span>
+                    </div>
+                {% endif %}
+            </a>
+            
+            <!-- Product Badges -->
+            <div class="product-badges">
+                {% if product.is_featured %}
+                    <span class="badge badge-featured">
+                        <i class="fas fa-star" aria-hidden="true"></i>
+                        Populaire
+                    </span>
+                {% endif %}
+                
+                {% if product.promotional_price %}
+                    <span class="badge badge-sale">
+                        -{{ product.discount_percentage|floatformat:0 }}%
+                    </span>
+                {% endif %}
+                
+                {% if product.stock_quantity <= product.low_stock_threshold %}
+                    <span class="badge badge-low-stock">
+                        Stock limité
+                    </span>
+                {% endif %}
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="product-actions">
+                {% if user.is_authenticated %}
+                    <button 
+                        class="btn btn-sm btn-outline-light wishlist-btn" 
+                        data-product-id="{{ product.id }}"
+                        aria-label="Ajouter aux favoris"
+                        title="Ajouter aux favoris"
+                    >
+                        <i class="far fa-heart" aria-hidden="true"></i>
+                    </button>
+                {% endif %}
+                
+                <button 
+                    class="btn btn-sm btn-outline-light quick-view-btn" 
+                    data-product-id="{{ product.id }}"
+                    aria-label="Aperçu rapide"
+                    title="Aperçu rapide"
+                >
+                    <i class="fas fa-eye" aria-hidden="true"></i>
+                </button>
+            </div>
         </div>
-    </a>
-
-    <div class="product-card-content">
-        <h3 class="product-card-title">
-            <a href="{{ product.get_absolute_url }}">{{ product.name }}</a>
-        </h3>
-
-        <p class="product-card-price">{{ product.price }} HTG</p>
-
-        <button 
-            class="btn btn-primary add-to-cart-btn" 
-            data-product-id="{{ product.id }}" 
-            data-url="{% url 'add_to_cart' %}">
-            Ajouter au Panier
-        </button>
+        
+        <!-- Product Info -->
+        <div class="card-body d-flex flex-column">
+            <!-- Category -->
+            <div class="product-category mb-1">
+                <a href="{% url 'marketplace:category' slug=product.category.slug %}" class="category-link">
+                    {{ product.category.name }}
+                </a>
+            </div>
+            
+            <!-- Product Name -->
+            <h5 class="card-title">
+                <a href="{% url 'marketplace:product_detail' slug=product.slug %}" class="product-title-link">
+                    {{ product.name|truncatechars:60 }}
+                </a>
+            </h5>
+            
+            <!-- Product Description -->
+            <p class="card-text product-description">
+                {{ product.short_description|default:product.description|truncatechars:100 }}
+            </p>
+            
+            <!-- Rating -->
+            <div class="product-rating mb-2">
+                {% include 'components/rating_stars.html' with rating=product.average_rating reviews_count=product.reviews_count %}
+            </div>
+            
+            <!-- Seller Info -->
+            <div class="seller-info mb-2">
+                <small class="text-muted">
+                    Vendu par 
+                    <a href="{% url 'marketplace:seller_profile' username=product.user.username %}" class="seller-link">
+                        {{ product.user.get_full_name|default:product.user.username }}
+                    </a>
+                </small>
+            </div>
+            
+            <!-- Price -->
+            <div class="product-price mt-auto">
+                {% if product.promotional_price %}
+                    <div class="price-container">
+                        <span class="current-price">{{ product.promotional_price|floatformat:2 }} HTG</span>
+                        <span class="original-price">{{ product.price|floatformat:2 }} HTG</span>
+                    </div>
+                {% else %}
+                    <div class="price-container">
+                        <span class="current-price">{{ product.price|floatformat:2 }} HTG</span>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Add to Cart -->
+            <div class="product-cart-actions mt-3">
+                {% if product.stock_quantity > 0 %}
+                    {% if user.is_authenticated %}
+                        <button 
+                            class="btn btn-primary btn-add-to-cart" 
+                            data-product-id="{{ product.id }}"
+                            data-product-name="{{ product.name }}"
+                        >
+                            <i class="fas fa-shopping-cart me-1" aria-hidden="true"></i>
+                            Ajouter au panier
+                        </button>
+                    {% else %}
+                        <a href="{% url 'account:login' %}?next={% url 'marketplace:product_detail' slug=product.slug %}" class="btn btn-primary">
+                            <i class="fas fa-shopping-cart me-1" aria-hidden="true"></i>
+                            Ajouter au panier
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <button class="btn btn-secondary" disabled>
+                        <i class="fas fa-exclamation-circle me-1" aria-hidden="true"></i>
+                        Rupture de stock
+                    </button>
+                {% endif %}
+            </div>
+        </div>
     </div>
 </div>

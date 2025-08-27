@@ -7,6 +7,7 @@ from django.db import models
 from django.utils.text import slugify
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.urls import reverse
+from django.core.exceptions import ValidationError
 import uuid
 
 from .managers import CategoryManager, ProductManager
@@ -82,13 +83,13 @@ class Category(models.Model):
 
 class Product(models.Model):
     """Produits du marketplace"""
-    
+
     CONDITION_CHOICES = [
         ('new', 'Neuf'),
         ('used', 'Utilisé'),
         ('refurbished', 'Reconditionné')
     ]
-    
+
     # Basic Information
     name = models.CharField(max_length=200)
     slug = models.CharField(unique=True, max_length=200)
@@ -96,73 +97,75 @@ class Product(models.Model):
     description = models.TextField(blank=True, null=True)
     detailed_description = models.TextField(blank=True, null=True)
     specifications = models.JSONField(blank=True, null=True)
-    
+
     # Relationships
     category = models.ForeignKey(Category, models.CASCADE, related_name='products')
     seller = models.ForeignKey('User', models.CASCADE, related_name='products')
-    
+
     # Pricing
     price = models.DecimalField(
-        max_digits=10, 
-        decimal_places=2, 
+        max_digits=10,
+        decimal_places=2,
         validators=[MinValueValidator(0)]
     )
     promotional_price = models.DecimalField(
-        max_digits=10, 
-        decimal_places=2, 
-        blank=True, 
-        null=True, 
+        max_digits=10,
+        decimal_places=2,
+        blank=True,
+        null=True,
         validators=[MinValueValidator(0)]
     )
     cost_price = models.DecimalField(
-        max_digits=10, 
-        decimal_places=2, 
-        blank=True, 
-        null=True, 
+        max_digits=10,
+        decimal_places=2,
+        blank=True,
+        null=True,
         validators=[MinValueValidator(0)]
     )
-    
+
     # Inventory Management
     stock_quantity = models.IntegerField(
-        default=0, 
-        blank=True, 
-        null=True, 
+        default=0,
+        blank=True,
+        null=True,
         validators=[MinValueValidator(0)]
     )
     min_stock_alert = models.IntegerField(
-        default=5, 
-        blank=True, 
-        null=True, 
+        default=5,
+        blank=True,
+        null=True,
         validators=[MinValueValidator(0)]
     )
-    sku = models.CharField(unique=True, max_length=50, blank=True, null=True)
+    sku = models.CharField(unique=True, max_length=50, blank=True)
     barcode = models.CharField(max_length=100, blank=True, null=True)
-    
+    reserved_quantity = models.PositiveIntegerField(default=0)
+
+
     # Status and Features
     is_featured = models.BooleanField(default=False, blank=True, null=True)
     is_active = models.BooleanField(default=True, blank=True, null=True)
     is_digital = models.BooleanField(default=False, blank=True, null=True)
     requires_shipping = models.BooleanField(default=True, blank=True, null=True)
-    
+
     # Physical Properties
     weight = models.DecimalField(
-        max_digits=8, 
-        decimal_places=2, 
-        blank=True, 
-        null=True, 
+        max_digits=10,
+        decimal_places=3,
+        blank=True,
+        null=True,
         validators=[MinValueValidator(0)]
     )
-    dimensions = models.CharField(max_length=100, blank=True, null=True)
-    
+    dimensions = models.JSONField(blank=True, null=True)
+
     # Additional Information
     tags = models.TextField(blank=True, null=True)
     video_url = models.CharField(max_length=255, blank=True, null=True)
     warranty_period = models.IntegerField(
-        blank=True, 
-        null=True, 
+        blank=True,
+        null=True,
         validators=[MinValueValidator(0)]
     )
-    
+
     # Product Details
     brand = models.CharField(max_length=100, blank=True, null=True)
     model = models.CharField(max_length=100, blank=True, null=True)
@@ -170,21 +173,21 @@ class Product(models.Model):
     material = models.CharField(max_length=100, blank=True, null=True)
     origin_country = models.CharField(max_length=50, default='Haïti', blank=True, null=True)
     condition_type = models.CharField(
-        max_length=20, 
-        default='new', 
-        blank=True, 
-        null=True, 
+        max_length=20,
+        default='new',
+        blank=True,
+        null=True,
         choices=CONDITION_CHOICES
     )
-    
+
     # SEO
-    meta_title = models.CharField(max_length=200, blank=True, null=True)
-    meta_description = models.CharField(max_length=500, blank=True, null=True)
-    
+    meta_title = models.CharField(max_length=60, blank=True)
+    meta_description = models.CharField(max_length=160, blank=True)
+
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
-    
+
     objects = ProductManager()
 
     class Meta:
@@ -199,12 +202,25 @@ class Product(models.Model):
             models.Index(fields=['created_at']),
         ]
 
+    def clean(self):
+        """Custom model validation"""
+        if self.promotional_price and self.promotional_price >= self.price:
+            raise ValidationError('Promotional price must be less than regular price')
+
+        if self.stock_quantity < 0:
+            raise ValidationError('Stock quantity cannot be negative')
+
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.name)
         if not self.sku:
-            self.sku = f"AF{uuid.uuid4().hex[:8].upper()}"
+            self.sku = self.generate_sku()
+        self.full_clean()
         super().save(*args, **kwargs)
+
+    def generate_sku(self):
+        """Generate unique SKU for product"""
+        return f"AFE-{str(uuid.uuid4())[:8].upper()}"
 
     def __str__(self):
         return self.name
@@ -230,14 +246,14 @@ class Product(models.Model):
     def in_stock(self):
         """Vérifie si le produit est en stock"""
         return self.stock_quantity and self.stock_quantity > 0
-    
+
     @property
     def is_low_stock(self):
         """Check if product is low on stock"""
-        return (self.stock_quantity is not None and 
-                self.min_stock_alert is not None and 
+        return (self.stock_quantity is not None and
+                self.min_stock_alert is not None and
                 self.stock_quantity <= self.min_stock_alert)
-    
+
     @property
     def discount_percentage(self):
         """Calculate discount percentage if promotional price exists"""
@@ -245,7 +261,7 @@ class Product(models.Model):
             discount = ((self.price - self.promotional_price) / self.price) * 100
             return round(discount, 1)
         return 0
-    
+
     @property
     def average_rating(self):
         """Get average rating from reviews"""
@@ -253,11 +269,23 @@ class Product(models.Model):
         if reviews.exists():
             return reviews.aggregate(avg_rating=models.Avg('rating'))['avg_rating']
         return 0
-    
+
     @property
     def review_count(self):
         """Get total number of approved reviews"""
         return self.reviews.filter(is_approved=True).count()
+
+    @property
+    def available_quantity(self):
+        return self.stock_quantity - self.reserved_quantity
+
+    def reserve_quantity(self, quantity):
+        """Reserve quantity for pending orders"""
+        if self.available_quantity >= quantity:
+            self.reserved_quantity += quantity
+            self.save()
+            return True
+        return False
 
 
 class ProductImage(models.Model):

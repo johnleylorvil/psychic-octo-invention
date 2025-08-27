@@ -1,444 +1,443 @@
-{% extends 'base.html' %}
+{% extends 'base/base.html' %}
 {% load static %}
 
-{% block title %}{{ product.name }} - Afèpanou Marketplace{% endblock %}
+{% block title %}{{ product.name }} - Afèpanou{% endblock %}
 
-{% block content %}
+{% block meta_description %}{{ product.short_description|default:product.description|truncatewords:25 }}{% endblock %}
 
-<style>
-    .product-detail-container {
-        max-width: 1200px;
-        margin: 2rem auto;
-        padding: 0 20px;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 3rem;
-        align-items: start;
-    }
-
-    .product-gallery {
-        position: sticky;
-        top: 100px;
-    }
-
-    .main-image {
-        width: 100%;
-        height: 500px;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-        margin-bottom: 1rem;
-    }
-
-    .main-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.3s ease;
-    }
-
-    .main-image:hover img {
-        transform: scale(1.05);
-    }
-
-    .thumbnail-images {
-        display: flex;
-        gap: 0.5rem;
-        justify-content: center;
-    }
-
-    .thumbnail {
-        width: 80px;
-        height: 80px;
-        border-radius: 8px;
-        overflow: hidden;
-        cursor: pointer;
-        border: 2px solid transparent;
-        transition: border-color 0.2s ease;
-    }
-
-    .thumbnail.active {
-        border-color: #E67E22;
-    }
-
-    .thumbnail img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .product-info {
-        padding: 1rem 0;
-    }
-
-    .product-title {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #333;
-        margin-bottom: 0.5rem;
-        line-height: 1.2;
-    }
-
-    .product-category {
-        display: inline-block;
-        background: #f8f9fa;
-        color: #666;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        margin-bottom: 1rem;
-        text-transform: capitalize;
-    }
-
-    .product-price {
-        font-size: 2.5rem;
-        font-weight: 700;
-        color: #D35400;
-        margin: 1rem 0;
-    }
-
-    .product-short-description {
-        color: #666;
-        font-size: 1.1rem;
-        line-height: 1.6;
-        margin-bottom: 2rem;
-    }
-
-    .add-to-cart-form {
-        background: #f8f9fa;
-        padding: 1.5rem;
-        border-radius: 12px;
-        margin-bottom: 2rem;
-    }
-
-    .quantity-selector {
-        margin-bottom: 1rem;
-    }
-
-    .quantity-selector label {
-        display: block;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-        color: #333;
-    }
-
-    .quantity-selector input {
-        width: 80px;
-        padding: 12px;
-        border: 2px solid #ddd;
-        border-radius: 8px;
-        font-size: 1rem;
-        text-align: center;
-        transition: border-color 0.2s ease;
-    }
-
-    .quantity-selector input:focus {
-        outline: none;
-        border-color: #E67E22;
-    }
-
-    .add-to-cart-btn {
-        width: 100%;
-        background: #E67E22;
-        color: white;
-        border: none;
-        padding: 16px 24px;
-        border-radius: 8px;
-        font-size: 1.1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-    }
-
-    .add-to-cart-btn:hover {
-        background: #D35400;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(230, 126, 34, 0.3);
-    }
-
-    .add-to-cart-btn:disabled {
-        background: #ccc;
-        cursor: not-allowed;
-        transform: none;
-        box-shadow: none;
-    }
-
-    .stock-status {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: #28a745;
-        font-weight: 500;
-        margin-bottom: 1rem;
-    }
-
-    .stock-status.out-of-stock {
-        color: #dc3545;
-    }
-
-    .product-meta {
-        border-top: 1px solid #eee;
-        padding-top: 1rem;
-        margin-top: 1rem;
-    }
-
-    .meta-item {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 0.5rem;
-        color: #666;
-    }
-
-    .meta-item strong {
-        color: #333;
-    }
-
-    .product-full-description {
-        max-width: 1200px;
-        margin: 3rem auto;
-        padding: 0 20px;
-    }
-
-    .product-full-description h2 {
-        font-size: 1.8rem;
-        color: #333;
-        margin-bottom: 1rem;
-    }
-
-    .product-full-description hr {
-        border: none;
-        height: 2px;
-        background: linear-gradient(to right, #E67E22, #D35400);
-        margin-bottom: 2rem;
-    }
-
-    .description-content {
-        font-size: 1rem;
-        line-height: 1.8;
-        color: #555;
-    }
-
-    .back-to-store {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: #666;
-        text-decoration: none;
-        margin-bottom: 1rem;
-        transition: color 0.2s ease;
-    }
-
-    .back-to-store:hover {
-        color: #E67E22;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-        .product-detail-container {
-            grid-template-columns: 1fr;
-            gap: 2rem;
-        }
-        
-        .main-image {
-            height: 300px;
-        }
-        
-        .product-title {
-            font-size: 1.5rem;
-        }
-        
-        .product-price {
-            font-size: 2rem;
-        }
-    }
-</style>
-
-<div class="product-detail-container">
-    <div class="product-gallery">
-        <div class="main-image">
-            <img src="{{ product.image }}" alt="{{ product.name }}" id="main-product-image">
-        </div>
-        <div class="thumbnail-images">
-            <div class="thumbnail active">
-                <img src="{{ product.image }}" alt="Image principale" onclick="changeMainImage('{{ product.image }}', this)">
-            </div>
-            {# Espace pour d'autres images si disponibles #}
-        </div>
+{% block breadcrumbs %}
+<nav aria-label="Fil d'Ariane" class="breadcrumb-nav py-3">
+    <div class="container">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{% url 'marketplace:home' %}">Accueil</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'marketplace:categories' %}">Catégories</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'marketplace:category' slug=product.category.slug %}">{{ product.category.name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ product.name|truncatewords:5 }}</li>
+        </ol>
     </div>
-
-    <div class="product-info">
-        <a href="{% url 'store' %}?category={{ product.category }}" class="back-to-store">
-            <i class="fas fa-arrow-left"></i> Retour à la boutique
-        </a>
-        
-        <div class="product-category">{{ product.category|title }}</div>
-        
-        <h1 class="product-title">{{ product.name }}</h1>
-        
-        <div class="product-price">{{ product.price }} HTG</div>
-        
-        <div class="product-short-description">
-            {{ product.description|truncatewords:20 }}
-        </div>
-        
-        <form class="add-to-cart-form">
-            {% csrf_token %}
-            <div class="quantity-selector">
-                <label for="quantity">Quantité :</label>
-                <input type="number" id="quantity" name="quantity" value="1" min="1" max="{{ product.stock }}">
-            </div>
-            
-            <button 
-                type="submit" 
-                class="add-to-cart-btn"
-                data-product-id="{{ product.id }}"
-                {% if product.stock <= 0 %}disabled{% endif %}>
-                <i class="fas fa-shopping-cart"></i>
-                {% if product.stock > 0 %}
-                    Ajouter au Panier
-                {% else %}
-                    Rupture de Stock
-                {% endif %}
-            </button>
-        </form>
-        
-        <div class="stock-status {% if product.stock <= 0 %}out-of-stock{% endif %}">
-            <i class="fas fa-{% if product.stock > 0 %}check-circle{% else %}times-circle{% endif %}"></i>
-            <strong>Disponibilité :</strong>
-            {% if product.stock > 0 %}
-                En Stock ({{ product.stock }} disponible{{ product.stock|pluralize }})
-            {% else %}
-                Rupture de Stock
-            {% endif %}
-        </div>
-
-        <div class="product-meta">
-            <div class="meta-item">
-                <span>Catégorie :</span>
-                <strong>{{ product.category|title }}</strong>
-            </div>
-            <div class="meta-item">
-                <span>ID Produit :</span>
-                <strong>#{{ product.id }}</strong>
-            </div>
-            {% if product.category == 'services' %}
-            <div class="meta-item">
-                <span>Type :</span>
-                <strong>Service</strong>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-</div>
-
-<div class="product-full-description">
-    <h2>Description Détaillée</h2>
-    <hr>
-    <div class="description-content">
-        {{ product.description|linebreaks }}
-    </div>
-</div>
-
+</nav>
 {% endblock %}
 
-{% block scripts %}
-<script>
-function changeMainImage(imageUrl, thumbnail) {
-    // Changer l'image principale
-    document.getElementById('main-product-image').src = imageUrl;
-    
-    // Mettre à jour les classes active des thumbnails
-    document.querySelectorAll('.thumbnail').forEach(thumb => {
-        thumb.classList.remove('active');
-    });
-    thumbnail.parentElement.classList.add('active');
+{% block extra_css %}
+<style>
+.product-gallery {
+    position: sticky;
+    top: 20px;
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Gestion du formulaire d'ajout au panier
-    const form = document.querySelector('.add-to-cart-form');
-    
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const button = this.querySelector('.add-to-cart-btn');
-            const productId = button.dataset.productId;
-            const quantityInput = this.querySelector('#quantity');
-            const quantity = quantityInput.value;
-            const csrftoken = getCookie('csrftoken');
-            
-            // Vérification de la quantité
-            if (quantity < 1) {
-                showNotification('Veuillez sélectionner une quantité valide', 'error');
-                return;
-            }
-            
-            // Désactiver le bouton temporairement
-            button.disabled = true;
-            const originalText = button.innerHTML;
-            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ajout en cours...';
-            
-            fetch("{% url 'add_to_cart' %}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken
-                },
-                body: JSON.stringify({
-                    product_id: productId,
-                    quantity: parseInt(quantity)
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    // Mettre à jour le compteur du panier
-                    updateCartIcon(data.cart_item_count);
+.main-image {
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.thumbnail-image {
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+}
+
+.thumbnail-image:hover {
+    opacity: 0.8;
+}
+
+.product-info {
+    padding-left: 2rem;
+}
+
+.price-section {
+    background: linear-gradient(135deg, rgba(230, 126, 34, 0.1), rgba(211, 84, 0, 0.05));
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.reviews-section {
+    border-top: 1px solid #dee2e6;
+    padding-top: 3rem;
+    margin-top: 3rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="product-detail-page">
+    <div class="container">
+        <div class="row">
+            <!-- Product Gallery -->
+            <div class="col-lg-6">
+                <div class="product-gallery">
+                    <!-- Main Image -->
+                    <div class="main-image-container mb-3">
+                        {% if product.main_image %}
+                            <img 
+                                src="{{ product.main_image.url }}" 
+                                alt="{{ product.name }}" 
+                                class="img-fluid main-image w-100"
+                                id="mainProductImage"
+                            >
+                        {% else %}
+                            <div class="placeholder-main-image d-flex align-items-center justify-content-center" style="height: 400px; background-color: #f8f9fa; border-radius: 12px;">
+                                <div class="text-center">
+                                    <i class="fas fa-image fa-4x text-muted mb-3" aria-hidden="true"></i>
+                                    <p class="text-muted">Image non disponible</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
                     
-                    // Animation de succès
-                    button.innerHTML = '<i class="fas fa-check"></i> Ajouté au Panier !';
-                    button.style.background = '#28a745';
+                    <!-- Thumbnail Gallery -->
+                    {% if product.images.count > 1 %}
+                    <div class="thumbnail-gallery">
+                        <div class="row g-2">
+                            {% for image in product.images.all %}
+                            <div class="col-3">
+                                <img 
+                                    src="{{ image.image.url }}" 
+                                    alt="{{ product.name }}" 
+                                    class="img-thumbnail thumbnail-image w-100"
+                                    data-main-image="{{ image.image.url }}"
+                                    style="height: 80px; object-fit: cover;"
+                                >
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Product Information -->
+            <div class="col-lg-6">
+                <div class="product-info">
+                    <!-- Category -->
+                    <div class="product-category mb-2">
+                        <a href="{% url 'marketplace:category' slug=product.category.slug %}" class="category-link text-primary">
+                            {{ product.category.name }}
+                        </a>
+                    </div>
                     
-                    // Notification de succès
-                    showNotification('Produit ajouté au panier avec succès !', 'success');
+                    <!-- Product Name -->
+                    <h1 class="product-name h2 mb-3">{{ product.name }}</h1>
                     
-                    // Remettre le bouton normal après 3 secondes
-                    setTimeout(() => {
-                        button.innerHTML = originalText;
-                        button.style.background = '#E67E22';
-                        button.disabled = false;
-                    }, 3000);
+                    <!-- Rating and Reviews -->
+                    <div class="product-rating mb-4">
+                        {% include 'components/rating_stars.html' with rating=product.average_rating reviews_count=reviews.count %}
+                    </div>
                     
-                } else {
-                    throw new Error(data.message || 'Erreur lors de l\'ajout');
-                }
-            })
-            .catch(error => {
-                console.error('Erreur:', error);
-                showNotification('Erreur : ' + error.message, 'error');
+                    <!-- Price Section -->
+                    <div class="price-section">
+                        {% if product.promotional_price %}
+                            <div class="price-container">
+                                <div class="current-price h3 text-primary mb-2">{{ product.promotional_price|floatformat:2 }} HTG</div>
+                                <div class="price-details">
+                                    <span class="original-price h5 text-muted text-decoration-line-through me-3">{{ product.price|floatformat:2 }} HTG</span>
+                                    <span class="discount-badge badge bg-danger">-{{ product.discount_percentage|floatformat:0 }}%</span>
+                                </div>
+                                <div class="savings mt-2">
+                                    <small class="text-success">
+                                        <i class="fas fa-tag me-1" aria-hidden="true"></i>
+                                        Vous économisez {{ product.savings|floatformat:2 }} HTG
+                                    </small>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="price-container">
+                                <div class="current-price h3 text-primary">{{ product.price|floatformat:2 }} HTG</div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Stock Status -->
+                    <div class="stock-status mb-4">
+                        {% if product.stock_quantity > 0 %}
+                            {% if product.stock_quantity <= product.low_stock_threshold %}
+                                <div class="alert alert-warning py-2">
+                                    <i class="fas fa-exclamation-triangle me-2" aria-hidden="true"></i>
+                                    Stock limité - Plus que {{ product.stock_quantity }} disponible{{ product.stock_quantity|pluralize }}
+                                </div>
+                            {% else %}
+                                <div class="alert alert-success py-2">
+                                    <i class="fas fa-check-circle me-2" aria-hidden="true"></i>
+                                    En stock
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="alert alert-danger py-2">
+                                <i class="fas fa-times-circle me-2" aria-hidden="true"></i>
+                                Rupture de stock
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Product Actions -->
+                    {% if product.stock_quantity > 0 %}
+                    <div class="product-actions mb-4">
+                        <form class="add-to-cart-form" data-product-id="{{ product.id }}">
+                            {% csrf_token %}
+                            
+                            <!-- Quantity Selector -->
+                            <div class="quantity-section mb-3">
+                                <label for="quantity" class="form-label fw-semibold">Quantité:</label>
+                                <div class="quantity-controls d-flex align-items-center">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm quantity-decrease" aria-label="Diminuer">
+                                        <i class="fas fa-minus" aria-hidden="true"></i>
+                                    </button>
+                                    <input 
+                                        type="number" 
+                                        class="form-control quantity-input mx-2 text-center" 
+                                        id="quantity" 
+                                        name="quantity" 
+                                        value="1" 
+                                        min="1" 
+                                        max="{{ product.available_quantity }}"
+                                        style="max-width: 80px;"
+                                    >
+                                    <button type="button" class="btn btn-outline-secondary btn-sm quantity-increase" aria-label="Augmenter">
+                                        <i class="fas fa-plus" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="action-buttons">
+                                {% if user.is_authenticated %}
+                                    <button type="submit" class="btn btn-primary btn-lg me-3 btn-add-to-cart">
+                                        <i class="fas fa-shopping-cart me-2" aria-hidden="true"></i>
+                                        Ajouter au panier
+                                    </button>
+                                    
+                                    <button type="button" class="btn btn-outline-primary btn-lg btn-wishlist" data-product-id="{{ product.id }}">
+                                        <i class="far fa-heart me-2" aria-hidden="true"></i>
+                                        Favoris
+                                    </button>
+                                {% else %}
+                                    <a href="{% url 'account:login' %}?next={{ request.path }}" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-shopping-cart me-2" aria-hidden="true"></i>
+                                        Se connecter pour acheter
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </form>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Seller Information -->
+                    <div class="seller-section mb-4 p-3 border rounded">
+                        <h6 class="seller-title mb-3">Vendeur</h6>
+                        <div class="seller-info d-flex align-items-center">
+                            <div class="seller-avatar me-3">
+                                {% if product.user.profile_image %}
+                                    <img src="{{ product.user.profile_image.url }}" alt="Vendeur" class="rounded-circle" width="48" height="48">
+                                {% else %}
+                                    <div class="avatar-placeholder rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background-color: #f8f9fa;">
+                                        <i class="fas fa-user text-muted" aria-hidden="true"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="seller-details">
+                                <div class="seller-name fw-semibold">
+                                    <a href="{% url 'marketplace:seller_profile' username=product.user.username %}" class="text-decoration-none">
+                                        {{ product.user.get_full_name|default:product.user.username }}
+                                    </a>
+                                </div>
+                                {% if product.user.vendor_profile %}
+                                    <div class="seller-rating">
+                                        {% include 'components/rating_stars.html' with rating=product.user.vendor_profile.average_rating %}
+                                    </div>
+                                    <small class="text-muted">
+                                        {{ product.user.vendor_profile.total_orders }} commande{{ product.user.vendor_profile.total_orders|pluralize }}
+                                    </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="seller-actions mt-3">
+                            <a href="{% url 'marketplace:seller_profile' username=product.user.username %}" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-store me-1" aria-hidden="true"></i>
+                                Voir la boutique
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Product Features -->
+                    <div class="product-features mb-4">
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="fas fa-truck text-primary me-2" aria-hidden="true"></i>
+                                Livraison disponible
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-shield-alt text-primary me-2" aria-hidden="true"></i>
+                                Paiement sécurisé avec MonCash
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-undo text-primary me-2" aria-hidden="true"></i>
+                                Retour sous 7 jours
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Product Details Tabs -->
+        <div class="product-details-tabs mt-5">
+            <ul class="nav nav-tabs" id="productTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button" role="tab">
+                        Description
+                    </button>
+                </li>
+                {% if product.specifications %}
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="specifications-tab" data-bs-toggle="tab" data-bs-target="#specifications" type="button" role="tab">
+                        Spécifications
+                    </button>
+                </li>
+                {% endif %}
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab">
+                        Avis ({{ reviews.count }})
+                    </button>
+                </li>
+            </ul>
+            
+            <div class="tab-content" id="productTabsContent">
+                <!-- Description Tab -->
+                <div class="tab-pane fade show active" id="description" role="tabpanel">
+                    <div class="p-4">
+                        {% if product.description %}
+                            <div class="product-description">
+                                {{ product.description|linebreaks }}
+                            </div>
+                        {% else %}
+                            <p class="text-muted">Aucune description détaillée disponible.</p>
+                        {% endif %}
+                    </div>
+                </div>
                 
-                // Remettre le bouton normal
-                button.innerHTML = originalText;
-                button.disabled = false;
-            });
+                <!-- Specifications Tab -->
+                {% if product.specifications %}
+                <div class="tab-pane fade" id="specifications" role="tabpanel">
+                    <div class="p-4">
+                        <div class="specifications-list">
+                            {% for key, value in product.specifications.items %}
+                            <div class="row py-2 border-bottom">
+                                <div class="col-md-4 fw-semibold">{{ key }}</div>
+                                <div class="col-md-8">{{ value }}</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Reviews Tab -->
+                <div class="tab-pane fade" id="reviews" role="tabpanel">
+                    <div class="p-4">
+                        <!-- Review Form -->
+                        {% if can_review %}
+                        <div class="review-form-section mb-5">
+                            <h5>Laisser un avis</h5>
+                            <form method="post" class="review-form">
+                                {% csrf_token %}
+                                {{ review_form.as_p }}
+                                <button type="submit" class="btn btn-primary">Publier l'avis</button>
+                            </form>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Reviews List -->
+                        <div class="reviews-list">
+                            {% for review in reviews %}
+                            <div class="review-item border-bottom pb-4 mb-4">
+                                <div class="review-header d-flex justify-content-between align-items-start mb-2">
+                                    <div class="reviewer-info">
+                                        <h6 class="reviewer-name mb-1">{{ review.user.get_full_name|default:review.user.username }}</h6>
+                                        {% include 'components/rating_stars.html' with rating=review.rating %}
+                                    </div>
+                                    <small class="text-muted">{{ review.created_at|date:"d F Y" }}</small>
+                                </div>
+                                
+                                {% if review.title %}
+                                <h6 class="review-title">{{ review.title }}</h6>
+                                {% endif %}
+                                
+                                <p class="review-comment">{{ review.comment|linebreaks }}</p>
+                                
+                                {% if review.helpful_count %}
+                                <div class="review-helpful">
+                                    <small class="text-muted">
+                                        {{ review.helpful_count }} personne{{ review.helpful_count|pluralize }} 
+                                        {{ review.helpful_count|pluralize:"a,ont" }} trouvé cet avis utile
+                                    </small>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% empty %}
+                            <div class="no-reviews text-center py-5">
+                                <i class="fas fa-comments fa-3x text-muted mb-3" aria-hidden="true"></i>
+                                <h5>Aucun avis pour l'instant</h5>
+                                <p class="text-muted">Soyez le premier à laisser un avis sur ce produit.</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Related Products -->
+        {% if related_products %}
+        <section class="related-products mt-5">
+            <h3 class="section-title mb-4">Produits similaires</h3>
+            <div class="row g-4">
+                {% for product in related_products %}
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    {% include 'components/product_card.html' %}
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Image gallery functionality
+    const thumbnails = document.querySelectorAll('.thumbnail-image');
+    const mainImage = document.getElementById('mainProductImage');
+    
+    thumbnails.forEach(thumbnail => {
+        thumbnail.addEventListener('click', function() {
+            const newSrc = this.dataset.mainImage;
+            if (mainImage && newSrc) {
+                mainImage.src = newSrc;
+            }
+        });
+    });
+    
+    // Quantity controls
+    const quantityInput = document.querySelector('.quantity-input');
+    const decreaseBtn = document.querySelector('.quantity-decrease');
+    const increaseBtn = document.querySelector('.quantity-increase');
+    
+    if (decreaseBtn) {
+        decreaseBtn.addEventListener('click', function() {
+            const current = parseInt(quantityInput.value);
+            if (current > 1) {
+                quantityInput.value = current - 1;
+            }
         });
     }
     
-    // Validation de la quantité en temps réel
-    const quantityInput = document.getElementById('quantity');
-    if (quantityInput) {
-        quantityInput.addEventListener('input', function() {
-            const max = parseInt(this.getAttribute('max'));
-            const value = parseInt(this.value);
-            
-            if (value > max) {
-                this.value = max;
-                showNotification(`Quantité maximale disponible : ${max}`, 'warning');
+    if (increaseBtn) {
+        increaseBtn.addEventListener('click', function() {
+            const current = parseInt(quantityInput.value);
+            const max = parseInt(quantityInput.max);
+            if (current < max) {
+                quantityInput.value = current + 1;
             }
         });
     }

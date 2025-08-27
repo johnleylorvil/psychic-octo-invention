@@ -1,302 +1,333 @@
 # marketplace/services/order_service.py
 """
-Order service for business logic related to order processing
+Order processing business logic service
 """
 
-from django.db import transaction
-from django.utils import timezone
-from django.core.exceptions import ValidationError
+from typing import Dict, Any, Optional, List
 from decimal import Decimal
-from typing import Dict, Any, Optional
-import logging
+from django.db import transaction
+from django.core.exceptions import ValidationError
+from django.contrib.auth import get_user_model
+from django.utils import timezone
+from marketplace.models import Cart, CartItem, Order, OrderItem, OrderStatusHistory
+from marketplace.services.cart_service import CartService
+from marketplace.services.product_service import ProductService
 
-logger = logging.getLogger(__name__)
+User = get_user_model()
 
 
 class OrderService:
-    """Service for order-related business logic"""
+    """Service for order processing operations"""
+    
+    ORDER_STATUSES = [
+        'pending',
+        'confirmed', 
+        'processing',
+        'shipped',
+        'delivered',
+        'cancelled',
+        'refunded'
+    ]
+    
+    PAYMENT_STATUSES = [
+        'pending',
+        'paid',
+        'failed',
+        'refunded'
+    ]
     
     @staticmethod
-    def create_order_from_cart(cart, customer_data: Dict[str, Any], payment_method: str = 'moncash') -> Dict[str, Any]:
-        """Create order from cart with validation"""
-        from ..models import Order, OrderItem
-        from .cart_service import CartService
-        from .product_service import ProductService
-        
-        # Validate cart first
-        cart_validation = CartService.validate_cart_for_checkout(cart)
-        if not cart_validation['valid']:
-            return {
-                'success': False,
-                'errors': cart_validation['errors']
-            }
-        
-        try:
-            with transaction.atomic():
-                # Calculate totals
-                totals = CartService.calculate_cart_totals(cart)
+    def create_order_from_cart(cart: Cart, shipping_address: Dict[str, Any],
+                              billing_address: Dict[str, Any] = None,
+                              payment_method: str = 'moncash',
+                              special_instructions: str = '') -> Order:
+        """Create order from cart items"""
+        with transaction.atomic():
+            # Validate cart
+            cart_summary = CartService.get_cart_summary(cart)
+            if not cart_summary['is_valid']:
+                raise ValidationError("Cart contains invalid items")
+            
+            if cart_summary['item_count'] == 0:
+                raise ValidationError("Cart is empty")
+            
+            # Use shipping address as billing if not provided
+            if not billing_address:
+                billing_address = shipping_address.copy()
+            
+            # Calculate totals
+            totals = cart_summary['totals']
+            
+            # Create order
+            order = Order.objects.create(
+                user=cart.user,
+                email=cart.user.email if cart.user else shipping_address.get('email'),
+                phone=shipping_address.get('phone'),
                 
-                # Create order
-                order = Order.objects.create(
-                    user=cart.user,
-                    customer_name=customer_data.get('name', ''),
-                    customer_email=customer_data.get('email', ''),
-                    customer_phone=customer_data.get('phone', ''),
-                    shipping_address=customer_data.get('shipping_address', ''),
-                    shipping_city=customer_data.get('shipping_city', 'Port-au-Prince'),
-                    shipping_country=customer_data.get('shipping_country', 'Haïti'),
-                    billing_address=customer_data.get('billing_address', ''),
-                    billing_city=customer_data.get('billing_city', ''),
-                    billing_country=customer_data.get('billing_country', 'Haïti'),
-                    subtotal=totals['subtotal'],
-                    shipping_cost=totals['shipping_cost'],
-                    tax_amount=totals['tax_amount'],
-                    discount_amount=totals['discount_amount'],
-                    total_amount=totals['total'],
-                    payment_method=payment_method,
-                    notes=customer_data.get('notes', ''),
+                # Shipping address
+                shipping_first_name=shipping_address.get('first_name'),
+                shipping_last_name=shipping_address.get('last_name'),
+                shipping_address_line1=shipping_address.get('address_line1'),
+                shipping_address_line2=shipping_address.get('address_line2', ''),
+                shipping_city=shipping_address.get('city'),
+                shipping_state=shipping_address.get('state'),
+                shipping_postal_code=shipping_address.get('postal_code'),
+                shipping_country=shipping_address.get('country', 'HT'),
+                
+                # Billing address
+                billing_first_name=billing_address.get('first_name'),
+                billing_last_name=billing_address.get('last_name'),
+                billing_address_line1=billing_address.get('address_line1'),
+                billing_address_line2=billing_address.get('address_line2', ''),
+                billing_city=billing_address.get('city'),
+                billing_state=billing_address.get('state'),
+                billing_postal_code=billing_address.get('postal_code'),
+                billing_country=billing_address.get('country', 'HT'),
+                
+                # Order details
+                subtotal=totals['subtotal'],
+                shipping_cost=totals['shipping_cost'],
+                tax_amount=totals['tax_amount'],
+                total_amount=totals['total'],
+                payment_method=payment_method,
+                special_instructions=special_instructions,
+                
+                # Status
+                status='pending',
+                payment_status='pending'
+            )
+            
+            # Create order items
+            for cart_item in cart_summary['items']:
+                OrderItem.objects.create(
+                    order=order,
+                    product=cart_item.product,
+                    product_name=cart_item.product.name,
+                    product_sku=cart_item.product.sku,
+                    product_variant=cart_item.product_variant,
+                    quantity=cart_item.quantity,
+                    unit_price=cart_item.unit_price,
+                    total_price=cart_item.unit_price * cart_item.quantity
                 )
                 
-                # Create order items and update stock
-                for cart_item in cart.items.all():
-                    OrderItem.objects.create(
-                        order=order,
-                        product=cart_item.product,
-                        quantity=cart_item.quantity,
-                        unit_price=cart_item.price,
-                        product_options=cart_item.options
-                    )
-                    
-                    # Update product stock for physical products
-                    if not cart_item.product.is_digital:
-                        ProductService.update_product_stock(
-                            cart_item.product, 
-                            -cart_item.quantity
-                        )
-                
-                # Clear cart after successful order creation
-                CartService.clear_cart(cart)
-                
-                return {
-                    'success': True,
-                    'order': order,
-                    'total_amount': order.total_amount
-                }
-                
-        except Exception as e:
-            logger.error(f"Error creating order from cart {cart.id}: {e}")
-            return {
-                'success': False,
-                'error': 'Une erreur est survenue lors de la création de la commande'
-            }
+                # Update product stock
+                ProductService.update_stock(
+                    cart_item.product,
+                    cart_item.quantity,
+                    'decrease'
+                )
+            
+            # Create initial status history
+            OrderStatusHistory.objects.create(
+                order=order,
+                status='pending',
+                notes='Order created'
+            )
+            
+            # Clear cart
+            CartService.clear_cart(cart)
+            cart.is_active = False
+            cart.save()
+            
+            return order
     
     @staticmethod
-    def update_order_status(order, new_status: str, user=None, comment: str = None) -> bool:
+    def update_order_status(order: Order, new_status: str, notes: str = '',
+                          user: User = None) -> Order:
         """Update order status with history tracking"""
-        from ..models import OrderStatusHistory
-        
-        if new_status not in dict(Order.STATUS_CHOICES):
+        if new_status not in OrderService.ORDER_STATUSES:
             raise ValidationError(f"Invalid status: {new_status}")
         
-        try:
-            with transaction.atomic():
-                old_status = order.status
-                
-                # Update order status
-                order.status = new_status
-                
-                # Set delivery timestamp for delivered orders
-                if new_status == 'delivered' and not order.delivered_at:
-                    order.delivered_at = timezone.now()
-                
-                order.save()
-                
-                # Create status history entry
-                OrderStatusHistory.objects.create(
-                    order=order,
-                    old_status=old_status,
-                    new_status=new_status,
-                    changed_by=user,
-                    comment=comment
-                )
-                
-                # Handle status-specific actions
-                OrderService._handle_status_change(order, old_status, new_status)
-                
-                return True
-                
-        except Exception as e:
-            logger.error(f"Error updating order {order.id} status: {e}")
-            return False
-    
-    @staticmethod
-    def cancel_order(order, reason: str = None, user=None) -> Dict[str, Any]:
-        """Cancel order and restore stock"""
-        if not order.can_be_cancelled:
-            return {
-                'success': False,
-                'error': 'Cette commande ne peut pas être annulée'
-            }
+        old_status = order.status
         
-        try:
-            with transaction.atomic():
-                # Restore product stock
-                for item in order.items.all():
-                    if not item.product.is_digital:
-                        ProductService.update_product_stock(
-                            item.product, 
-                            item.quantity
-                        )
-                
-                # Update order status
-                OrderService.update_order_status(
-                    order, 
-                    'cancelled', 
-                    user, 
-                    reason
-                )
-                
-                return {
-                    'success': True,
-                    'message': 'Commande annulée avec succès'
-                }
-                
-        except Exception as e:
-            logger.error(f"Error cancelling order {order.id}: {e}")
-            return {
-                'success': False,
-                'error': 'Une erreur est survenue lors de l\'annulation'
-            }
-    
-    @staticmethod
-    def calculate_order_analytics(date_range: Optional[tuple] = None) -> Dict[str, Any]:
-        """Calculate order analytics for dashboard"""
-        from ..models import Order
-        from django.db.models import Sum, Count, Avg
-        
-        queryset = Order.objects.all()
-        
-        if date_range:
-            start_date, end_date = date_range
-            queryset = queryset.filter(
-                created_at__date__range=[start_date, end_date]
+        with transaction.atomic():
+            order.status = new_status
+            order.save(update_fields=['status'])
+            
+            # Create status history
+            OrderStatusHistory.objects.create(
+                order=order,
+                status=new_status,
+                notes=notes,
+                user=user
             )
+            
+            # Handle status-specific logic
+            OrderService._handle_status_change(order, old_status, new_status)
         
-        # Basic statistics
-        stats = queryset.aggregate(
-            total_orders=Count('id'),
-            total_revenue=Sum('total_amount'),
-            average_order_value=Avg('total_amount')
-        )
-        
-        # Order status distribution
-        status_distribution = {}
-        for status_code, status_label in Order.STATUS_CHOICES:
-            count = queryset.filter(status=status_code).count()
-            status_distribution[status_code] = {
-                'label': status_label,
-                'count': count
-            }
-        
-        # Payment method distribution
-        payment_methods = queryset.values('payment_method').annotate(
-            count=Count('id'),
-            revenue=Sum('total_amount')
-        ).order_by('-count')
-        
-        return {
-            'total_orders': stats['total_orders'] or 0,
-            'total_revenue': float(stats['total_revenue'] or 0),
-            'average_order_value': float(stats['average_order_value'] or 0),
-            'status_distribution': status_distribution,
-            'payment_methods': list(payment_methods),
-            'currency': 'HTG'
-        }
+        return order
     
     @staticmethod
-    def get_order_summary(order) -> Dict[str, Any]:
-        """Get comprehensive order summary"""
-        return {
-            'order_number': order.order_number,
-            'status': order.status,
-            'status_display': order.get_status_display(),
-            'payment_status': order.payment_status,
-            'payment_method': order.payment_method,
-            'customer': {
-                'name': order.customer_name,
-                'email': order.customer_email,
-                'phone': order.customer_phone
-            },
-            'shipping': {
-                'address': order.shipping_address,
-                'city': order.shipping_city,
-                'country': order.shipping_country
-            },
-            'items': [
-                {
-                    'product_name': item.product_name,
-                    'quantity': item.quantity,
-                    'unit_price': float(item.unit_price),
-                    'total_price': float(item.total_price),
-                    'product_image': item.product_image,
-                    'options': item.product_options
-                }
-                for item in order.items.all()
-            ],
-            'totals': {
-                'subtotal': float(order.subtotal),
-                'shipping_cost': float(order.shipping_cost),
-                'tax_amount': float(order.tax_amount),
-                'discount_amount': float(order.discount_amount),
-                'total_amount': float(order.total_amount),
-                'currency': order.currency
-            },
-            'dates': {
-                'created_at': order.created_at,
-                'estimated_delivery': order.estimated_delivery,
-                'delivered_at': order.delivered_at
-            },
-            'tracking': {
-                'tracking_number': order.tracking_number,
-                'shipping_method': order.shipping_method
-            }
-        }
-    
-    @staticmethod
-    def _handle_status_change(order, old_status: str, new_status: str):
-        """Handle actions when order status changes"""
-        from .email_service import EmailService
+    def _handle_status_change(order: Order, old_status: str, new_status: str):
+        """Handle status-specific business logic"""
+        # If order is cancelled, restore stock
+        if new_status == 'cancelled' and old_status not in ['cancelled', 'refunded']:
+            for order_item in OrderItem.objects.filter(order=order):
+                ProductService.update_stock(
+                    order_item.product,
+                    order_item.quantity,
+                    'increase'
+                )
         
-        # Send notifications based on status change
-        if new_status == 'confirmed':
-            EmailService.send_order_confirmation(order)
+        # If order is confirmed, send confirmation email
+        elif new_status == 'confirmed':
+            # TODO: Send confirmation email
+            pass
+        
+        # If order is shipped, send tracking info
         elif new_status == 'shipped':
-            EmailService.send_shipping_notification(order)
-        elif new_status == 'delivered':
-            EmailService.send_delivery_confirmation(order)
+            # TODO: Send shipping notification
+            pass
         
-        logger.info(f"Order {order.order_number} status changed from {old_status} to {new_status}")
+        # If order is delivered, allow reviews
+        elif new_status == 'delivered':
+            # TODO: Send delivery confirmation
+            pass
     
     @staticmethod
-    def generate_invoice_data(order) -> Dict[str, Any]:
-        """Generate invoice data for order"""
+    def cancel_order(order: Order, reason: str = '', user: User = None) -> Order:
+        """Cancel an order"""
+        if order.status in ['delivered', 'cancelled', 'refunded']:
+            raise ValidationError("Cannot cancel order in current status")
+        
+        return OrderService.update_order_status(
+            order=order,
+            new_status='cancelled',
+            notes=f"Order cancelled. Reason: {reason}",
+            user=user
+        )
+    
+    @staticmethod
+    def calculate_order_totals(order_items: List[Dict[str, Any]], 
+                             shipping_address: Dict[str, Any]) -> Dict[str, Decimal]:
+        """Calculate order totals from items"""
+        subtotal = Decimal('0.00')
+        
+        for item in order_items:
+            line_total = Decimal(str(item['unit_price'])) * item['quantity']
+            subtotal += line_total
+        
+        # Calculate shipping
+        shipping_cost = OrderService._calculate_shipping(shipping_address, subtotal)
+        
+        # Calculate tax
+        tax_amount = OrderService._calculate_tax(shipping_address, subtotal)
+        
+        total = subtotal + shipping_cost + tax_amount
+        
+        return {
+            'subtotal': subtotal,
+            'shipping_cost': shipping_cost,
+            'tax_amount': tax_amount,
+            'total': total
+        }
+    
+    @staticmethod
+    def _calculate_shipping(shipping_address: Dict[str, Any], subtotal: Decimal) -> Decimal:
+        """Calculate shipping cost based on address and subtotal"""
+        # Free shipping over 1000 HTG
+        if subtotal >= Decimal('1000.00'):
+            return Decimal('0.00')
+        
+        # Different rates based on location
+        city = shipping_address.get('city', '').lower()
+        
+        if city in ['port-au-prince', 'pétion-ville', 'carrefour']:
+            return Decimal('50.00')  # Metro area
+        else:
+            return Decimal('100.00')  # Outside metro area
+    
+    @staticmethod
+    def _calculate_tax(shipping_address: Dict[str, Any], subtotal: Decimal) -> Decimal:
+        """Calculate tax amount"""
+        # No tax implementation for Haiti
+        return Decimal('0.00')
+    
+    @staticmethod
+    def get_order_summary(order: Order) -> Dict[str, Any]:
+        """Get comprehensive order summary"""
+        items = OrderItem.objects.filter(order=order).select_related('product')
+        
         return {
             'order': order,
-            'company': {
-                'name': 'Afèpanou',
-                'address': 'Port-au-Prince, Haïti',
-                'email': 'contact@afepanou.com',
-                'phone': '+509 XX XX XXXX'
-            },
-            'invoice_number': f"INV-{order.order_number}",
-            'invoice_date': order.created_at.date(),
-            'due_date': order.created_at.date(),  # Immediate payment
-            'items': order.items.all(),
-            'totals': {
-                'subtotal': order.subtotal,
-                'shipping': order.shipping_cost,
-                'tax': order.tax_amount,
-                'discount': order.discount_amount,
-                'total': order.total_amount
-            }
+            'items': list(items),
+            'item_count': items.count(),
+            'status_history': list(
+                OrderStatusHistory.objects.filter(order=order).order_by('-created_at')
+            ),
+            'can_cancel': order.status in ['pending', 'confirmed'],
+            'can_modify': order.status == 'pending',
         }
+    
+    @staticmethod
+    def get_user_orders(user: User, status: str = None, limit: int = None) -> List[Order]:
+        """Get user orders with optional filtering"""
+        orders = Order.objects.for_user(user)
+        
+        if status:
+            orders = orders.filter(status=status)
+        
+        if limit:
+            orders = orders[:limit]
+        
+        return list(orders)
+    
+    @staticmethod
+    def search_orders(filters: Dict[str, Any]) -> List[Order]:
+        """Search orders with multiple filters"""
+        orders = Order.objects.all()
+        
+        if 'user' in filters:
+            orders = orders.filter(user=filters['user'])
+        
+        if 'status' in filters:
+            orders = orders.filter(status=filters['status'])
+        
+        if 'payment_status' in filters:
+            orders = orders.filter(payment_status=filters['payment_status'])
+        
+        if 'date_from' in filters:
+            orders = orders.filter(created_at__date__gte=filters['date_from'])
+        
+        if 'date_to' in filters:
+            orders = orders.filter(created_at__date__lte=filters['date_to'])
+        
+        if 'min_amount' in filters:
+            orders = orders.filter(total_amount__gte=filters['min_amount'])
+        
+        if 'max_amount' in filters:
+            orders = orders.filter(total_amount__lte=filters['max_amount'])
+        
+        return list(orders.order_by('-created_at'))
+    
+    @staticmethod
+    def get_sales_analytics(seller: User = None, date_from: str = None, 
+                          date_to: str = None) -> Dict[str, Any]:
+        """Get sales analytics for seller or overall"""
+        orders = Order.objects.all()
+        
+        if seller:
+            orders = orders.filter(items__product__seller=seller).distinct()
+        
+        if date_from:
+            orders = orders.filter(created_at__date__gte=date_from)
+        
+        if date_to:
+            orders = orders.filter(created_at__date__lte=date_to)
+        
+        total_orders = orders.count()
+        completed_orders = orders.filter(status='delivered', payment_status='paid')
+        
+        analytics = {
+            'total_orders': total_orders,
+            'completed_orders': completed_orders.count(),
+            'pending_orders': orders.filter(status='pending').count(),
+            'cancelled_orders': orders.filter(status='cancelled').count(),
+            'total_revenue': sum(order.total_amount for order in completed_orders),
+            'average_order_value': (
+                sum(order.total_amount for order in completed_orders) / completed_orders.count()
+                if completed_orders.count() > 0 else 0
+            ),
+        }
+        
+        return analytics

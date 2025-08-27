@@ -1,260 +1,115 @@
-## Phase 7: URL Configuration
+# Task 7: Implement Complete URL Routing System
 
-### Task 7: Implement Complete URL Routing System
 **Priority**: Medium | **Estimated Time**: 6 hours
 
-#### Objective
-Create a comprehensive, SEO-friendly URL structure that supports the full marketplace functionality with proper namespacing and error handling.
+## Objective
 
-#### Deliverables
-- [ ] Main URL configuration
-- [ ] App-specific URL patterns
-- [ ] SEO-friendly URL structures
-- [ ] API endpoint organization
-- [ ] Error page routing
+Create a comprehensive, SEO-friendly URL structure that supports the full marketplace functionality with proper namespacing and error handling. Currently, the URLs are pointing to test configurations and lack proper organization for a production marketplace.
 
-#### Implementation Steps
+## Context
 
-1. **Main URL Configuration**
-   ```python
-   # config/urls.py
-   from django.contrib import admin
-   from django.urls import path, include
-   from django.conf import settings
-   from django.conf.urls.static import static
-   from django.views.generic import TemplateView
-   
-   urlpatterns = [
-       # Admin
-       path('admin/', admin.site.urls),
-       
-       # Authentication
-       path('auth/', include('django.contrib.auth.urls')),
-       
-       # Main marketplace
-       path('', include('marketplace.urls', namespace='marketplace')),
-       
-       # API endpoints
-       path('api/v1/', include('marketplace.api.urls', namespace='api')),
-       
-       # Static pages
-       path('about/', TemplateView.as_view(template_name='pages/about.html'), name='about'),
-       path('contact/', TemplateView.as_view(template_name='pages/contact.html'), name='contact'),
-       path('terms/', TemplateView.as_view(template_name='pages/terms.html'), name='terms'),
-       path('privacy/', TemplateView.as_view(template_name='pages/privacy.html'), name='privacy'),
-   ]
-   
-   # Development media serving
-   if settings.DEBUG:
-       urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-   
-   # Custom error handlers
-   handler404 = 'marketplace.views.errors.handler404'
-   handler500 = 'marketplace.views.errors.handler500'
-   ```
+The existing URL configuration points to testurls.py and lacks the comprehensive structure needed for a complete marketplace. URLs need to be SEO-friendly, properly organized, and support both template views and API endpoints. A well-structured URL system is crucial for user experience, SEO performance, and maintainability.
 
-2. **Marketplace URL Patterns**
-   ```python
-   # marketplace/urls.py
-   from django.urls import path, include
-   from . import views
-   
-   app_name = 'marketplace'
-   
-   urlpatterns = [
-       # Homepage
-       path('', views.HomePageView.as_view(), name='home'),
-       
-       # Product URLs
-       path('produit/<slug:slug>/', views.ProductDetailView.as_view(), name='product_detail'),
-       path('produits/', views.ProductListView.as_view(), name='product_list'),
-       path('recherche/', views.ProductSearchView.as_view(), name='product_search'),
-       
-       # Category URLs
-       path('categorie/<slug:slug>/', views.CategoryListView.as_view(), name='category_list'),
-       path('categories/', views.CategoryIndexView.as_view(), name='category_index'),
-       
-       # Specific category pages (SEO-friendly)
-       path('agricole/', views.AgricultureCategoryView.as_view(), name='agriculture'),
-       path('patriotiques/', views.PatrioticCategoryView.as_view(), name='patriotic'),
-       path('petite-industrie/', views.SmallIndustryCategoryView.as_view(), name='small_industry'),
-       path('services/', views.ServicesView.as_view(), name='services'),
-       path('premiere-necessite/', views.EssentialsCategoryView.as_view(), name='essentials'),
-       
-       # Cart & Checkout
-       path('panier/', views.CartView.as_view(), name='cart'),
-       path('panier/ajouter/', views.AddToCartView.as_view(), name='add_to_cart'),
-       path('panier/supprimer/', views.RemoveFromCartView.as_view(), name='remove_from_cart'),
-       path('panier/vider/', views.ClearCartView.as_view(), name='clear_cart'),
-       path('commande/', views.CheckoutView.as_view(), name='checkout'),
-       path('commande/confirmation/<int:order_id>/', views.OrderConfirmationView.as_view(), name='order_confirmation'),
-       
-       # User Account
-       path('compte/', include([
-           path('', views.UserProfileView.as_view(), name='profile'),
-           path('inscription/', views.UserRegistrationView.as_view(), name='register'),
-           path('connexion/', views.UserLoginView.as_view(), name='login'),
-           path('deconnexion/', views.UserLogoutView.as_view(), name='logout'),
-           path('commandes/', views.OrderHistoryView.as_view(), name='order_history'),
-           path('commandes/<int:pk>/', views.OrderDetailView.as_view(), name='order_detail'),
-           path('favoris/', views.WishlistView.as_view(), name='wishlist'),
-           path('devenir-vendeur/', views.SellerApplicationView.as_view(), name='become_seller'),
-       ])),
-       
-       # Seller Dashboard
-       path('vendeur/', include([
-           path('', views.SellerDashboardView.as_view(), name='seller_dashboard'),
-           path('produits/', views.SellerProductListView.as_view(), name='seller_products'),
-           path('produits/ajouter/', views.SellerProductCreateView.as_view(), name='seller_product_create'),
-           path('produits/<int:pk>/modifier/', views.SellerProductUpdateView.as_view(), name='seller_product_update'),
-           path('commandes/', views.SellerOrderListView.as_view(), name='seller_orders'),
-           path('commandes/<int:pk>/', views.SellerOrderDetailView.as_view(), name='seller_order_detail'),
-           path('statistiques/', views.SellerAnalyticsView.as_view(), name='seller_analytics'),
-       ])),
-       
-       # Payment Processing
-       path('paiement/', include([
-           path('moncash/redirect/', views.MonCashRedirectView.as_view(), name='moncash_redirect'),
-           path('moncash/callback/', views.MonCashCallbackView.as_view(), name='moncash_callback'),
-           path('moncash/webhook/', views.MonCashWebhookView.as_view(), name='moncash_webhook'),
-       ])),
-       
-       # AJAX Endpoints
-       path('ajax/', include([
-           path('produit/<int:pk>/apercu/', views.ProductQuickViewView.as_view(), name='product_quick_view'),
-           path('avis/ajouter/', views.AddReviewView.as_view(), name='add_review'),
-           path('favoris/toggle/', views.ToggleWishlistView.as_view(), name='toggle_wishlist'),
-           path('panier/count/', views.CartCountView.as_view(), name='cart_count'),
-       ])),
-   ]
-   ```
+## Tasks to Complete
 
-3. **API URL Configuration**
-   ```python
-   # marketplace/api/urls.py
-   from django.urls import path, include
-   from rest_framework.routers import DefaultRouter
-   from . import views
-   
-   app_name = 'api'
-   
-   router = DefaultRouter()
-   router.register(r'products', views.ProductViewSet)
-   router.register(r'categories', views.CategoryViewSet)
-   router.register(r'orders', views.OrderViewSet)
-   router.register(r'reviews', views.ReviewViewSet)
-   
-   urlpatterns = [
-       # DRF Router URLs
-       path('', include(router.urls)),
-       
-       # Authentication
-       path('auth/', include([
-           path('login/', views.LoginAPIView.as_view(), name='login'),
-           path('register/', views.RegisterAPIView.as_view(), name='register'),
-           path('refresh/', views.RefreshTokenAPIView.as_view(), name='refresh_token'),
-           path('logout/', views.LogoutAPIView.as_view(), name='logout'),
-       ])),
-       
-       # Cart Management
-       path('cart/', include([
-           path('', views.CartAPIView.as_view(), name='cart'),
-           path('add/', views.AddToCartAPIView.as_view(), name='add_to_cart'),
-           path('remove/', views.RemoveFromCartAPIView.as_view(), name='remove_from_cart'),
-           path('clear/', views.ClearCartAPIView.as_view(), name='clear_cart'),
-       ])),
-       
-       # Search & Filtering
-       path('search/', views.ProductSearchAPIView.as_view(), name='search'),
-       path('autocomplete/', views.SearchAutocompleteAPIView.as_view(), name='autocomplete'),
-       
-       # MonCash Integration
-       path('payments/', include([
-           path('create/', views.CreatePaymentAPIView.as_view(), name='create_payment'),
-           path('verify/', views.VerifyPaymentAPIView.as_view(), name='verify_payment'),
-           path('webhook/', views.PaymentWebhookAPIView.as_view(), name='payment_webhook'),
-       ])),
-       
-       # Analytics & Reporting
-       path('analytics/', include([
-           path('popular-products/', views.PopularProductsAPIView.as_view(), name='popular_products'),
-           path('sales-stats/', views.SalesStatsAPIView.as_view(), name='sales_stats'),
-       ])),
-   ]
-   ```
+### 1. Design Main URL Configuration Structure
+- Create production-ready config/urls.py replacing test configuration
+- Set up proper namespacing for different app sections
+- Configure static and media file serving for development and production
+- Add custom error handlers for 404, 500, and other HTTP errors
+- Include authentication URLs from Django's built-in auth system
+- Set up API versioning structure for future scalability
 
-4. **SEO-Optimized URL Patterns**
-   ```python
-   # marketplace/seo_urls.py
-   """
-   Additional SEO-friendly URL patterns for better search engine optimization
-   """
-   from django.urls import path
-   from . import views
-   
-   seo_urlpatterns = [
-       # Location-specific URLs
-       path('port-au-prince/', views.LocationView.as_view(), {'location': 'port-au-prince'}, name='port_au_prince'),
-       path('cap-haitien/', views.LocationView.as_view(), {'location': 'cap-haitien'}, name='cap_haitien'),
-       
-       # Seasonal/promotional URLs
-       path('nouveautes/', views.NewProductsView.as_view(), name='new_products'),
-       path('promotions/', views.PromotionsView.as_view(), name='promotions'),
-       path('meilleures-ventes/', views.BestSellersView.as_view(), name='best_sellers'),
-       
-       # Content marketing URLs
-       path('blog/', views.BlogIndexView.as_view(), name='blog_index'),
-       path('blog/<slug:slug>/', views.BlogDetailView.as_view(), name='blog_detail'),
-       path('guides/', views.GuideIndexView.as_view(), name='guide_index'),
-       path('guides/<slug:slug>/', views.GuideDetailView.as_view(), name='guide_detail'),
-       
-       # Seller profiles (public)
-       path('boutique/<slug:seller_slug>/', views.SellerPublicProfileView.as_view(), name='seller_profile'),
-       path('boutiques/', views.SellerDirectoryView.as_view(), name='seller_directory'),
-   ]
-   ```
+### 2. Create Marketplace App URL Patterns
+- Design SEO-friendly URLs for all marketplace functionality
+- Create logical groupings for products, categories, user accounts, and seller areas
+- Implement French-language URL patterns for Haitian market
+- Add specific category URLs (agricole, patriotiques, services, etc.)
+- Create user-friendly URLs for product details using slugs
+- Set up cart and checkout workflow URLs
 
-5. **Error Handler Views**
-   ```python
-   # marketplace/views/errors.py
-   from django.shortcuts import render
-   from django.http import HttpResponseNotFound, HttpResponseServerError
-   
-   def handler404(request, exception):
-       """Custom 404 error handler"""
-       context = {
-           'error_code': '404',
-           'error_message': 'Page non trouvée',
-           'error_description': 'La page que vous recherchez n\'existe pas ou a été déplacée.',
-           'suggested_actions': [
-               'Retourner à l\'accueil',
-               'Rechercher des produits',
-               'Parcourir les catégories',
-           ]
-       }
-       return render(request, 'errors/404.html', context, status=404)
-   
-   def handler500(request):
-       """Custom 500 error handler"""
-       context = {
-           'error_code': '500',
-           'error_message': 'Erreur du serveur',
-           'error_description': 'Une erreur inattendue s\'est produite. Notre équipe technique a été notifiée.',
-           'suggested_actions': [
-               'Actualiser la page',
-               'Réessayer plus tard',
-               'Contacter le support',
-           ]
-       }
-       return render(request, 'errors/500.html', context, status=500)
-   ```
+### 3. Build API URL Configuration
+- Create separate API URL configuration with v1 versioning
+- Set up DRF router for ViewSets and standard endpoints
+- Organize API URLs by functionality (products, orders, payments, etc.)
+- Create authentication endpoints for JWT token management
+- Add search and filtering endpoints
+- Set up MonCash webhook URLs for payment processing
 
-#### Acceptance Criteria
-- [ ] All URLs follow SEO-friendly patterns
-- [ ] Proper namespacing implemented
-- [ ] API endpoints organized logically
+### 4. Implement SEO-Optimized URL Patterns
+- Create location-specific URLs for different Haitian cities
+- Add seasonal and promotional URL patterns
+- Build content marketing URLs for blog and guides
+- Create seller profile URLs for public vendor pages
+- Add category and subcategory hierarchy support
+- Implement breadcrumb-friendly URL structures
+
+### 5. Add Mobile and Responsive URL Handling
+- Ensure all URLs work correctly on mobile devices
+- Add mobile-specific redirects where needed
+- Create app-like URL patterns for mobile PWA features
+- Handle deep linking for mobile applications
+- Add URL shortening capabilities for sharing
+
+### 6. Create Admin and Management URLs
+- Set up Django admin URLs with custom admin site
+- Create seller dashboard URL patterns
+- Add administrative reporting and analytics URLs
+- Build bulk operation URLs for admin tasks
+- Set up system monitoring and health check URLs
+
+### 7. Implement Security and Access Control
+- Add CSRF-protected URLs for sensitive operations
+- Create role-based URL access patterns
+- Implement rate-limited URLs for API endpoints
+- Add secure URLs for payment and personal data handling
+- Create logout and session management URLs
+
+### 8. Build Error Handling and Redirects
+- Create custom error page URLs (404, 500, 403)
+- Set up redirect patterns for legacy URLs
+- Add maintenance mode URL handling
+- Create user-friendly error recovery URLs
+- Implement proper HTTP status codes throughout
+
+### 9. Add Internationalization Support
+- Prepare URL structure for future multi-language support
+- Create language-prefix URL patterns
+- Add locale-specific redirects
+- Build currency and region-specific URL handling
+- Set up cultural customization URL patterns
+
+### 10. Optimize for Search Engines
+- Implement canonical URL patterns to avoid duplicate content
+- Add sitemap.xml generation URLs
+- Create robots.txt serving URLs
+- Set up structured data URLs for rich snippets
+- Add Open Graph and meta tag optimization URLs
+
+## Deliverables
+
+- [ ] Complete main URL configuration replacing test setup
+- [ ] Comprehensive marketplace app URL patterns
+- [ ] Well-organized API URL structure with versioning
+- [ ] SEO-friendly URL patterns for all content types
+- [ ] Mobile-optimized URL handling
+- [ ] Admin and management URL organization
+- [ ] Security-focused URL access control
+- [ ] Custom error handling and recovery URLs
+- [ ] Internationalization-ready URL structure
+- [ ] Search engine optimized URL patterns
+
+## Acceptance Criteria
+
+- [ ] All URLs follow SEO-friendly patterns with meaningful slugs
+- [ ] Proper namespacing implemented preventing URL conflicts
+- [ ] API endpoints organized logically with clear versioning
 - [ ] Error handling provides helpful user experience
-- [ ] URL patterns support internationalization
-- [ ] No broken or conflicting URL patterns
-
----
+- [ ] URL patterns support future internationalization needs
+- [ ] No broken or conflicting URL patterns in the system
+- [ ] Mobile URLs work correctly across all devices
+- [ ] Security measures properly implemented for sensitive URLs
+- [ ] Admin URLs are properly protected and organized
+- [ ] All URL patterns follow Django best practices and conventions
+- [ ] URL structure supports breadcrumb navigation throughout site
+- [ ] Redirects properly handle legacy and changed URLs

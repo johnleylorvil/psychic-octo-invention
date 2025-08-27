@@ -11,37 +11,43 @@ from .review import Review
 from .content import Banner, MediaContentSection, Page
 from .newsletter import NewsletterSubscriber
 from .settings import SiteSetting
+from .vendor import VendorProfile
+from .promotion import Promotion
 
 __all__ = [
     # User Management
     'User',
-    
+    'VendorProfile',
+
     # Product Catalog
     'Category',
-    'Product', 
+    'Product',
     'ProductImage',
-    
+
     # E-commerce
     'Cart',
     'CartItem',
     'Order',
     'OrderItem',
     'OrderStatusHistory',
-    
+
     # Payment
     'Transaction',
-    
+
     # Social Features
     'Review',
-    
+
     # Content Management
     'Banner',
     'MediaContentSection',
     'Page',
-    
+
     # Newsletter
     'NewsletterSubscriber',
-    
+
     # Site Configuration
     'SiteSetting',
+
+    # Promotions
+    'Promotion',
 ]

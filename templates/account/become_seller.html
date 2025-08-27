@@ -1,0 +1,358 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Devenir Vendeur - Afèpanou{% endblock %}
+
+{% block content %}
+<div class="become-seller-page">
+    <!-- Hero Section -->
+    <section class="seller-hero py-5" style="background: var(--gradient-hero); color: white;">
+        <div class="container text-center">
+            <h1 class="display-4 fw-bold mb-3">Vendez sur Afèpanou</h1>
+            <p class="lead mb-4">Rejoignez des centaines de vendeurs qui font confiance à notre plateforme pour développer leur activité</p>
+            <div class="hero-stats row text-center">
+                <div class="col-md-4">
+                    <div class="stat-item">
+                        <div class="stat-number h3 mb-1">150+</div>
+                        <div class="stat-label">Vendeurs actifs</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-item">
+                        <div class="stat-number h3 mb-1">5000+</div>
+                        <div class="stat-label">Commandes traitées</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-item">
+                        <div class="stat-number h3 mb-1">98%</div>
+                        <div class="stat-label">Taux de satisfaction</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="container">
+        <div class="row">
+            <!-- Application Form -->
+            <div class="col-lg-8">
+                <div class="seller-application-form mt-5">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title mb-0">Demande de compte vendeur</h3>
+                            <p class="text-muted mb-0">Remplissez ce formulaire pour devenir vendeur sur Afèpanou</p>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" enctype="multipart/form-data" class="seller-form">
+                                {% csrf_token %}
+
+                                <!-- Personal Information -->
+                                <div class="form-section mb-5">
+                                    <h5 class="section-title mb-3">
+                                        <i class="fas fa-user me-2 text-primary"></i>
+                                        Informations personnelles
+                                    </h5>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="first_name" class="form-label">Prénom <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name }}" required>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="last_name" class="form-label">Nom <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name }}" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                                            <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" readonly>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="phone" class="form-label">Téléphone <span class="text-danger">*</span></label>
+                                            <input type="tel" class="form-control" id="phone" name="phone" value="{{ user.phone }}" placeholder="+509 XX XX XX XX" required>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Business Information -->
+                                <div class="form-section mb-5">
+                                    <h5 class="section-title mb-3">
+                                        <i class="fas fa-store me-2 text-primary"></i>
+                                        Informations sur votre entreprise
+                                    </h5>
+
+                                    <div class="mb-3">
+                                        <label for="business_name" class="form-label">Nom de l'entreprise <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="business_name" name="business_name" required>
+                                        <div class="form-text">Le nom qui apparaîtra sur votre boutique</div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="business_type" class="form-label">Type d'entreprise</label>
+                                            <select class="form-select" id="business_type" name="business_type">
+                                                <option value="">Sélectionnez le type</option>
+                                                <option value="individual">Entrepreneur individuel</option>
+                                                <option value="company">Société/Entreprise</option>
+                                                <option value="cooperative">Coopérative</option>
+                                                <option value="other">Autre</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="business_registration" class="form-label">Numéro d'enregistrement</label>
+                                            <input type="text" class="form-control" id="business_registration" name="business_registration">
+                                            <div class="form-text">Si applicable</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="business_description" class="form-label">Description de votre activité <span class="text-danger">*</span></label>
+                                        <textarea class="form-control" id="business_description" name="business_description" rows="4" required placeholder="Décrivez votre activité, les produits que vous vendez, votre expérience..."></textarea>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="business_address" class="form-label">Adresse de l'entreprise <span class="text-danger">*</span></label>
+                                        <textarea class="form-control" id="business_address" name="business_address" rows="3" required placeholder="Adresse complète de votre entreprise"></textarea>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="business_city" class="form-label">Ville <span class="text-danger">*</span></label>
+                                            <select class="form-select" id="business_city" name="business_city" required>
+                                                <option value="">Sélectionnez votre ville</option>
+                                                <option value="Port-au-Prince">Port-au-Prince</option>
+                                                <option value="Cap-Haïtien">Cap-Haïtien</option>
+                                                <option value="Gonaïves">Gonaïves</option>
+                                                <option value="Les Cayes">Les Cayes</option>
+                                                <option value="Pétion-Ville">Pétion-Ville</option>
+                                                <option value="Delmas">Delmas</option>
+                                                <option value="Carrefour">Carrefour</option>
+                                                <option value="Jacmel">Jacmel</option>
+                                                <option value="Autre">Autre</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="business_phone" class="form-label">Téléphone de l'entreprise</label>
+                                            <input type="tel" class="form-control" id="business_phone" name="business_phone" placeholder="+509 XX XX XX XX">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Product Categories -->
+                                <div class="form-section mb-5">
+                                    <h5 class="section-title mb-3">
+                                        <i class="fas fa-tags me-2 text-primary"></i>
+                                        Catégories de produits
+                                    </h5>
+
+                                    <p class="text-muted mb-3">Sélectionnez les catégories de produits que vous souhaitez vendre :</p>
+
+                                    <div class="row">
+                                        <div class="col-md-4 mb-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="cat_food" name="categories" value="food">
+                                                <label class="form-check-label" for="cat_food">Alimentation</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="cat_fashion" name="categories" value="fashion">
+                                                <label class="form-check-label" for="cat_fashion">Mode & Vêtements</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="cat_electronics" name="categories" value="electronics">
+                                                <label class="form-check-label" for="cat_electronics">Électronique</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="cat_crafts" name="categories" value="crafts">
+                                                <label class="form-check-label" for="cat_crafts">Artisanat</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="cat_beauty" name="categories" value="beauty">
+                                                <label class="form-check-label" for="cat_beauty">Beauté & Santé</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="cat_services" name="categories" value="services">
+                                                <label class="form-check-label" for="cat_services">Services</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Documents Upload -->
+                                <div class="form-section mb-5">
+                                    <h5 class="section-title mb-3">
+                                        <i class="fas fa-file-upload me-2 text-primary"></i>
+                                        Documents (optionnels)
+                                    </h5>
+
+                                    <div class="mb-3">
+                                        <label for="id_document" class="form-label">Pièce d'identité</label>
+                                        <input type="file" class="form-control" id="id_document" name="id_document" accept="image/*,.pdf">
+                                        <div class="form-text">Carte d'identité, passeport, ou permis de conduire</div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="business_license" class="form-label">Licence d'entreprise</label>
+                                        <input type="file" class="form-control" id="business_license" name="business_license" accept="image/*,.pdf">
+                                        <div class="form-text">Si vous avez une licence commerciale</div>
+                                    </div>
+                                </div>
+
+                                <!-- Terms and Conditions -->
+                                <div class="form-section mb-4">
+                                    <div class="form-check mb-3">
+                                        <input type="checkbox" class="form-check-input" id="agree_seller_terms" name="agree_seller_terms" required>
+                                        <label class="form-check-label" for="agree_seller_terms">
+                                            J'accepte les 
+                                            <a href="{% url 'pages:seller_terms' %}" target="_blank" class="text-primary">
+                                                Conditions pour les vendeurs
+                                            </a>
+                                            et je comprends les frais de commission <span class="text-danger">*</span>
+                                        </label>
+                                    </div>
+
+                                    <div class="form-check mb-3">
+                                        <input type="checkbox" class="form-check-input" id="data_processing" name="data_processing" required>
+                                        <label class="form-check-label" for="data_processing">
+                                            J'autorise le traitement de mes données personnelles et commerciales pour l'examen de ma demande <span class="text-danger">*</span>
+                                        </label>
+                                    </div>
+
+                                    <div class="form-check mb-3">
+                                        <input type="checkbox" class="form-check-input" id="marketing_emails" name="marketing_emails">
+                                        <label class="form-check-label" for="marketing_emails">
+                                            Je souhaite recevoir des conseils et des nouvelles pour les vendeurs par email
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Submit Button -->
+                                <div class="text-center">
+                                    <button type="submit" class="btn btn-primary btn-lg px-5">
+                                        <i class="fas fa-paper-plane me-2"></i>
+                                        Soumettre ma demande
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <div class="seller-info-sidebar mt-5">
+                    <!-- Benefits -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Pourquoi vendre sur Afèpanou ?</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="benefit-item d-flex mb-3">
+                                <div class="benefit-icon me-3">
+                                    <i class="fas fa-users text-primary fa-lg"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Large audience</h6>
+                                    <small class="text-muted">Accédez à des milliers de clients potentiels</small>
+                                </div>
+                            </div>
+
+                            <div class="benefit-item d-flex mb-3">
+                                <div class="benefit-icon me-3">
+                                    <i class="fas fa-credit-card text-primary fa-lg"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Paiements sécurisés</h6>
+                                    <small class="text-muted">MonCash intégré pour des transactions sûres</small>
+                                </div>
+                            </div>
+
+                            <div class="benefit-item d-flex mb-3">
+                                <div class="benefit-icon me-3">
+                                    <i class="fas fa-chart-line text-primary fa-lg"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Outils d'analyse</h6>
+                                    <small class="text-muted">Suivez vos ventes et optimisez votre activité</small>
+                                </div>
+                            </div>
+
+                            <div class="benefit-item d-flex">
+                                <div class="benefit-icon me-3">
+                                    <i class="fas fa-headset text-primary fa-lg"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Support dédié</h6>
+                                    <small class="text-muted">Une équipe à votre écoute pour vous accompagner</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pricing -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Tarification transparente</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="pricing-info">
+                                <div class="price-item d-flex justify-content-between mb-2">
+                                    <span>Inscription :</span>
+                                    <strong class="text-success">Gratuite</strong>
+                                </div>
+                                <div class="price-item d-flex justify-content-between mb-2">
+                                    <span>Frais mensuels :</span>
+                                    <strong class="text-success">0 HTG</strong>
+                                </div>
+                                <div class="price-item d-flex justify-content-between mb-2">
+                                    <span>Commission :</span>
+                                    <strong>5% par vente</strong>
+                                </div>
+                                <hr>
+                                <small class="text-muted">
+                                    Vous ne payez que lorsque vous vendez. Aucun frais caché.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Besoin d'aide ?</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">
+                                Notre équipe est là pour vous accompagner dans votre demande.
+                            </p>
+                            <div class="contact-info">
+                                <div class="contact-item d-flex align-items-center mb-2">
+                                    <i class="fas fa-phone text-primary me-2"></i>
+                                    <a href="tel:+50928123456">+509 28 12 34 56</a>
+                                </div>
+                                <div class="contact-item d-flex align-items-center">
+                                    <i class="fas fa-envelope text-primary me-2"></i>
+                                    <a href="mailto:vendeurs@afepanou.com">vendeurs@afepanou.com</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

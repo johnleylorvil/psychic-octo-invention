@@ -1,147 +1,26 @@
 {% load static %}
-<div class="rating-stars" 
-     data-rating="{{ rating|default:0 }}" 
-     {% if interactive %}data-interactive="true"{% endif %}
-     {% if product_id %}data-product-id="{{ product_id }}"{% endif %}
-     role="img" 
-     aria-label="{% if rating %}{{ rating }} nan 5 zetwal yo{% else %}Okenn evalyasyon{% endif %}">
-     
-    <div class="rating-stars__display">
-        {% for star in "12345" %}
-            <span class="rating-star {% if forloop.counter <= rating|floatformat:0 %}rating-star--filled{% elif forloop.counter <= rating|add:0.5 %}rating-star--half{% else %}rating-star--empty{% endif %}"
-                  {% if interactive %}
-                      data-rating="{{ forloop.counter }}"
-                      tabindex="0" 
-                      role="button"
-                      aria-label="Valye {{ forloop.counter }} zetwal"
-                  {% endif %}>
-                <i class="fas fa-star" aria-hidden="true"></i>
-            </span>
+
+<div class="rating-stars" data-rating="{{ rating|default:0 }}" aria-label="Note: {{ rating|default:0|floatformat:1 }} sur 5 étoiles">
+    <div class="stars-container">
+        {% for i in "12345"|make_list %}
+            {% if rating >= i|add:0 %}
+                <i class="fas fa-star star-filled" aria-hidden="true"></i>
+            {% elif rating >= i|add:"-0.5"|floatformat:1 %}
+                <i class="fas fa-star-half-alt star-half" aria-hidden="true"></i>
+            {% else %}
+                <i class="far fa-star star-empty" aria-hidden="true"></i>
+            {% endif %}
         {% endfor %}
     </div>
     
-    {% if show_count and review_count %}
-        <span class="rating-stars__count" aria-label="{{ review_count }} evalyasyon">
-            ({{ review_count }})
+    {% if reviews_count %}
+        <span class="rating-info">
+            <span class="rating-value">{{ rating|floatformat:1 }}</span>
+            <span class="reviews-count">({{ reviews_count }} avis)</span>
         </span>
-    {% endif %}
-    
-    {% if show_average and rating %}
-        <span class="rating-stars__average">
-            {{ rating|floatformat:1 }}/5
+    {% else %}
+        <span class="rating-info">
+            <span class="no-reviews">Pas encore d'avis</span>
         </span>
-    {% endif %}
-    
-    {% if interactive %}
-        <!-- Hidden form for submitting rating -->
-        <form class="rating-form" id="rating-form-{{ product_id|default:'0' }}" style="display: none;">
-            {% csrf_token %}
-            <input type="hidden" name="product_id" value="{{ product_id }}">
-            <input type="hidden" name="rating" id="rating-value-{{ product_id|default:'0' }}">
-        </form>
     {% endif %}
 </div>
-
-{% if interactive %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const ratingContainer = document.querySelector('.rating-stars[data-interactive="true"]');
-    if (!ratingContainer) return;
-    
-    const stars = ratingContainer.querySelectorAll('.rating-star');
-    const productId = ratingContainer.getAttribute('data-product-id');
-    const ratingForm = document.getElementById(`rating-form-${productId || '0'}`);
-    const ratingInput = document.getElementById(`rating-value-${productId || '0'}`);
-    
-    let currentRating = 0;
-    
-    stars.forEach((star, index) => {
-        const rating = index + 1;
-        
-        // Mouse events
-        star.addEventListener('mouseenter', function() {
-            highlightStars(rating);
-        });
-        
-        star.addEventListener('mouseleave', function() {
-            highlightStars(currentRating);
-        });
-        
-        // Click event
-        star.addEventListener('click', function() {
-            currentRating = rating;
-            highlightStars(rating);
-            submitRating(rating);
-        });
-        
-        // Keyboard events
-        star.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                currentRating = rating;
-                highlightStars(rating);
-                submitRating(rating);
-            }
-        });
-    });
-    
-    function highlightStars(rating) {
-        stars.forEach((star, index) => {
-            star.classList.remove('rating-star--filled', 'rating-star--empty');
-            if (index < rating) {
-                star.classList.add('rating-star--filled');
-            } else {
-                star.classList.add('rating-star--empty');
-            }
-        });
-    }
-    
-    function submitRating(rating) {
-        if (!productId || !ratingForm || !ratingInput) return;
-        
-        ratingInput.value = rating;
-        
-        // Here you would typically submit via AJAX
-        // For now, just update the display
-        ratingContainer.setAttribute('aria-label', `${rating} nan 5 zetwal yo`);
-        
-        // Optional: Show confirmation message
-        showRatingConfirmation(rating);
-    }
-    
-    function showRatingConfirmation(rating) {
-        // Create temporary confirmation message
-        const confirmation = document.createElement('div');
-        confirmation.className = 'rating-confirmation';
-        confirmation.textContent = `Ou bay ${rating} zetwal!`;
-        confirmation.style.cssText = `
-            position: absolute;
-            background: var(--primary-orange);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            z-index: 1000;
-            animation: fadeInOut 2s ease-in-out forwards;
-        `;
-        
-        ratingContainer.style.position = 'relative';
-        ratingContainer.appendChild(confirmation);
-        
-        setTimeout(() => {
-            if (confirmation.parentNode) {
-                confirmation.parentNode.removeChild(confirmation);
-            }
-        }, 2000);
-    }
-});
-</script>
-
-<style>
-@keyframes fadeInOut {
-    0% { opacity: 0; transform: translateY(-10px); }
-    50% { opacity: 1; transform: translateY(0); }
-    100% { opacity: 0; transform: translateY(-5px); }
-}
-</style>
-{% endif %}

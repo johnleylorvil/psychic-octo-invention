@@ -1,0 +1,202 @@
+{% load static %}
+
+<div class="product-quick-view modal fade" id="productQuickView" tabindex="-1" aria-labelledby="productQuickViewLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="productQuickViewLabel">Aperçu Rapide</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <!-- Product Images -->
+                    <div class="col-md-6">
+                        <div class="product-images">
+                            <div class="main-image-container">
+                                {% if product.main_image %}
+                                    <img 
+                                        src="{{ product.main_image.url }}" 
+                                        alt="{{ product.name }}" 
+                                        class="img-fluid main-product-image"
+                                        id="quickViewMainImage"
+                                    >
+                                {% else %}
+                                    <div class="placeholder-main-image">
+                                        <i class="fas fa-image fa-4x text-muted" aria-hidden="true"></i>
+                                        <p class="mt-2 text-muted">Image non disponible</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Thumbnail Gallery -->
+                            {% if product.images.count > 1 %}
+                            <div class="thumbnail-gallery mt-3">
+                                <div class="row g-2">
+                                    {% for image in product.images.all|slice:":4" %}
+                                    <div class="col-3">
+                                        <img 
+                                            src="{{ image.image.url }}" 
+                                            alt="{{ product.name }}" 
+                                            class="img-thumbnail thumbnail-image"
+                                            data-main-image="{{ image.image.url }}"
+                                            style="cursor: pointer;"
+                                        >
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Product Details -->
+                    <div class="col-md-6">
+                        <div class="product-details">
+                            <!-- Category -->
+                            <div class="product-category mb-2">
+                                <a href="{% url 'marketplace:category' slug=product.category.slug %}" class="category-link">
+                                    {{ product.category.name }}
+                                </a>
+                            </div>
+                            
+                            <!-- Product Name -->
+                            <h4 class="product-name mb-3">{{ product.name }}</h4>
+                            
+                            <!-- Rating -->
+                            <div class="product-rating mb-3">
+                                {% include 'components/rating_stars.html' with rating=product.average_rating reviews_count=product.reviews_count %}
+                            </div>
+                            
+                            <!-- Price -->
+                            <div class="product-price mb-3">
+                                {% if product.promotional_price %}
+                                    <div class="price-container">
+                                        <span class="current-price h4 text-primary">{{ product.promotional_price|floatformat:2 }} HTG</span>
+                                        <span class="original-price text-muted text-decoration-line-through ms-2">{{ product.price|floatformat:2 }} HTG</span>
+                                        <span class="discount-badge badge bg-danger ms-2">-{{ product.discount_percentage|floatformat:0 }}%</span>
+                                    </div>
+                                {% else %}
+                                    <div class="price-container">
+                                        <span class="current-price h4 text-primary">{{ product.price|floatformat:2 }} HTG</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Short Description -->
+                            {% if product.short_description %}
+                            <div class="product-description mb-3">
+                                <p class="text-muted">{{ product.short_description }}</p>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Stock Status -->
+                            <div class="stock-status mb-3">
+                                {% if product.stock_quantity > 0 %}
+                                    {% if product.stock_quantity <= product.low_stock_threshold %}
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-exclamation-triangle me-1" aria-hidden="true"></i>
+                                            Stock limité ({{ product.stock_quantity }} restant{{ product.stock_quantity|pluralize }})
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check-circle me-1" aria-hidden="true"></i>
+                                            En stock
+                                        </span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-times-circle me-1" aria-hidden="true"></i>
+                                        Rupture de stock
+                                    </span>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Seller Info -->
+                            <div class="seller-info mb-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="seller-avatar me-2">
+                                        {% if product.user.profile_image %}
+                                            <img src="{{ product.user.profile_image.url }}" alt="Vendeur" class="rounded-circle" style="width: 32px; height: 32px;">
+                                        {% else %}
+                                            <div class="avatar-placeholder rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background-color: #f8f9fa;">
+                                                <i class="fas fa-user text-muted" aria-hidden="true"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="seller-details">
+                                        <small class="text-muted">Vendu par</small>
+                                        <div>
+                                            <a href="{% url 'marketplace:seller_profile' username=product.user.username %}" class="seller-name fw-semibold">
+                                                {{ product.user.get_full_name|default:product.user.username }}
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Quantity Selector & Actions -->
+                            {% if product.stock_quantity > 0 %}
+                            <form class="add-to-cart-form" data-product-id="{{ product.id }}">
+                                {% csrf_token %}
+                                <div class="row g-2 align-items-center mb-3">
+                                    <div class="col-auto">
+                                        <label for="quantity" class="form-label mb-0">Quantité:</label>
+                                    </div>
+                                    <div class="col-auto">
+                                        <div class="quantity-selector">
+                                            <button type="button" class="btn btn-outline-secondary btn-sm quantity-decrease" aria-label="Diminuer la quantité">
+                                                <i class="fas fa-minus" aria-hidden="true"></i>
+                                            </button>
+                                            <input 
+                                                type="number" 
+                                                class="form-control form-control-sm quantity-input text-center" 
+                                                id="quantity" 
+                                                name="quantity" 
+                                                value="1" 
+                                                min="1" 
+                                                max="{{ product.available_quantity }}"
+                                                style="width: 70px;"
+                                            >
+                                            <button type="button" class="btn btn-outline-secondary btn-sm quantity-increase" aria-label="Augmenter la quantité">
+                                                <i class="fas fa-plus" aria-hidden="true"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Action Buttons -->
+                                <div class="product-actions">
+                                    {% if user.is_authenticated %}
+                                        <button type="submit" class="btn btn-primary btn-add-to-cart me-2">
+                                            <i class="fas fa-shopping-cart me-1" aria-hidden="true"></i>
+                                            Ajouter au panier
+                                        </button>
+                                        
+                                        <button type="button" class="btn btn-outline-primary btn-wishlist" data-product-id="{{ product.id }}">
+                                            <i class="far fa-heart me-1" aria-hidden="true"></i>
+                                            Favoris
+                                        </button>
+                                    {% else %}
+                                        <a href="{% url 'account:login' %}?next={% url 'marketplace:product_detail' slug=product.slug %}" class="btn btn-primary">
+                                            <i class="fas fa-shopping-cart me-1" aria-hidden="true"></i>
+                                            Se connecter pour acheter
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </form>
+                            {% endif %}
+                            
+                            <!-- View Full Details Link -->
+                            <div class="view-details mt-4">
+                                <a href="{% url 'marketplace:product_detail' slug=product.slug %}" class="btn btn-link p-0">
+                                    <i class="fas fa-external-link-alt me-1" aria-hidden="true"></i>
+                                    Voir tous les détails
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

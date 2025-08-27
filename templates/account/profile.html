@@ -1,0 +1,280 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Mon Profil - Afèpanou{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+    <div class="container">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-lg-3 col-md-4 mb-4">
+                <div class="profile-sidebar card">
+                    <div class="card-body text-center">
+                        <!-- Profile Avatar -->
+                        <div class="profile-avatar mb-3">
+                            {% if user.profile_image %}
+                                <img src="{{ user.profile_image.url }}" alt="Profile" class="rounded-circle" width="80" height="80">
+                            {% else %}
+                                <div class="avatar-placeholder rounded-circle mx-auto d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; background-color: var(--light-gray);">
+                                    <i class="fas fa-user fa-2x text-muted"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <h5 class="profile-name">{{ user.get_full_name|default:user.username }}</h5>
+                        <p class="profile-email text-muted">{{ user.email }}</p>
+                        
+                        {% if user.vendor_profile %}
+                            <span class="badge bg-success">Vendeur Vérifié</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Navigation Menu -->
+                    <div class="profile-nav">
+                        <nav class="nav nav-pills flex-column">
+                            <a class="nav-link active" href="#profile" data-bs-toggle="pill">
+                                <i class="fas fa-user me-2"></i>
+                                Informations personnelles
+                            </a>
+                            <a class="nav-link" href="#orders" data-bs-toggle="pill">
+                                <i class="fas fa-box me-2"></i>
+                                Mes commandes
+                            </a>
+                            <a class="nav-link" href="#wishlist" data-bs-toggle="pill">
+                                <i class="fas fa-heart me-2"></i>
+                                Mes favoris
+                            </a>
+                            <a class="nav-link" href="#addresses" data-bs-toggle="pill">
+                                <i class="fas fa-map-marker-alt me-2"></i>
+                                Mes adresses
+                            </a>
+                            {% if user.vendor_profile %}
+                            <a class="nav-link" href="{% url 'seller:dashboard' %}">
+                                <i class="fas fa-chart-line me-2"></i>
+                                Tableau de bord vendeur
+                            </a>
+                            {% else %}
+                            <a class="nav-link" href="{% url 'account:become_seller' %}">
+                                <i class="fas fa-store me-2"></i>
+                                Devenir vendeur
+                            </a>
+                            {% endif %}
+                            <a class="nav-link" href="#security" data-bs-toggle="pill">
+                                <i class="fas fa-shield-alt me-2"></i>
+                                Sécurité
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-lg-9 col-md-8">
+                <div class="tab-content">
+                    <!-- Profile Tab -->
+                    <div class="tab-pane fade show active" id="profile">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Informations personnelles</h5>
+                            </div>
+                            <div class="card-body">
+                                <form method="post" enctype="multipart/form-data">
+                                    {% csrf_token %}
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="first_name" class="form-label">Prénom</label>
+                                            <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name }}">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="last_name" class="form-label">Nom</label>
+                                            <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name }}">
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="email" class="form-label">Adresse email</label>
+                                        <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}">
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="phone" class="form-label">Téléphone</label>
+                                        <input type="tel" class="form-control" id="phone" name="phone" value="{{ user.phone }}">
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="city" class="form-label">Ville</label>
+                                            <select class="form-select" id="city" name="city">
+                                                <option value="">Sélectionnez votre ville</option>
+                                                <option value="Port-au-Prince" {% if user.city == "Port-au-Prince" %}selected{% endif %}>Port-au-Prince</option>
+                                                <option value="Cap-Haïtien" {% if user.city == "Cap-Haïtien" %}selected{% endif %}>Cap-Haïtien</option>
+                                                <option value="Gonaïves" {% if user.city == "Gonaïves" %}selected{% endif %}>Gonaïves</option>
+                                                <option value="Les Cayes" {% if user.city == "Les Cayes" %}selected{% endif %}>Les Cayes</option>
+                                                <option value="Pétion-Ville" {% if user.city == "Pétion-Ville" %}selected{% endif %}>Pétion-Ville</option>
+                                                <option value="Delmas" {% if user.city == "Delmas" %}selected{% endif %}>Delmas</option>
+                                                <option value="Autre" {% if user.city == "Autre" %}selected{% endif %}>Autre</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="country" class="form-label">Pays</label>
+                                            <input type="text" class="form-control" id="country" name="country" value="{{ user.country|default:'Haïti' }}" readonly>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="profile_image" class="form-label">Photo de profil</label>
+                                        <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/*">
+                                        <div class="form-text">Format accepté: JPG, PNG. Taille max: 2MB</div>
+                                    </div>
+
+                                    <div class="mb-3 form-check">
+                                        <input type="checkbox" class="form-check-input" id="newsletter_subscription" name="newsletter_subscription" {% if user.newsletter_subscription %}checked{% endif %}>
+                                        <label class="form-check-label" for="newsletter_subscription">
+                                            Recevoir les nouvelles et offres par email
+                                        </label>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>
+                                        Sauvegarder
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Orders Tab -->
+                    <div class="tab-pane fade" id="orders">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Mes commandes</h5>
+                            </div>
+                            <div class="card-body">
+                                {% if user.orders.exists %}
+                                    {% for order in user.orders.all|slice:":5" %}
+                                    <div class="order-item border-bottom pb-3 mb-3">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-2">
+                                                <strong>{{ order.order_number }}</strong>
+                                            </div>
+                                            <div class="col-md-3">
+                                                {{ order.created_at|date:"d M Y" }}
+                                            </div>
+                                            <div class="col-md-2">
+                                                <span class="badge bg-{{ order.status_color }}">{{ order.get_status_display }}</span>
+                                            </div>
+                                            <div class="col-md-3">
+                                                {{ order.total_amount|floatformat:2 }} HTG
+                                            </div>
+                                            <div class="col-md-2">
+                                                <a href="{% url 'account:order_detail' id=order.id %}" class="btn btn-sm btn-outline-primary">
+                                                    Détails
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                    
+                                    {% if user.orders.count > 5 %}
+                                    <div class="text-center">
+                                        <a href="{% url 'account:order_history' %}" class="btn btn-outline-primary">
+                                            Voir toutes mes commandes
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                {% else %}
+                                    <div class="text-center py-5">
+                                        <i class="fas fa-box fa-3x text-muted mb-3"></i>
+                                        <h5>Aucune commande pour le moment</h5>
+                                        <p class="text-muted">Découvrez nos produits et passez votre première commande</p>
+                                        <a href="{% url 'marketplace:home' %}" class="btn btn-primary">
+                                            Faire mes achats
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Wishlist Tab -->
+                    <div class="tab-pane fade" id="wishlist">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Mes favoris</h5>
+                            </div>
+                            <div class="card-body">
+                                {% if user.wishlist_items.exists %}
+                                    <div class="row">
+                                        {% for item in user.wishlist_items.all %}
+                                        <div class="col-md-6 col-lg-4 mb-4">
+                                            {% include 'components/product_card.html' with product=item.product %}
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="text-center py-5">
+                                        <i class="fas fa-heart fa-3x text-muted mb-3"></i>
+                                        <h5>Aucun favori pour le moment</h5>
+                                        <p class="text-muted">Ajoutez des produits à vos favoris pour les retrouver facilement</p>
+                                        <a href="{% url 'marketplace:home' %}" class="btn btn-primary">
+                                            Découvrir des produits
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Tab -->
+                    <div class="tab-pane fade" id="security">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Sécurité</h5>
+                            </div>
+                            <div class="card-body">
+                                <form method="post" action="{% url 'account:change_password' %}">
+                                    {% csrf_token %}
+                                    
+                                    <div class="mb-3">
+                                        <label for="old_password" class="form-label">Mot de passe actuel</label>
+                                        <input type="password" class="form-control" id="old_password" name="old_password" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="new_password1" class="form-label">Nouveau mot de passe</label>
+                                        <input type="password" class="form-control" id="new_password1" name="new_password1" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="new_password2" class="form-label">Confirmer le nouveau mot de passe</label>
+                                        <input type="password" class="form-control" id="new_password2" name="new_password2" required>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-lock me-2"></i>
+                                        Changer le mot de passe
+                                    </button>
+                                </form>
+
+                                <hr class="my-4">
+
+                                <div class="account-actions">
+                                    <h6>Actions du compte</h6>
+                                    <div class="d-flex gap-2">
+                                        <a href="{% url 'account:logout' %}" class="btn btn-outline-secondary">
+                                            <i class="fas fa-sign-out-alt me-2"></i>
+                                            Se déconnecter
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

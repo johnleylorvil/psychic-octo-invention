@@ -1,312 +1,218 @@
 # marketplace/services/product_service.py
 """
-Product service for business logic related to products and categories
+Product-related business logic service
 """
 
-from django.db.models import Q, Avg, Count, F
-from django.core.cache import cache
-from django.utils import timezone
-from typing import List, Optional, Dict, Any
-import logging
+from typing import List, Dict, Any, Optional
+from django.db import transaction
+from django.core.exceptions import ValidationError
+from django.contrib.auth import get_user_model
+from marketplace.models import Product, Category, ProductImage
+from marketplace.utils.slug import generate_unique_slug
 
-logger = logging.getLogger(__name__)
+User = get_user_model()
 
 
 class ProductService:
-    """Service for product-related business logic"""
+    """Service for product-related business operations"""
     
     @staticmethod
-    def get_featured_products(limit: int = 8, category=None) -> List:
-        """Get featured products for homepage or category"""
-        from ..models import Product
-        
-        cache_key = f"featured_products_{category.slug if category else 'all'}_{limit}"
-        cached_products = cache.get(cache_key)
-        
-        if cached_products is None:
-            queryset = Product.objects.featured().select_related('category', 'seller')
+    def create_product(seller: User, product_data: Dict[str, Any], images: List = None) -> Product:
+        """Create a new product with images"""
+        with transaction.atomic():
+            # Generate slug if not provided
+            if 'slug' not in product_data or not product_data['slug']:
+                product_data['slug'] = generate_unique_slug(
+                    Product, 
+                    product_data['name']
+                )
             
-            if category:
-                queryset = queryset.filter(category=category)
+            # Set seller
+            product_data['seller'] = seller
             
-            cached_products = list(queryset[:limit])
-            # Cache for 30 minutes
-            cache.set(cache_key, cached_products, 1800)
-        
-        return cached_products
+            # Validate price
+            if 'promotional_price' in product_data and product_data['promotional_price']:
+                if product_data['promotional_price'] >= product_data['price']:
+                    raise ValidationError("Promotional price must be less than regular price")
+            
+            # Create product
+            product = Product.objects.create(**product_data)
+            
+            # Add images if provided
+            if images:
+                ProductService.add_product_images(product, images)
+            
+            return product
     
     @staticmethod
-    def search_products(query: str, category=None, filters: Dict[str, Any] = None) -> Dict:
-        """Advanced product search with filters"""
-        from ..models import Product
-        
-        if not query and not filters:
-            return {
-                'products': Product.objects.none(),
-                'total_count': 0,
-                'facets': {}
-            }
-        
-        # Start with available products
-        queryset = Product.objects.available().select_related('category', 'seller')
-        
-        # Apply text search
-        if query:
-            queryset = queryset.filter(
-                Q(name__icontains=query) |
-                Q(description__icontains=query) |
-                Q(short_description__icontains=query) |
-                Q(tags__icontains=query) |
-                Q(brand__icontains=query) |
-                Q(category__name__icontains=query)
-            ).distinct()
-        
-        # Apply category filter
-        if category:
-            queryset = queryset.filter(category=category)
-        
-        # Apply additional filters
-        if filters:
-            queryset = ProductService._apply_filters(queryset, filters)
-        
-        # Get facets for filtering UI
-        facets = ProductService._get_search_facets(queryset)
-        
-        return {
-            'products': queryset,
-            'total_count': queryset.count(),
-            'facets': facets
-        }
+    def update_product(product: Product, product_data: Dict[str, Any]) -> Product:
+        """Update existing product"""
+        with transaction.atomic():
+            # Validate promotional price
+            if 'promotional_price' in product_data and product_data['promotional_price']:
+                price = product_data.get('price', product.price)
+                if product_data['promotional_price'] >= price:
+                    raise ValidationError("Promotional price must be less than regular price")
+            
+            # Update fields
+            for field, value in product_data.items():
+                if hasattr(product, field):
+                    setattr(product, field, value)
+            
+            product.full_clean()
+            product.save()
+            
+            return product
     
     @staticmethod
-    def get_related_products(product, limit: int = 4) -> List:
-        """Get products related to given product"""
-        from ..models import Product
+    def add_product_images(product: Product, images: List) -> List[ProductImage]:
+        """Add multiple images to a product"""
+        image_objects = []
         
-        cache_key = f"related_products_{product.id}_{limit}"
-        cached_products = cache.get(cache_key)
-        
-        if cached_products is None:
-            # Get products from same category, excluding current product
-            related_products = Product.objects.available().filter(
-                category=product.category
-            ).exclude(
-                id=product.id
-            ).select_related('category', 'seller')[:limit]
-            
-            cached_products = list(related_products)
-            # Cache for 1 hour
-            cache.set(cache_key, cached_products, 3600)
-        
-        return cached_products
-    
-    @staticmethod
-    def get_trending_products(limit: int = 10, days: int = 7) -> List:
-        """Get trending products based on recent orders"""
-        from ..models import Product, OrderItem
-        
-        cache_key = f"trending_products_{limit}_{days}"
-        cached_products = cache.get(cache_key)
-        
-        if cached_products is None:
-            # Calculate trending products based on recent order volume
-            cutoff_date = timezone.now() - timezone.timedelta(days=days)
-            
-            trending_ids = OrderItem.objects.filter(
-                order__created_at__gte=cutoff_date,
-                order__status__in=['confirmed', 'processing', 'shipped', 'delivered']
-            ).values('product_id').annotate(
-                order_count=Count('id')
-            ).order_by('-order_count').values_list('product_id', flat=True)[:limit]
-            
-            # Get products in the same order as trending_ids
-            products = Product.objects.filter(
-                id__in=trending_ids,
-                is_active=True
-            ).select_related('category', 'seller')
-            
-            # Preserve order
-            product_dict = {p.id: p for p in products}
-            cached_products = [product_dict[pid] for pid in trending_ids if pid in product_dict]
-            
-            # Cache for 2 hours
-            cache.set(cache_key, cached_products, 7200)
-        
-        return cached_products
-    
-    @staticmethod
-    def get_product_recommendations(user, limit: int = 8) -> List:
-        """Get personalized product recommendations for user"""
-        from ..models import Product, Order
-        
-        if not user or not user.is_authenticated:
-            # Return featured products for anonymous users
-            return ProductService.get_featured_products(limit)
-        
-        cache_key = f"product_recommendations_{user.id}_{limit}"
-        cached_products = cache.get(cache_key)
-        
-        if cached_products is None:
-            # Get user's purchase history
-            user_categories = Order.objects.filter(
-                user=user,
-                status__in=['delivered', 'shipped']
-            ).values_list('items__product__category', flat=True).distinct()
-            
-            if user_categories:
-                # Recommend products from categories user has purchased from
-                recommended_products = Product.objects.available().filter(
-                    category__in=user_categories
-                ).exclude(
-                    # Exclude products user already bought
-                    id__in=Order.objects.filter(user=user).values_list('items__product_id', flat=True)
-                ).select_related('category', 'seller').order_by('-created_at')[:limit]
-                
-                cached_products = list(recommended_products)
+        for i, image_data in enumerate(images):
+            if isinstance(image_data, dict):
+                image_data['product'] = product
+                image_data['display_order'] = i + 1
+                image_obj = ProductImage.objects.create(**image_data)
             else:
-                # New user - return featured products
-                cached_products = ProductService.get_featured_products(limit)
+                # Assume it's an image file
+                image_obj = ProductImage.objects.create(
+                    product=product,
+                    image=image_data,
+                    display_order=i + 1
+                )
             
-            # Cache for 1 hour
-            cache.set(cache_key, cached_products, 3600)
+            image_objects.append(image_obj)
         
-        return cached_products
+        return image_objects
     
     @staticmethod
-    def update_product_stock(product, quantity_change: int) -> bool:
-        """Update product stock with validation"""
-        try:
-            if product.stock_quantity is None:
-                product.stock_quantity = 0
-            
-            new_quantity = product.stock_quantity + quantity_change
-            
-            if new_quantity < 0:
-                logger.warning(f"Attempted to set negative stock for product {product.id}")
-                return False
-            
-            product.stock_quantity = new_quantity
-            product.save(update_fields=['stock_quantity', 'updated_at'])
-            
-            # Clear related caches
-            cache.delete_many([
-                f"product_detail_{product.id}",
-                f"featured_products_{product.category.slug}",
-                f"category_products_{product.category.slug}",
-            ])
-            
-            return True
-        except Exception as e:
-            logger.error(f"Error updating stock for product {product.id}: {e}")
+    def update_stock(product: Product, quantity: int, operation: str = 'set') -> Product:
+        """Update product stock quantity"""
+        if operation == 'set':
+            product.stock_quantity = quantity
+        elif operation == 'increase':
+            product.stock_quantity += quantity
+        elif operation == 'decrease':
+            if product.stock_quantity < quantity:
+                raise ValidationError("Insufficient stock")
+            product.stock_quantity -= quantity
+        else:
+            raise ValueError("Invalid operation. Use 'set', 'increase', or 'decrease'")
+        
+        product.save(update_fields=['stock_quantity'])
+        return product
+    
+    @staticmethod
+    def check_availability(product: Product, quantity: int = 1) -> bool:
+        """Check if product is available in requested quantity"""
+        if not product.is_active:
             return False
+        
+        if product.is_digital:
+            return True
+        
+        return product.stock_quantity >= quantity
     
     @staticmethod
-    def calculate_product_rating(product) -> Dict[str, Any]:
-        """Calculate comprehensive product rating statistics"""
-        from ..models import Review
+    def get_effective_price(product: Product) -> float:
+        """Get the effective selling price (promotional or regular)"""
+        if product.promotional_price and product.promotional_price < product.price:
+            return product.promotional_price
+        return product.price
+    
+    @staticmethod
+    def calculate_discount_percentage(product: Product) -> Optional[float]:
+        """Calculate discount percentage if promotional price exists"""
+        if not product.promotional_price or product.promotional_price >= product.price:
+            return None
         
-        cache_key = f"product_rating_{product.id}"
-        cached_rating = cache.get(cache_key)
+        discount = product.price - product.promotional_price
+        return round((discount / product.price) * 100, 2)
+    
+    @staticmethod
+    def get_related_products(product: Product, limit: int = 4) -> List[Product]:
+        """Get related products based on category and tags"""
+        related = Product.objects.available().filter(
+            category=product.category
+        ).exclude(id=product.id)
         
-        if cached_rating is None:
-            reviews = Review.objects.approved().filter(product=product)
+        # If the product has tags, prioritize products with similar tags
+        if product.tags:
+            tag_list = [tag.strip() for tag in product.tags.split(',')]
+            for tag in tag_list:
+                related = related.filter(tags__icontains=tag)
+        
+        return list(related[:limit])
+    
+    @staticmethod
+    def search_products(query: str, filters: Dict[str, Any] = None) -> List[Product]:
+        """Advanced product search with filters"""
+        products = Product.objects.search(query)
+        
+        if filters:
+            # Category filter
+            if 'category' in filters and filters['category']:
+                products = products.filter(category=filters['category'])
             
-            if reviews.exists():
-                rating_stats = reviews.aggregate(
-                    average=Avg('rating'),
-                    total_count=Count('id')
+            # Price range filter
+            if 'min_price' in filters or 'max_price' in filters:
+                products = products.price_range(
+                    min_price=filters.get('min_price'),
+                    max_price=filters.get('max_price')
                 )
-                
-                # Get rating distribution
-                rating_distribution = {}
-                for i in range(1, 6):
-                    rating_distribution[i] = reviews.filter(rating=i).count()
-                
-                cached_rating = {
-                    'average': round(rating_stats['average'], 1) if rating_stats['average'] else 0,
-                    'total_count': rating_stats['total_count'],
-                    'distribution': rating_distribution,
-                    'percentage_positive': round(
-                        (reviews.filter(rating__gte=4).count() / rating_stats['total_count']) * 100, 1
-                    ) if rating_stats['total_count'] > 0 else 0
-                }
-            else:
-                cached_rating = {
-                    'average': 0,
-                    'total_count': 0,
-                    'distribution': {i: 0 for i in range(1, 6)},
-                    'percentage_positive': 0
-                }
             
-            # Cache for 30 minutes
-            cache.set(cache_key, cached_rating, 1800)
+            # Brand filter
+            if 'brand' in filters and filters['brand']:
+                products = products.filter(brand__icontains=filters['brand'])
+            
+            # Seller filter
+            if 'seller' in filters and filters['seller']:
+                products = products.filter(seller=filters['seller'])
+            
+            # Rating filter
+            if 'min_rating' in filters and filters['min_rating']:
+                products = products.filter(
+                    average_rating__gte=filters['min_rating']
+                )
         
-        return cached_rating
+        return products
     
     @staticmethod
-    def _apply_filters(queryset, filters: Dict[str, Any]):
-        """Apply search filters to queryset"""
-        if 'price_min' in filters and filters['price_min']:
-            queryset = queryset.filter(
-                Q(promotional_price__gte=filters['price_min']) |
-                (Q(promotional_price__isnull=True) & Q(price__gte=filters['price_min']))
-            )
-        
-        if 'price_max' in filters and filters['price_max']:
-            queryset = queryset.filter(
-                Q(promotional_price__lte=filters['price_max']) |
-                (Q(promotional_price__isnull=True) & Q(price__lte=filters['price_max']))
-            )
-        
-        if 'brand' in filters and filters['brand']:
-            queryset = queryset.filter(brand__in=filters['brand'])
-        
-        if 'condition' in filters and filters['condition']:
-            queryset = queryset.filter(condition_type__in=filters['condition'])
-        
-        if 'in_stock' in filters and filters['in_stock']:
-            queryset = queryset.filter(stock_quantity__gt=0)
-        
-        if 'on_sale' in filters and filters['on_sale']:
-            queryset = queryset.filter(promotional_price__isnull=False)
-        
-        return queryset
+    def bulk_update_status(product_ids: List[int], is_active: bool) -> int:
+        """Bulk update product active status"""
+        return Product.objects.filter(
+            id__in=product_ids
+        ).update(is_active=is_active)
     
     @staticmethod
-    def _get_search_facets(queryset) -> Dict[str, Any]:
-        """Get search facets for filtering UI"""
-        # Get price range
-        price_stats = queryset.aggregate(
-            min_price=models.Min(
-                Case(
-                    When(promotional_price__isnull=False, then=F('promotional_price')),
-                    default=F('price')
-                )
-            ),
-            max_price=models.Max(
-                Case(
-                    When(promotional_price__isnull=False, then=F('promotional_price')),
-                    default=F('price')
-                )
-            )
-        )
+    def get_low_stock_products(seller: User = None, threshold: int = None) -> List[Product]:
+        """Get products with low stock"""
+        queryset = Product.objects.low_stock()
         
-        # Get available brands
-        brands = queryset.exclude(
-            brand__isnull=True
-        ).exclude(
-            brand__exact=''
-        ).values_list('brand', flat=True).distinct()
+        if seller:
+            queryset = queryset.filter(seller=seller)
         
-        # Get categories
-        categories = queryset.values('category__id', 'category__name').distinct()
+        if threshold:
+            queryset = queryset.filter(stock_quantity__lte=threshold)
         
-        return {
-            'price_range': {
-                'min': float(price_stats['min_price'] or 0),
-                'max': float(price_stats['max_price'] or 0)
-            },
-            'brands': list(brands),
-            'categories': list(categories),
-            'total_count': queryset.count()
+        return list(queryset)
+    
+    @staticmethod
+    def get_seller_analytics(seller: User) -> Dict[str, Any]:
+        """Get analytics data for seller's products"""
+        products = Product.objects.by_seller(seller)
+        
+        analytics = {
+            'total_products': products.count(),
+            'active_products': products.filter(is_active=True).count(),
+            'featured_products': products.filter(is_featured=True).count(),
+            'out_of_stock': products.filter(stock_quantity=0, is_digital=False).count(),
+            'low_stock': products.filter(
+                stock_quantity__lte=5,
+                stock_quantity__gt=0,
+                is_digital=False
+            ).count(),
         }
+        
+        return analytics

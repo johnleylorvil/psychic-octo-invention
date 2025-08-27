@@ -1,0 +1,181 @@
+{% load static %}
+
+<div class="mobile-menu">
+    <!-- User Section -->
+    <div class="mobile-user-section mb-4">
+        {% if user.is_authenticated %}
+            <div class="user-info">
+                <div class="user-avatar">
+                    {% if user.profile_image %}
+                        <img src="{{ user.profile_image.url }}" alt="Profile" class="avatar-img">
+                    {% else %}
+                        <div class="avatar-placeholder">
+                            <i class="fas fa-user" aria-hidden="true"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="user-details">
+                    <h6 class="user-name">{{ user.get_full_name|default:user.username }}</h6>
+                    <small class="user-email text-muted">{{ user.email }}</small>
+                </div>
+            </div>
+        {% else %}
+            <div class="auth-section">
+                <a href="{% url 'account:login' %}" class="btn btn-primary btn-sm mb-2">Se Connecter</a>
+                <a href="{% url 'account:register' %}" class="btn btn-outline-primary btn-sm">S'inscrire</a>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Main Navigation -->
+    <nav class="mobile-nav" role="navigation" aria-label="Navigation mobile principale">
+        <ul class="nav-list">
+            <li class="nav-item">
+                <a href="{% url 'marketplace:home' %}" class="nav-link">
+                    <i class="fas fa-home" aria-hidden="true"></i>
+                    <span>Accueil</span>
+                </a>
+            </li>
+            
+            <!-- Categories -->
+            <li class="nav-item has-submenu">
+                <a href="#" class="nav-link submenu-toggle">
+                    <i class="fas fa-th-large" aria-hidden="true"></i>
+                    <span>Catégories</span>
+                    <i class="fas fa-chevron-down submenu-arrow" aria-hidden="true"></i>
+                </a>
+                <ul class="submenu">
+                    {% for category in main_categories %}
+                    <li>
+                        <a href="{% url 'marketplace:category' slug=category.slug %}" class="submenu-link">
+                            {% if category.icon %}
+                                <i class="{{ category.icon }}" aria-hidden="true"></i>
+                            {% else %}
+                                <i class="fas fa-tag" aria-hidden="true"></i>
+                            {% endif %}
+                            {{ category.name }}
+                            <small class="item-count">({{ category.product_count }})</small>
+                        </a>
+                        
+                        <!-- Subcategories -->
+                        {% if category.children.exists %}
+                        <ul class="sub-submenu">
+                            {% for subcategory in category.children.all|slice:":5" %}
+                            <li>
+                                <a href="{% url 'marketplace:category' slug=subcategory.slug %}" class="sub-submenu-link">
+                                    {{ subcategory.name }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </li>
+            
+            <!-- Special Sections -->
+            <li class="nav-item">
+                <a href="{% url 'marketplace:featured' %}" class="nav-link">
+                    <i class="fas fa-star" aria-hidden="true"></i>
+                    <span>Populaires</span>
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a href="{% url 'marketplace:new_arrivals' %}" class="nav-link">
+                    <i class="fas fa-plus-circle" aria-hidden="true"></i>
+                    <span>Nouveautés</span>
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a href="{% url 'marketplace:deals' %}" class="nav-link">
+                    <i class="fas fa-fire" aria-hidden="true"></i>
+                    <span>Promotions</span>
+                    <span class="badge bg-danger ms-2">HOT</span>
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a href="{% url 'marketplace:sellers' %}" class="nav-link">
+                    <i class="fas fa-store" aria-hidden="true"></i>
+                    <span>Vendeurs</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    
+    <!-- User Account Links -->
+    {% if user.is_authenticated %}
+    <div class="mobile-user-menu mt-4">
+        <h6 class="menu-title">Mon Compte</h6>
+        <ul class="user-nav-list">
+            <li>
+                <a href="{% url 'account:profile' %}" class="user-nav-link">
+                    <i class="fas fa-user" aria-hidden="true"></i>
+                    Mon Profil
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'account:orders' %}" class="user-nav-link">
+                    <i class="fas fa-box" aria-hidden="true"></i>
+                    Mes Commandes
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'account:wishlist' %}" class="user-nav-link">
+                    <i class="fas fa-heart" aria-hidden="true"></i>
+                    Mes Favoris
+                </a>
+            </li>
+            
+            {% if user.is_seller %}
+            <li>
+                <a href="{% url 'seller:dashboard' %}" class="user-nav-link">
+                    <i class="fas fa-chart-line" aria-hidden="true"></i>
+                    Tableau de Bord Vendeur
+                </a>
+            </li>
+            {% else %}
+            <li>
+                <a href="{% url 'account:become_seller' %}" class="user-nav-link">
+                    <i class="fas fa-store" aria-hidden="true"></i>
+                    Devenir Vendeur
+                </a>
+            </li>
+            {% endif %}
+            
+            <li class="nav-divider"></li>
+            <li>
+                <a href="{% url 'account:logout' %}" class="user-nav-link logout-link">
+                    <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+                    Se Déconnecter
+                </a>
+            </li>
+        </ul>
+    </div>
+    {% endif %}
+    
+    <!-- Footer Links -->
+    <div class="mobile-footer-links mt-4">
+        <h6 class="menu-title">Aide & Support</h6>
+        <ul class="footer-nav-list">
+            <li><a href="{% url 'pages:help' %}" class="footer-nav-link">Centre d'Aide</a></li>
+            <li><a href="{% url 'pages:contact' %}" class="footer-nav-link">Nous Contacter</a></li>
+            <li><a href="{% url 'pages:about' %}" class="footer-nav-link">À Propos</a></li>
+        </ul>
+    </div>
+    
+    <!-- Contact Info -->
+    <div class="mobile-contact-info mt-4 pt-3 border-top">
+        <div class="contact-item">
+            <i class="fas fa-phone" aria-hidden="true"></i>
+            <a href="tel:+50928123456">+509 28 12 34 56</a>
+        </div>
+        <div class="contact-item">
+            <i class="fas fa-envelope" aria-hidden="true"></i>
+            <a href="mailto:info@afepanou.com">info@afepanou.com</a>
+        </div>
+    </div>
+</div>

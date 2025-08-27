@@ -1,213 +1,276 @@
-{% extends 'base.html' %}
+{% extends 'base/base.html' %}
 {% load static %}
 
-{% block title %}Kategori yo - Afèpanou{% endblock %}
+{% block title %}{{ category.name }} - Afèpanou{% endblock %}
 
-{% block meta_description %}Dekouvri tout kategori pwodwi yo nan Afèpanou. Jwenn pwodwi otantik Ayisyen yo nan kategori sa yo.{% endblock %}
+{% block meta_description %}{{ category.description|default:"Découvrez notre sélection de "|add:category.name|add:" sur Afèpanou, le marketplace haïtien." }}{% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/category.css' %}">
+{% block breadcrumbs %}
+<nav aria-label="Fil d'Ariane" class="breadcrumb-nav py-3">
+    <div class="container">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{% url 'marketplace:home' %}">Accueil</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'marketplace:categories' %}">Catégories</a></li>
+            {% if category.parent %}
+                <li class="breadcrumb-item"><a href="{% url 'marketplace:category' slug=category.parent.slug %}">{{ category.parent.name }}</a></li>
+            {% endif %}
+            <li class="breadcrumb-item active" aria-current="page">{{ category.name }}</li>
+        </ol>
+    </div>
+</nav>
 {% endblock %}
 
 {% block content %}
 <div class="category-page">
-    <!-- Page Header -->
-    <div class="page-header">
+    <!-- Category Header -->
+    <section class="category-header py-4 mb-4" style="background: linear-gradient(135deg, rgba(230, 126, 34, 0.1), rgba(211, 84, 0, 0.05));">
         <div class="container">
-            <div class="breadcrumb">
-                <a href="{% url 'home' %}">Akèy</a>
-                <i class="fas fa-chevron-right"></i>
-                <span>Kategori yo</span>
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <div class="category-info">
+                        {% if category.icon %}
+                            <i class="{{ category.icon }} fa-2x text-primary mb-3" aria-hidden="true"></i>
+                        {% endif %}
+                        <h1 class="category-title h2 mb-2">{{ category.name }}</h1>
+                        {% if category.description %}
+                            <p class="category-description text-muted mb-0">{{ category.description }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <div class="category-stats">
+                        <div class="stat-item">
+                            <span class="stat-number h4 text-primary mb-0">{{ products.count }}</span>
+                            <div class="stat-label small text-muted">produit{{ products.count|pluralize }}</div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            
-            <h1 class="page-title text-h1">Kategori yo</h1>
-            <p class="page-description">
-                Dekouvri pwodwi otantik Ayisyen yo nan kategori divès nou yo
-            </p>
         </div>
-    </div>
+    </section>
 
-    <!-- Category Grid -->
-    <div class="category-grid-section">
-        <div class="container">
-            {% if categories %}
-                <div class="category-grid">
-                    {% for category in categories %}
-                        <div class="category-card">
-                            <a href="{% url 'category_detail' slug=category.slug %}" class="category-card__link">
-                                <div class="category-card__image">
-                                    {% if category.image %}
-                                        <img src="{{ category.image.url }}" 
-                                             alt="{{ category.name }}"
-                                             loading="lazy">
+    <div class="container">
+        <div class="row">
+            <!-- Sidebar Filters -->
+            <div class="col-lg-3 col-md-4 mb-4">
+                <div class="filters-sidebar">
+                    <!-- Search within category -->
+                    <div class="filter-section mb-4">
+                        <h5 class="filter-title">Recherche</h5>
+                        <form method="GET" class="search-form">
+                            <div class="input-group">
+                                <input 
+                                    type="text" 
+                                    class="form-control" 
+                                    name="q" 
+                                    value="{{ request.GET.q }}"
+                                    placeholder="Rechercher dans {{ category.name }}..."
+                                >
+                                <button type="submit" class="btn btn-outline-primary">
+                                    <i class="fas fa-search" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                            <!-- Preserve other filters -->
+                            {% for key, value in current_filters.items %}
+                                {% if key != 'q' and key != 'page' %}
+                                    <input type="hidden" name="{{ key }}" value="{{ value }}">
+                                {% endif %}
+                            {% endfor %}
+                        </form>
+                    </div>
+
+                    <!-- Price Filter -->
+                    <div class="filter-section mb-4">
+                        <h5 class="filter-title">Prix (HTG)</h5>
+                        <form method="GET" class="price-filter-form">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <input 
+                                        type="number" 
+                                        class="form-control form-control-sm" 
+                                        name="min_price" 
+                                        value="{{ request.GET.min_price }}"
+                                        placeholder="Min"
+                                        min="0"
+                                    >
+                                </div>
+                                <div class="col-6">
+                                    <input 
+                                        type="number" 
+                                        class="form-control form-control-sm" 
+                                        name="max_price" 
+                                        value="{{ request.GET.max_price }}"
+                                        placeholder="Max"
+                                        min="0"
+                                    >
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-sm btn-outline-primary mt-2">
+                                Appliquer
+                            </button>
+                            <!-- Preserve other filters -->
+                            {% for key, value in current_filters.items %}
+                                {% if key != 'min_price' and key != 'max_price' and key != 'page' %}
+                                    <input type="hidden" name="{{ key }}" value="{{ value }}">
+                                {% endif %}
+                            {% endfor %}
+                        </form>
+                    </div>
+
+                    <!-- Availability Filter -->
+                    <div class="filter-section mb-4">
+                        <h5 class="filter-title">Disponibilité</h5>
+                        <div class="form-check">
+                            <input 
+                                class="form-check-input" 
+                                type="checkbox" 
+                                name="in_stock" 
+                                id="inStockFilter"
+                                {% if request.GET.in_stock %}checked{% endif %}
+                            >
+                            <label class="form-check-label" for="inStockFilter">
+                                En stock seulement
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Subcategories -->
+                    {% if category.children.exists %}
+                    <div class="filter-section mb-4">
+                        <h5 class="filter-title">Sous-catégories</h5>
+                        <div class="subcategories-list">
+                            {% for subcategory in category.children.all %}
+                            <a href="{% url 'marketplace:category' slug=subcategory.slug %}" class="subcategory-link d-block py-2">
+                                {{ subcategory.name }}
+                                <small class="text-muted">({{ subcategory.product_count }})</small>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Top Sellers in Category -->
+                    {% if sellers %}
+                    <div class="filter-section mb-4">
+                        <h5 class="filter-title">Vendeurs populaires</h5>
+                        <div class="sellers-list">
+                            {% for seller in sellers|slice:":5" %}
+                            <a href="{% url 'marketplace:seller_profile' username=seller.username %}" class="seller-link d-flex align-items-center py-2">
+                                <div class="seller-avatar me-2">
+                                    {% if seller.profile_image %}
+                                        <img src="{{ seller.profile_image.url }}" alt="{{ seller.get_full_name }}" class="rounded-circle" width="24" height="24">
                                     {% else %}
-                                        <div class="category-card__placeholder">
-                                            <i class="{{ category.icon|default:'fas fa-tag' }} category-card__icon"></i>
-                                        </div>
-                                    {% endif %}
-                                    
-                                    {% if category.products.count %}
-                                        <div class="category-card__badge">
-                                            {{ category.products.count }} pwodwi{% if category.products.count != 1 %}yo{% endif %}
+                                        <div class="avatar-placeholder rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; background-color: #f8f9fa;">
+                                            <i class="fas fa-user text-muted small" aria-hidden="true"></i>
                                         </div>
                                     {% endif %}
                                 </div>
-                                
-                                <div class="category-card__content">
-                                    <h3 class="category-card__title">{{ category.name }}</h3>
-                                    
-                                    {% if category.description %}
-                                        <p class="category-card__description">
-                                            {{ category.description|truncatechars:80 }}
-                                        </p>
-                                    {% endif %}
-                                    
-                                    {% if category.subcategories.exists %}
-                                        <div class="category-card__subcategories">
-                                            <span class="subcategories-label">Sous-kategori yo:</span>
-                                            <ul class="subcategories-list">
-                                                {% for subcategory in category.subcategories.all|slice:":3" %}
-                                                    <li>{{ subcategory.name }}</li>
-                                                {% endfor %}
-                                                {% if category.subcategories.count > 3 %}
-                                                    <li class="subcategories-more">+{{ category.subcategories.count|add:"-3" }} plis</li>
-                                                {% endif %}
-                                            </ul>
-                                        </div>
-                                    {% endif %}
-                                </div>
-                                
-                                <div class="category-card__footer">
-                                    <span class="category-card__cta">
-                                        Gade pwodwi yo
-                                        <i class="fas fa-arrow-right" aria-hidden="true"></i>
-                                    </span>
+                                <div class="seller-info">
+                                    <div class="seller-name small">{{ seller.get_full_name|default:seller.username }}</div>
+                                    <small class="text-muted">{{ seller.products_count }} produit{{ seller.products_count|pluralize }}</small>
                                 </div>
                             </a>
+                            {% endfor %}
                         </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="empty-state">
-                    <div class="empty-state__icon">
-                        <i class="fas fa-tags"></i>
                     </div>
-                    <h3 class="empty-state__title">Pa gen kategori disponib kounye a</h3>
-                    <p class="empty-state__description">
-                        Nou ap travay ak vandè yo pou nou ka gen pwodwi divès nan platfòm nan.
-                    </p>
-                    <a href="{% url 'home' %}" class="btn btn-primary">
-                        <i class="fas fa-home"></i>
-                        Retounen nan akèy la
-                    </a>
+                    {% endif %}
                 </div>
-            {% endif %}
+            </div>
+
+            <!-- Products Grid -->
+            <div class="col-lg-9 col-md-8">
+                <!-- Toolbar -->
+                <div class="products-toolbar d-flex justify-content-between align-items-center mb-4">
+                    <div class="products-count">
+                        <span class="text-muted">
+                            {% if products.count %}
+                                {{ products.count }} produit{{ products.count|pluralize }} trouvé{{ products.count|pluralize }}
+                            {% else %}
+                                Aucun produit trouvé
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <!-- Sort Options -->
+                    <div class="sort-options">
+                        <select class="form-select form-select-sm" id="sortSelect" onchange="updateSort()">
+                            <option value="popularity" {% if request.GET.sort == 'popularity' or not request.GET.sort %}selected{% endif %}>Popularité</option>
+                            <option value="newest" {% if request.GET.sort == 'newest' %}selected{% endif %}>Plus récents</option>
+                            <option value="price_asc" {% if request.GET.sort == 'price_asc' %}selected{% endif %}>Prix croissant</option>
+                            <option value="price_desc" {% if request.GET.sort == 'price_desc' %}selected{% endif %}>Prix décroissant</option>
+                            <option value="rating" {% if request.GET.sort == 'rating' %}selected{% endif %}>Mieux notés</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Products Grid -->
+                {% if products %}
+                <div class="products-grid">
+                    <div class="row g-4">
+                        {% for product in products %}
+                        <div class="col-lg-4 col-md-6 col-sm-6">
+                            {% include 'components/product_card.html' %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination-container mt-5">
+                    {% include 'components/pagination.html' %}
+                </div>
+                {% else %}
+                <!-- Empty State -->
+                <div class="empty-state text-center py-5">
+                    <div class="empty-icon mb-3">
+                        <i class="fas fa-search fa-4x text-muted" aria-hidden="true"></i>
+                    </div>
+                    <h4 class="empty-title">Aucun produit trouvé</h4>
+                    <p class="empty-text text-muted">
+                        Aucun produit ne correspond à vos critères de recherche dans cette catégorie.
+                    </p>
+                    <div class="empty-actions">
+                        <a href="{% url 'marketplace:category' slug=category.slug %}" class="btn btn-primary">
+                            Voir tous les produits
+                        </a>
+                        <a href="{% url 'marketplace:home' %}" class="btn btn-outline-primary ms-2">
+                            Retour à l'accueil
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
         </div>
     </div>
-
-    <!-- Featured Categories Section -->
-    {% if featured_categories %}
-        <div class="featured-categories-section">
-            <div class="container">
-                <h2 class="section-title text-h2">Kategori Popilè yo</h2>
-                
-                <div class="featured-categories-grid">
-                    {% for category in featured_categories %}
-                        <div class="featured-category">
-                            <a href="{% url 'category_detail' slug=category.slug %}" class="featured-category__link">
-                                <div class="featured-category__image">
-                                    {% if category.image %}
-                                        <img src="{{ category.image.url }}" 
-                                             alt="{{ category.name }}"
-                                             loading="lazy">
-                                    {% endif %}
-                                    <div class="featured-category__overlay">
-                                        <h3 class="featured-category__title">{{ category.name }}</h3>
-                                        <p class="featured-category__count">
-                                            {{ category.products.count }} pwodwi{% if category.products.count != 1 %}yo{% endif %}
-                                        </p>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    {% endif %}
-
-    <!-- Statistics Section -->
-    {% if stats %}
-        <div class="stats-section">
-            <div class="container">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-card__icon">
-                            <i class="fas fa-tags"></i>
-                        </div>
-                        <div class="stat-card__content">
-                            <h3 class="stat-card__number">{{ stats.total_categories }}</h3>
-                            <p class="stat-card__label">Total Kategori</p>
-                        </div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-card__icon">
-                            <i class="fas fa-box"></i>
-                        </div>
-                        <div class="stat-card__content">
-                            <h3 class="stat-card__number">{{ stats.total_products }}</h3>
-                            <p class="stat-card__label">Total Pwodwi</p>
-                        </div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-card__icon">
-                            <i class="fas fa-store"></i>
-                        </div>
-                        <div class="stat-card__content">
-                            <h3 class="stat-card__number">{{ stats.total_sellers }}</h3>
-                            <p class="stat-card__label">Vandè Aktif</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    {% endif %}
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+function updateSort() {
+    const sortSelect = document.getElementById('sortSelect');
+    const currentUrl = new URL(window.location);
+    currentUrl.searchParams.set('sort', sortSelect.value);
+    currentUrl.searchParams.delete('page'); // Reset to first page
+    window.location.href = currentUrl.toString();
+}
+
+// Filter form handling
 document.addEventListener('DOMContentLoaded', function() {
-    // Add smooth hover effects
-    const categoryCards = document.querySelectorAll('.category-card');
+    const inStockFilter = document.getElementById('inStockFilter');
     
-    categoryCards.forEach(card => {
-        card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-8px)';
-        });
-        
-        card.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-        });
-    });
-    
-    // Lazy load category images
-    const images = document.querySelectorAll('img[loading="lazy"]');
-    const imageObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const img = entry.target;
-                img.classList.add('animate-fadeIn');
-                observer.unobserve(img);
+    if (inStockFilter) {
+        inStockFilter.addEventListener('change', function() {
+            const currentUrl = new URL(window.location);
+            if (this.checked) {
+                currentUrl.searchParams.set('in_stock', 'on');
+            } else {
+                currentUrl.searchParams.delete('in_stock');
             }
+            currentUrl.searchParams.delete('page');
+            window.location.href = currentUrl.toString();
         });
-    });
-    
-    images.forEach(img => {
-        imageObserver.observe(img);
-    });
+    }
 });
 </script>
 {% endblock %}

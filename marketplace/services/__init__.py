@@ -8,8 +8,6 @@ from .cart_service import CartService
 from .order_service import OrderService
 from .payment_service import PaymentService
 from .email_service import EmailService
-from .analytics_service import AnalyticsService
-from .search_service import SearchService
 
 __all__ = [
     'ProductService',
@@ -17,6 +15,4 @@ __all__ = [
     'OrderService',
     'PaymentService',
     'EmailService',
-    'AnalyticsService',
-    'SearchService',
 ]

@@ -1,0 +1,120 @@
+{% load static %}
+<header id="main-header" class="site-header">
+    <!-- Top Navigation Bar -->
+    <nav class="top-nav" aria-label="Navigation secondaire">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="top-nav-left">
+                        <span class="welcome-text">Bienvenue sur Afèpanou</span>
+                        <span class="separator">|</span>
+                        <a href="tel:+50928123456" class="contact-link">
+                            <i class="fas fa-phone" aria-hidden="true"></i>
+                            +509 28 12 34 56
+                        </a>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="top-nav-right">
+                        {% if user.is_authenticated %}
+                            <div class="user-menu dropdown">
+                                <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-user" aria-hidden="true"></i>
+                                    {{ user.first_name|default:user.username }}
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'account:profile' %}">Mon Profil</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'account:orders' %}">Mes Commandes</a></li>
+                                    {% if user.is_seller %}
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="{% url 'seller:dashboard' %}">Tableau de Bord Vendeur</a></li>
+                                    {% else %}
+                                        <li><a class="dropdown-item" href="{% url 'account:become_seller' %}">Devenir Vendeur</a></li>
+                                    {% endif %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'account:logout' %}">Se Déconnecter</a></li>
+                                </ul>
+                            </div>
+                        {% else %}
+                            <div class="auth-links">
+                                <a href="{% url 'account:login' %}" class="auth-link">Se Connecter</a>
+                                <span class="separator">|</span>
+                                <a href="{% url 'account:register' %}" class="auth-link">S'inscrire</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Navigation -->
+    <nav class="main-nav" aria-label="Navigation principale">
+        <div class="container">
+            <div class="row align-items-center">
+                <!-- Logo -->
+                <div class="col-lg-3 col-md-4">
+                    <div class="site-logo">
+                        <a href="{% url 'marketplace:home' %}" aria-label="Retour à l'accueil Afèpanou">
+                            <img src="{% static 'images/afepanou-logo.png' %}" alt="Afèpanou" class="logo-img">
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="col-lg-6 col-md-5">
+                    {% include 'components/search_bar.html' %}
+                </div>
+
+                <!-- Cart & Actions -->
+                <div class="col-lg-3 col-md-3">
+                    <div class="header-actions">
+                        <!-- Wishlist -->
+                        {% if user.is_authenticated %}
+                        <a href="{% url 'account:wishlist' %}" class="action-link" aria-label="Ma liste de souhaits">
+                            <i class="fas fa-heart" aria-hidden="true"></i>
+                            <span class="action-text d-none d-lg-inline">Favoris</span>
+                        </a>
+                        {% endif %}
+
+                        <!-- Cart -->
+                        <a href="{% url 'marketplace:cart' %}" class="action-link cart-link" aria-label="Mon panier">
+                            <div class="cart-icon">
+                                <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+                                <span class="cart-count" id="cart-count">
+                                    {% if cart_items_count %}{{ cart_items_count }}{% else %}0{% endif %}
+                                </span>
+                            </div>
+                            <span class="action-text d-none d-lg-inline">Panier</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Category Navigation -->
+    <nav class="category-nav d-none d-lg-block" aria-label="Navigation par catégorie">
+        <div class="container">
+            {% include 'components/category_nav.html' %}
+        </div>
+    </nav>
+
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu" aria-controls="mobileMenu" aria-label="Ouvrir le menu">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+    </button>
+</header>
+
+<!-- Mobile Menu Offcanvas -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="mobileMenu" aria-labelledby="mobileMenuLabel">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="mobileMenuLabel">Menu</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Fermer"></button>
+    </div>
+    <div class="offcanvas-body">
+        {% include 'components/mobile_menu.html' %}
+    </div>
+</div>
