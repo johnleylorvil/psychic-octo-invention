@@ -1,82 +1,233 @@
 {% load static %}
 
-<div class="search-container">
-    <form class="search-form" method="GET" action="{% url 'marketplace:search' %}" role="search">
-        <div class="input-group">
+<!-- Advanced Search Bar Component -->
+<div class="search-container position-relative">
+    <form class="search-form" method="GET" action="{% url 'marketplace:product_search' %}" role="search" id="search-form">
+        <div class="input-group shadow-sm border-0 rounded-pill overflow-hidden">
+            <!-- Search Input -->
+            <div class="input-group-prepend d-flex align-items-center ps-3">
+                <i class="fas fa-search text-muted" aria-hidden="true"></i>
+            </div>
+            
             <input 
                 type="search" 
-                class="form-control search-input" 
-                name="q"
-                value="{{ request.GET.q|default:'' }}"
-                placeholder="Rechercher produits et services..."
+                class="form-control border-0 shadow-none search-input" 
+                name="query"
+                value="{{ request.GET.query|default:'' }}"
+                placeholder="{% if mobile %}Rechercher...{% else %}Rechercher produits haïtiens authentiques...{% endif %}"
                 aria-label="Rechercher des produits"
                 autocomplete="off"
+                data-bs-toggle="popover"
+                data-bs-placement="bottom"
+                data-bs-trigger="focus"
+                data-bs-content="Tapez au moins 2 caractères pour voir les suggestions"
+                id="search-input"
             >
-            <div class="input-group-append">
-                <!-- Category Filter -->
+            
+            <!-- Category Dropdown (Desktop only) -->
+            {% if not mobile %}
+            <div class="input-group-append border-start">
                 <select 
-                    class="form-select category-select d-none d-md-block" 
+                    class="form-select border-0 shadow-none category-select" 
                     name="category" 
-                    aria-label="Filtrer par catégorie"
+                    aria-label="Choisir une catégorie"
+                    style="max-width: 180px;"
                 >
                     <option value="">Toutes catégories</option>
-                    {% for category in categories %}
-                    <option value="{{ category.slug }}" 
-                            {% if request.GET.category == category.slug %}selected{% endif %}>
-                        {{ category.name }}
-                    </option>
-                    {% endfor %}
+                    <option value="agriculture" {% if request.GET.category == 'agriculture' %}selected{% endif %}>🌱 Agriculture</option>
+                    <option value="artisanat" {% if request.GET.category == 'artisanat' %}selected{% endif %}>🎨 Artisanat</option>
+                    <option value="mode" {% if request.GET.category == 'mode' %}selected{% endif %}>👗 Mode & Beauté</option>
+                    <option value="technologie" {% if request.GET.category == 'technologie' %}selected{% endif %}>📱 Technologie</option>
+                    <option value="services" {% if request.GET.category == 'services' %}selected{% endif %}>🔧 Services</option>
+                    <option value="alimentation" {% if request.GET.category == 'alimentation' %}selected{% endif %}>🍽️ Alimentation</option>
                 </select>
-                
-                <!-- Search Button -->
-                <button class="btn btn-primary search-btn" type="submit" aria-label="Lancer la recherche">
-                    <i class="fas fa-search" aria-hidden="true"></i>
-                    <span class="d-none d-lg-inline ms-1">Rechercher</span>
+            </div>
+            {% endif %}
+            
+            <!-- Search Button -->
+            <button 
+                class="btn btn-primary border-0 px-4 search-btn" 
+                type="submit" 
+                aria-label="Lancer la recherche"
+            >
+                <i class="fas fa-search" aria-hidden="true"></i>
+                {% if not mobile %}
+                <span class="d-none d-lg-inline ms-2">Rechercher</span>
+                {% endif %}
+            </button>
+        </div>
+        
+        <!-- Quick Filters (Desktop) -->
+        {% if not mobile %}
+        <div class="quick-filters mt-2 d-none d-lg-block">
+            <div class="d-flex flex-wrap gap-2">
+                <span class="text-muted small me-2">Recherches populaires:</span>
+                <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill quick-filter-btn" data-query="café haïtien">
+                    <i class="fas fa-coffee me-1" aria-hidden="true"></i>Café
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill quick-filter-btn" data-query="artisanat local">
+                    <i class="fas fa-palette me-1" aria-hidden="true"></i>Artisanat
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill quick-filter-btn" data-query="vêtements">
+                    <i class="fas fa-tshirt me-1" aria-hidden="true"></i>Vêtements
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill quick-filter-btn" data-query="électronique">
+                    <i class="fas fa-mobile-alt me-1" aria-hidden="true"></i>Tech
                 </button>
             </div>
         </div>
-        
-        <!-- Search Suggestions (Hidden by default, shown via JavaScript) -->
-        <div class="search-suggestions" id="searchSuggestions" style="display: none;">
-            <div class="suggestions-header">
-                <h6>Suggestions populaires</h6>
-            </div>
-            <div class="suggestions-list">
-                <!-- Populated via AJAX -->
+        {% endif %}
+    </form>
+    
+    <!-- Search Suggestions Dropdown -->
+    <div class="search-suggestions-dropdown position-absolute w-100 mt-1 d-none" id="search-suggestions" style="z-index: 1050;">
+        <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-body p-0">
+                <!-- Loading State -->
+                <div class="suggestions-loading text-center p-3 d-none" id="suggestions-loading">
+                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+                        <span class="visually-hidden">Recherche en cours...</span>
+                    </div>
+                    <span class="text-muted">Recherche en cours...</span>
+                </div>
+                
+                <!-- No Results -->
+                <div class="suggestions-empty text-center p-3 d-none" id="suggestions-empty">
+                    <i class="fas fa-search-minus text-muted mb-2 fa-2x"></i>
+                    <p class="text-muted mb-0">Aucune suggestion trouvée</p>
+                </div>
+                
+                <!-- Suggestions List -->
+                <div class="suggestions-list" id="suggestions-list">
+                    <!-- Dynamic content populated via JavaScript -->
+                </div>
+                
+                <!-- Popular Searches -->
+                <div class="popular-searches border-top p-3" id="popular-searches">
+                    <h6 class="text-muted mb-2 small">
+                        <i class="fas fa-fire me-1" aria-hidden="true"></i>
+                        Recherches populaires
+                    </h6>
+                    <div class="d-flex flex-wrap gap-1">
+                        <span class="badge bg-light text-dark popular-search-tag" data-query="café bio">café bio</span>
+                        <span class="badge bg-light text-dark popular-search-tag" data-query="peintures locales">peintures</span>
+                        <span class="badge bg-light text-dark popular-search-tag" data-query="bijoux artisanaux">bijoux</span>
+                        <span class="badge bg-light text-dark popular-search-tag" data-query="fruits tropicaux">fruits</span>
+                        <span class="badge bg-light text-dark popular-search-tag" data-query="vêtements traditionnels">vêtements</span>
+                    </div>
+                </div>
             </div>
         </div>
-    </form>
+    </div>
 </div>
 
-<!-- Mobile Search Toggle (for small screens) -->
-<button class="mobile-search-toggle d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#mobileSearch" aria-expanded="false" aria-controls="mobileSearch" aria-label="Ouvrir la recherche">
-    <i class="fas fa-search" aria-hidden="true"></i>
-</button>
+<!-- Voice Search Button (if supported) -->
+<div class="voice-search-container position-absolute end-0 top-50 translate-middle-y me-5 d-none" id="voice-search-container">
+    <button 
+        class="btn btn-link p-0 voice-search-btn" 
+        type="button" 
+        id="voice-search-btn"
+        aria-label="Recherche vocale"
+        title="Recherche vocale"
+    >
+        <i class="fas fa-microphone text-muted" id="voice-search-icon" aria-hidden="true"></i>
+    </button>
+</div>
 
-<!-- Mobile Search Collapse -->
-<div class="collapse d-md-none mt-3" id="mobileSearch">
-    <form class="mobile-search-form" method="GET" action="{% url 'marketplace:search' %}">
-        <div class="input-group">
-            <input 
-                type="search" 
-                class="form-control" 
-                name="q"
-                value="{{ request.GET.q|default:'' }}"
-                placeholder="Que cherchez-vous?"
-                aria-label="Rechercher des produits"
-            >
-            <button class="btn btn-primary" type="submit">
-                <i class="fas fa-search" aria-hidden="true"></i>
-            </button>
+<!-- Advanced Search Modal -->
+<div class="modal fade" id="advancedSearchModal" tabindex="-1" aria-labelledby="advancedSearchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="advancedSearchModalLabel">
+                    <i class="fas fa-search-plus me-2" aria-hidden="true"></i>
+                    Recherche Avancée
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <div class="modal-body">
+                <form id="advanced-search-form" method="GET" action="{% url 'marketplace:product_search' %}">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="advanced-query" class="form-label">Mots-clés</label>
+                            <input type="text" class="form-control" id="advanced-query" name="query" 
+                                   placeholder="Entrez vos mots-clés de recherche">
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="advanced-category" class="form-label">Catégorie</label>
+                            <select class="form-select" id="advanced-category" name="category">
+                                <option value="">Toutes les catégories</option>
+                                <option value="agriculture">Agriculture & Alimentation</option>
+                                <option value="artisanat">Artisanat & Art</option>
+                                <option value="mode">Mode & Beauté</option>
+                                <option value="technologie">Technologie & Électronique</option>
+                                <option value="services">Services & Professional</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="advanced-location" class="form-label">Localisation</label>
+                            <select class="form-select" id="advanced-location" name="location">
+                                <option value="">Tout Haïti</option>
+                                <option value="port-au-prince">Port-au-Prince</option>
+                                <option value="cap-haitien">Cap-Haïtien</option>
+                                <option value="gonaives">Gonaïves</option>
+                                <option value="les-cayes">Les Cayes</option>
+                                <option value="jacmel">Jacmel</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="min-price" class="form-label">Prix minimum (HTG)</label>
+                            <input type="number" class="form-control" id="min-price" name="min_price" 
+                                   min="0" step="0.01" placeholder="0">
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="max-price" class="form-label">Prix maximum (HTG)</label>
+                            <input type="number" class="form-control" id="max-price" name="max_price" 
+                                   min="0" step="0.01" placeholder="10000">
+                        </div>
+                        
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="in-stock" name="in_stock" value="1">
+                                <label class="form-check-label" for="in-stock">
+                                    Seulement les produits en stock
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="on-sale" name="on_sale" value="1">
+                                <label class="form-check-label" for="on-sale">
+                                    Seulement les produits en promotion
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-outline-primary" id="reset-advanced-search">
+                    <i class="fas fa-undo me-2" aria-hidden="true"></i>Réinitialiser
+                </button>
+                <button type="submit" form="advanced-search-form" class="btn btn-primary">
+                    <i class="fas fa-search me-2" aria-hidden="true"></i>Rechercher
+                </button>
+            </div>
         </div>
-        <select class="form-select mt-2" name="category">
-            <option value="">Toutes catégories</option>
-            {% for category in categories %}
-            <option value="{{ category.slug }}" 
-                    {% if request.GET.category == category.slug %}selected{% endif %}>
-                {{ category.name }}
-            </option>
-            {% endfor %}
-        </select>
-    </form>
+    </div>
 </div>
+
+<!-- Advanced Search Link (Desktop) -->
+{% if not mobile %}
+<div class="text-end mt-1">
+    <button type="button" class="btn btn-link btn-sm text-decoration-none p-0" data-bs-toggle="modal" data-bs-target="#advancedSearchModal">
+        <small class="text-muted">
+            <i class="fas fa-sliders-h me-1" aria-hidden="true"></i>
+            Recherche avancée
+        </small>
+    </button>
+</div>
+{% endif %}

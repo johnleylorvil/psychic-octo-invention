@@ -3,7 +3,7 @@
 Payment processing service for MonCash integration
 """
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from decimal import Decimal
 import requests
 import logging

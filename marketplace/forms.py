@@ -610,3 +610,73 @@ class CustomLoginForm(AuthenticationForm):
             except User.DoesNotExist:
                 pass
         return username
+
+
+class AddressForm(forms.ModelForm):
+    """Address management form"""
+    
+    class Meta:
+        model = Address
+        fields = [
+            'first_name', 'last_name', 'address_line1', 'address_line2',
+            'city', 'department', 'postal_code', 'phone', 'is_default'
+        ]
+        widgets = {
+            'first_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('First name')
+            }),
+            'last_name': forms.TextInput(attrs={
+                'class': 'form-control', 
+                'placeholder': _('Last name')
+            }),
+            'address_line1': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('Street address')
+            }),
+            'address_line2': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('Apartment, suite, etc. (optional)'),
+                'required': False
+            }),
+            'city': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('City')
+            }),
+            'department': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('Department')
+            }),
+            'postal_code': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('Postal code'),
+                'required': False
+            }),
+            'phone': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('Phone number')
+            }),
+            'is_default': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            })
+        }
+        labels = {
+            'first_name': _('First Name'),
+            'last_name': _('Last Name'),
+            'address_line1': _('Address Line 1'),
+            'address_line2': _('Address Line 2'),
+            'city': _('City'),
+            'department': _('Department'),
+            'postal_code': _('Postal Code'),
+            'phone': _('Phone Number'),
+            'is_default': _('Set as default address')
+        }
+    
+    def clean_phone(self):
+        phone = self.cleaned_data.get('phone')
+        if phone:
+            try:
+                validate_haitian_phone_number(phone)
+            except ValidationError as e:
+                raise forms.ValidationError(e.message)
+        return phone

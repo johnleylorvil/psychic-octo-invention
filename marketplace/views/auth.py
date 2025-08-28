@@ -22,9 +22,10 @@ from django.conf import settings
 
 from ..forms import (
     UserRegistrationForm, CustomLoginForm, UserProfileForm,
-    SellerApplicationForm
+    SellerApplicationForm, AddressForm
 )
 from ..models import User, VendorProfile
+from ..models.address import Address
 from ..services import EmailService
 
 
@@ -56,7 +57,7 @@ class UserRegistrationView(CreateView):
 def user_login_view(request):
     """Custom login view with redirect handling"""
     if request.user.is_authenticated:
-        return redirect('home')
+        return redirect('marketplace:home')
     
     if request.method == 'POST':
         form = CustomLoginForm(request, data=request.POST)
@@ -102,7 +103,7 @@ def user_logout_view(request):
     """User logout view"""
     logout(request)
     messages.success(request, _('You have been successfully logged out.'))
-    return redirect('home')
+    return redirect('marketplace:home')
 
 
 @login_required
@@ -206,6 +207,52 @@ def password_reset_confirm(request, uidb64, token):
         })
 
 
+class BecomeSellerView(LoginRequiredMixin, CreateView):
+    """Become a seller application view"""
+    form_class = SellerApplicationForm
+    template_name = 'account/become_seller.html'
+    success_url = reverse_lazy('marketplace:seller_dashboard')
+    
+    def dispatch(self, request, *args, **kwargs):
+        # Check if user is already a seller
+        if hasattr(request.user, 'vendorprofile') and request.user.vendorprofile.is_active:
+            messages.info(request, _('You are already a registered seller.'))
+            return redirect('marketplace:seller_dashboard')
+        
+        # Check if user already has pending application
+        if hasattr(request.user, 'vendorprofile'):
+            if request.user.vendorprofile.verification_status == 'pending':
+                messages.info(request, _('Your seller application is under review.'))
+                return redirect('marketplace:profile')
+        
+        return super().dispatch(request, *args, **kwargs)
+    
+    def form_valid(self, form):
+        vendor_profile = form.save(commit=False)
+        vendor_profile.user = self.request.user
+        vendor_profile.verification_status = 'pending'
+        vendor_profile.save()
+        
+        # Update user seller status
+        self.request.user.is_seller = True
+        self.request.user.save()
+        
+        # Send application confirmation email
+        # EmailService.send_new_seller_welcome(self.request.user)
+        
+        messages.success(
+            self.request,
+            _('Your seller application has been submitted successfully! You can now start adding products.')
+        )
+        
+        return super().form_valid(form)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _('Become a Seller')
+        return context
+
+
 class SellerApplicationView(LoginRequiredMixin, CreateView):
     """Seller application view"""
     form_class = SellerApplicationForm
@@ -254,7 +301,7 @@ def seller_application_status(request):
         vendor_profile = VendorProfile.objects.get(user=request.user)
     except VendorProfile.DoesNotExist:
         messages.error(request, _('No seller application found.'))
-        return redirect('become_seller')
+        return redirect('marketplace:become_seller')
     
     return render(request, 'account/seller_application_status.html', {
         'vendor_profile': vendor_profile,
@@ -281,7 +328,7 @@ def email_verification(request, uidb64, token):
             request,
             _('Your email has been verified successfully! Welcome to Afèpanou.')
         )
-        return redirect('home')
+        return redirect('marketplace:home')
     else:
         messages.error(
             request,
@@ -384,7 +431,7 @@ def delete_account(request):
                 request,
                 _('Your account has been deactivated. Contact support if you want to reactivate it.')
             )
-            return redirect('home')
+            return redirect('marketplace:home')
         else:
             messages.error(request, _('Incorrect password.'))
     

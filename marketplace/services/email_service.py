@@ -9,7 +9,7 @@ from django.core.mail import send_mail, EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from marketplace.models import Order, Product, Newsletter
+from marketplace.models import Order, Product, NewsletterSubscriber
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -231,7 +231,7 @@ class EmailService:
         try:
             if not recipient_list:
                 # Get all active newsletter subscribers
-                subscribers = Newsletter.objects.filter(is_active=True)
+                subscribers = NewsletterSubscriber.objects.filter(is_active=True)
                 recipient_list = [sub.email for sub in subscribers]
             
             if not recipient_list:
@@ -361,7 +361,7 @@ class EmailService:
     def subscribe_to_newsletter(email: str, user: User = None) -> Dict[str, Any]:
         """Subscribe email to newsletter"""
         try:
-            subscriber, created = Newsletter.objects.get_or_create(
+            subscriber, created = NewsletterSubscriber.objects.get_or_create(
                 email=email,
                 defaults={
                     'user': user,
@@ -395,7 +395,7 @@ class EmailService:
     def unsubscribe_from_newsletter(email: str) -> bool:
         """Unsubscribe email from newsletter"""
         try:
-            Newsletter.objects.filter(email=email).update(is_active=False)
+            NewsletterSubscriber.objects.filter(email=email).update(is_active=False)
             return True
         except Exception as e:
             logger.error(f"Newsletter unsubscription failed: {e}")

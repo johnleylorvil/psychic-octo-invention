@@ -6,14 +6,18 @@ Seller management views for Afèpanou marketplace
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import ListView, DetailView, CreateView, UpdateView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, TemplateView
 from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
 from django.http import JsonResponse, HttpResponseForbidden
 from django.core.paginator import Paginator
-from django.db.models import Count, Sum, Avg
+from django.db.models import Count, Sum, Avg, Q, F
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
+from django.utils import timezone
+from django.core.exceptions import ValidationError
+from datetime import timedelta
+from django.db import models
 
 from ..models import Product, Order, VendorProfile, Review, Category
 from ..forms import ProductCreateForm, SellerApplicationForm
@@ -283,127 +287,36 @@ def update_order_status(request, order_id):
 
 
 @method_decorator(seller_required, name='dispatch')
-class SellerAnalyticsView(LoginRequiredMixin, DetailView):
-    """Seller analytics and performance metrics"""
-    template_name = 'seller/analytics.html'
+class SellerOrderDetailView(LoginRequiredMixin, DetailView):
+    """Seller order detail view"""
+    model = Order
+    template_name = 'seller/order_detail.html'
+    context_object_name = 'order'
+    pk_url_kwarg = 'order_id'
     
-    def get_object(self):
-        return self.request.user
+    def get_queryset(self):
+        return Order.objects.filter(
+            items__product__seller=self.request.user.vendorprofile
+        ).distinct()
     
-    @method_decorator(cache_page(60 * 15))  # Cache for 15 minutes
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user = self.request.user
+        order = self.object
         
-        # Comprehensive analytics
-        context['analytics'] = {
-            'products': ProductService.get_seller_analytics(user),
-            'orders': OrderService.get_sales_analytics(seller=user),
-            'revenue': self._get_revenue_analytics(user),
-            'performance': self._get_performance_metrics(user),
-        }
-        
-        # Chart data
-        context['chart_data'] = {
-            'monthly_sales': self._get_monthly_sales_data(user),
-            'category_breakdown': self._get_category_breakdown(user),
-            'top_products': self._get_top_products(user),
-        }
-        
-        context['title'] = _('Analytics Dashboard')
-        
-        return context
-    
-    def _get_revenue_analytics(self, user):
-        """Get revenue analytics"""
-        orders = Order.objects.filter(
-            items__product__seller=user,
-            status='delivered',
-            payment_status='paid'
-        ).distinct()
-        
-        total_revenue = sum(
-            item.total_price for order in orders 
-            for item in order.items.filter(product__seller=user)
+        # Get only items from this seller
+        context['seller_items'] = order.items.filter(
+            product__seller=self.request.user.vendorprofile
         )
         
-        return {
-            'total_revenue': total_revenue,
-            'average_order_value': total_revenue / orders.count() if orders.count() > 0 else 0,
-            'monthly_revenue': total_revenue,  # Simplified
-        }
-    
-    def _get_performance_metrics(self, user):
-        """Get performance metrics"""
-        products = Product.objects.filter(seller=user)
-        reviews = Review.objects.filter(product__seller=user, is_approved=True)
+        # Calculate seller's portion of the order
+        seller_total = sum(
+            item.total_price for item in context['seller_items']
+        )
+        context['seller_total'] = seller_total
         
-        return {
-            'average_rating': reviews.aggregate(Avg('rating'))['rating__avg'] or 0,
-            'total_reviews': reviews.count(),
-            'response_time': 24,  # Hours - placeholder
-            'customer_satisfaction': 4.5,  # Placeholder
-        }
-    
-    def _get_monthly_sales_data(self, user):
-        """Get monthly sales data for charts"""
-        from datetime import datetime, timedelta
-        import calendar
+        context['title'] = f'Order #{order.order_number}'
         
-        # Get last 12 months of data
-        monthly_data = []
-        for i in range(12):
-            month_start = datetime.now().replace(day=1) - timedelta(days=30*i)
-            month_orders = Order.objects.filter(
-                items__product__seller=user,
-                created_at__year=month_start.year,
-                created_at__month=month_start.month,
-                status='delivered'
-            ).distinct()
-            
-            monthly_revenue = sum(
-                item.total_price for order in month_orders 
-                for item in order.items.filter(product__seller=user)
-            )
-            
-            monthly_data.append({
-                'month': calendar.month_name[month_start.month],
-                'revenue': float(monthly_revenue),
-                'orders': month_orders.count()
-            })
-        
-        return monthly_data[::-1]  # Reverse to chronological order
-    
-    def _get_category_breakdown(self, user):
-        """Get sales breakdown by category"""
-        categories = Category.objects.filter(
-            products__seller=user
-        ).annotate(
-            total_sales=Count('products__orderitem')
-        ).order_by('-total_sales')[:10]
-        
-        return [
-            {
-                'name': cat.name,
-                'sales': cat.total_sales
-            }
-            for cat in categories
-        ]
-    
-    def _get_top_products(self, user):
-        """Get top performing products"""
-        products = Product.objects.filter(seller=user).annotate(
-            total_sold=Count('orderitem')
-        ).order_by('-total_sold')[:10]
-        
-        return [
-            {
-                'name': product.name,
-                'sold': product.total_sold,
-                'revenue': product.total_sold * float(product.current_price)
-            }
-            for product in products
-        ]
+        return context
 
 
 @login_required
@@ -471,58 +384,10 @@ def seller_profile_settings(request):
     return render(request, 'seller/profile_settings.html', context)
 
 
-@method_decorator(seller_required, name='dispatch')
-class SellerProductDetailView(LoginRequiredMixin, DetailView):
-    """Seller product detail view"""
-    template_name = 'seller/product_detail.html'
-    context_object_name = 'product'
-    
-    def get_queryset(self):
-        return Product.objects.filter(seller=self.request.user.vendorprofile)
-    
-    def get_object(self):
-        return get_object_or_404(self.get_queryset(), id=self.kwargs['product_id'])
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        product = self.object
-        
-        # Product analytics
-        context['analytics'] = ProductService.get_product_analytics(product)
-        
-        # Recent orders for this product
-        context['recent_orders'] = Order.objects.filter(
-            items__product=product
-        ).distinct().order_by('-created_at')[:10]
-        
-        # Reviews
-        context['reviews'] = Review.objects.filter(product=product)[:5]
-        
-        return context
+# Remove duplicate SellerProductDetailView - it's defined earlier in the file
 
 
-@method_decorator(seller_required, name='dispatch')  
-class SellerProductDeleteView(LoginRequiredMixin, DetailView):
-    """Seller product deletion view"""
-    template_name = 'seller/product_delete.html'
-    context_object_name = 'product'
-    
-    def get_queryset(self):
-        return Product.objects.filter(seller=self.request.user.vendorprofile)
-    
-    def get_object(self):
-        return get_object_or_404(self.get_queryset(), id=self.kwargs['product_id'])
-    
-    def post(self, request, *args, **kwargs):
-        product = self.get_object()
-        product_name = product.name
-        
-        # Soft delete - just deactivate
-        product.is_active = False
-        product.save()
-        
-        messages.success(request, f'Product "{product_name}" has been deactivated.')
-        return redirect('marketplace:seller_products')
+# Remove duplicate SellerProductDeleteView - it's defined earlier in the file
 
 
 @seller_required
@@ -702,3 +567,25 @@ def seller_profile(request):
     }
     
     return render(request, 'seller/profile.html', context)
+
+
+@method_decorator(seller_required, name='dispatch')  
+class SellerProductDeleteView(LoginRequiredMixin, DetailView):
+    """Seller product deletion view"""
+    template_name = 'seller/product_delete.html'
+    context_object_name = 'product'
+    pk_url_kwarg = 'product_id'
+    
+    def get_queryset(self):
+        return Product.objects.filter(seller=self.request.user.vendorprofile)
+    
+    def post(self, request, *args, **kwargs):
+        product = self.get_object()
+        product_name = product.name
+        
+        # Soft delete - just deactivate
+        product.is_active = False
+        product.save()
+        
+        messages.success(request, f'Product "{product_name}" has been deactivated.')
+        return redirect('marketplace:seller_products')

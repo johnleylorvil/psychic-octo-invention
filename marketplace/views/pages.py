@@ -4,14 +4,15 @@ Core template views for Afèpanou marketplace
 """
 
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views.generic import ListView, DetailView, TemplateView
+from django.views.generic import ListView, DetailView, TemplateView, CreateView
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q, Count, Avg
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
+from django.urls import reverse_lazy
 
 from ..models import (
     Product, Category, Review, Banner, Order, 
@@ -38,7 +39,7 @@ class HomePageView(TemplateView):
         context['featured_categories'] = Category.objects.featured()[:6]
         
         # Get active banners
-        context['banners'] = Banner.objects.filter(is_active=True).order_by('display_order')[:5]
+        context['banners'] = Banner.objects.filter(is_active=True).order_by('sort_order')[:5]
         
         # Get latest products
         context['latest_products'] = Product.objects.available().order_by('-created_at')[:8]
@@ -346,7 +347,7 @@ def newsletter_signup(request):
         else:
             messages.error(request, _('Please enter a valid email address.'))
     
-    return redirect('home')
+    return redirect('marketplace:home')
 
 
 def contact_view(request):
@@ -376,7 +377,7 @@ def cart_view(request):
     
     cart, created = Cart.objects.get_or_create(
         user=request.user if request.user.is_authenticated else None,
-        session_key=request.session.session_key if not request.user.is_authenticated else None
+        session_id=request.session.session_key if not request.user.is_authenticated else None
     )
     
     cart_items = cart.items.select_related('product').all()
@@ -680,6 +681,102 @@ def brand_products(request, brand_slug):
         'title': f'Products by {brand_slug.replace("-", " ").title()}'
     })
     
+class OrderHistoryView(LoginRequiredMixin, ListView):
+    """User order history view"""
+    template_name = 'pages/order_history.html'
+    context_object_name = 'orders'
+    paginate_by = 10
+    
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user).order_by('-created_at')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _('My Orders')
+        
+        # Order statistics
+        all_orders = Order.objects.filter(user=self.request.user)
+        context['order_stats'] = {
+            'total': all_orders.count(),
+            'pending': all_orders.filter(status='pending').count(),
+            'processing': all_orders.filter(status='processing').count(),
+            'shipped': all_orders.filter(status='shipped').count(),
+            'delivered': all_orders.filter(status='delivered').count(),
+            'cancelled': all_orders.filter(status='cancelled').count(),
+        }
+        
+        return context
+
+
+class OrderDetailView(LoginRequiredMixin, DetailView):
+    """Order detail view"""
+    model = Order
+    template_name = 'pages/order_detail.html'
+    context_object_name = 'order'
+    pk_url_kwarg = 'order_id'
+    
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        order = self.object
+        context['title'] = f'Order #{order.order_number}'
+        
+        # Order items
+        context['order_items'] = order.items.select_related('product').all()
+        
+        # Tracking information
+        if hasattr(order, 'tracking_number') and order.tracking_number:
+            context['tracking_available'] = True
+        
+        # Can be cancelled check
+        context['can_cancel'] = order.can_be_cancelled() if hasattr(order, 'can_be_cancelled') else False
+        
+        return context
+
+
+class AddReviewView(LoginRequiredMixin, CreateView):
+    """Add product review view"""
+    model = Review
+    form_class = ProductReviewForm
+    template_name = 'pages/add_review.html'
+    
+    def dispatch(self, request, *args, **kwargs):
+        self.product = get_object_or_404(Product, id=self.kwargs['product_id'], is_active=True)
+        
+        # Check if user already reviewed this product
+        if Review.objects.filter(user=request.user, product=self.product).exists():
+            messages.error(request, _('You have already reviewed this product.'))
+            return redirect('marketplace:product_detail', slug=self.product.slug)
+        
+        return super().dispatch(request, *args, **kwargs)
+    
+    def form_valid(self, form):
+        review = form.save(commit=False)
+        review.user = self.request.user
+        review.product = self.product
+        
+        # Check if user has purchased this product
+        has_purchased = Order.objects.filter(
+            user=self.request.user,
+            items__product=self.product,
+            status='delivered'
+        ).exists()
+        review.is_verified_purchase = has_purchased
+        
+        review.save()
+        messages.success(self.request, _('Your review has been submitted and will be published after moderation.'))
+        
+        return redirect('marketplace:product_detail', slug=self.product.slug)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['product'] = self.product
+        context['title'] = f'Review {self.product.name}'
+        return context
+
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Add any about page specific context

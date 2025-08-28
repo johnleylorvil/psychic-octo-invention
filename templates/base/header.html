@@ -1,120 +1,223 @@
 {% load static %}
-<header id="main-header" class="site-header">
-    <!-- Top Navigation Bar -->
-    <nav class="top-nav" aria-label="Navigation secondaire">
+
+<!-- Site Header -->
+<header id="main-header" class="site-header sticky-top" role="banner">
+    <!-- Top Bar -->
+    <div class="top-bar bg-light d-none d-md-block">
         <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <div class="top-nav-left">
-                        <span class="welcome-text">Bienvenue sur Afèpanou</span>
-                        <span class="separator">|</span>
-                        <a href="tel:+50928123456" class="contact-link">
-                            <i class="fas fa-phone" aria-hidden="true"></i>
-                            +509 28 12 34 56
-                        </a>
+            <div class="row align-items-center py-2">
+                <div class="col-md-8">
+                    <div class="top-bar-left d-flex align-items-center">
+                        <div class="welcome-message me-4">
+                            <i class="fas fa-map-marker-alt text-primary me-2" aria-hidden="true"></i>
+                            <small class="text-muted">Livraison dans tout Haïti</small>
+                        </div>
+                        <div class="contact-info">
+                            <a href="tel:+50928123456" class="text-decoration-none text-dark">
+                                <i class="fas fa-phone text-primary me-2" aria-hidden="true"></i>
+                                <small>+509 28 12 34 56</small>
+                            </a>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="top-nav-right">
+                <div class="col-md-4">
+                    <div class="top-bar-right text-end">
                         {% if user.is_authenticated %}
-                            <div class="user-menu dropdown">
-                                <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-user" aria-hidden="true"></i>
-                                    {{ user.first_name|default:user.username }}
+                            <div class="user-dropdown dropdown d-inline-block">
+                                <a href="#" class="btn btn-link btn-sm text-decoration-none dropdown-toggle p-0" 
+                                   data-bs-toggle="dropdown" aria-expanded="false" id="userDropdown">
+                                    <i class="fas fa-user-circle me-1" aria-hidden="true"></i>
+                                    <small>{{ user.get_display_name|truncatechars:15 }}</small>
                                 </a>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{% url 'account:profile' %}">Mon Profil</a></li>
-                                    <li><a class="dropdown-item" href="{% url 'account:orders' %}">Mes Commandes</a></li>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userDropdown">
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'marketplace:profile' %}">
+                                            <i class="fas fa-user me-2" aria-hidden="true"></i>Mon Profil
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'marketplace:order_history' %}">
+                                            <i class="fas fa-shopping-bag me-2" aria-hidden="true"></i>Mes Commandes
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'marketplace:wishlist' %}">
+                                            <i class="fas fa-heart me-2" aria-hidden="true"></i>Mes Favoris
+                                        </a>
+                                    </li>
                                     {% if user.is_seller %}
                                         <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item" href="{% url 'seller:dashboard' %}">Tableau de Bord Vendeur</a></li>
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'marketplace:seller_dashboard' %}">
+                                                <i class="fas fa-store me-2" aria-hidden="true"></i>Tableau de Bord
+                                            </a>
+                                        </li>
                                     {% else %}
-                                        <li><a class="dropdown-item" href="{% url 'account:become_seller' %}">Devenir Vendeur</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'marketplace:become_seller' %}">
+                                                <i class="fas fa-plus-circle me-2" aria-hidden="true"></i>Devenir Vendeur
+                                            </a>
+                                        </li>
                                     {% endif %}
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{% url 'account:logout' %}">Se Déconnecter</a></li>
+                                    <li>
+                                        <a class="dropdown-item text-danger" href="{% url 'marketplace:logout' %}">
+                                            <i class="fas fa-sign-out-alt me-2" aria-hidden="true"></i>Se Déconnecter
+                                        </a>
+                                    </li>
                                 </ul>
                             </div>
                         {% else %}
                             <div class="auth-links">
-                                <a href="{% url 'account:login' %}" class="auth-link">Se Connecter</a>
-                                <span class="separator">|</span>
-                                <a href="{% url 'account:register' %}" class="auth-link">S'inscrire</a>
+                                <a href="{% url 'marketplace:login' %}" class="btn btn-outline-primary btn-sm me-2">
+                                    <i class="fas fa-sign-in-alt me-1" aria-hidden="true"></i>Connexion
+                                </a>
+                                <a href="{% url 'marketplace:register' %}" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-user-plus me-1" aria-hidden="true"></i>S'inscrire
+                                </a>
                             </div>
                         {% endif %}
                     </div>
                 </div>
             </div>
         </div>
-    </nav>
+    </div>
 
     <!-- Main Navigation -->
-    <nav class="main-nav" aria-label="Navigation principale">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm py-3">
         <div class="container">
-            <div class="row align-items-center">
-                <!-- Logo -->
-                <div class="col-lg-3 col-md-4">
-                    <div class="site-logo">
-                        <a href="{% url 'marketplace:home' %}" aria-label="Retour à l'accueil Afèpanou">
-                            <img src="{% static 'images/afepanou-logo.png' %}" alt="Afèpanou" class="logo-img">
-                        </a>
+            <!-- Brand Logo -->
+            <a class="navbar-brand" href="{% url 'marketplace:home' %}" aria-label="Afèpanou - Accueil">
+                <div class="d-flex align-items-center">
+                    <img src="{% static 'images/afepanou-logo.svg' %}" alt="Afèpanou" class="logo-img me-2" 
+                         width="40" height="40" loading="eager">
+                    <div class="brand-text d-none d-sm-block">
+                        <h1 class="brand-name mb-0">Afèpanou</h1>
+                        <small class="brand-tagline text-muted">Croissance Économique</small>
                     </div>
                 </div>
+            </a>
 
-                <!-- Search Bar -->
-                <div class="col-lg-6 col-md-5">
-                    {% include 'components/search_bar.html' %}
+            <!-- Mobile Menu Toggle -->
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="offcanvas" 
+                    data-bs-target="#mobileMenu" aria-controls="mobileMenu" aria-expanded="false" 
+                    aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Search Bar (Desktop) -->
+            <div class="flex-fill mx-4 d-none d-lg-block">
+                {% include 'components/search_bar.html' %}
+            </div>
+
+            <!-- Header Actions -->
+            <div class="navbar-nav flex-row align-items-center ms-auto">
+                <!-- Language Selector -->
+                <div class="nav-item dropdown me-3 d-none d-md-block">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" 
+                       aria-expanded="false" aria-label="Sélectionner la langue">
+                        <i class="fas fa-globe me-1" aria-hidden="true"></i>
+                        <small>FR</small>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item active" href="#" data-lang="fr-ht">Français (Haïti)</a></li>
+                        <li><a class="dropdown-item" href="#" data-lang="ht">Kreyòl Ayisyen</a></li>
+                    </ul>
                 </div>
 
-                <!-- Cart & Actions -->
-                <div class="col-lg-3 col-md-3">
-                    <div class="header-actions">
-                        <!-- Wishlist -->
-                        {% if user.is_authenticated %}
-                        <a href="{% url 'account:wishlist' %}" class="action-link" aria-label="Ma liste de souhaits">
-                            <i class="fas fa-heart" aria-hidden="true"></i>
-                            <span class="action-text d-none d-lg-inline">Favoris</span>
-                        </a>
-                        {% endif %}
+                <!-- Wishlist (Desktop) -->
+                {% if user.is_authenticated %}
+                <div class="nav-item me-3 d-none d-md-block">
+                    <a class="nav-link position-relative" href="{% url 'marketplace:wishlist' %}" 
+                       aria-label="Ma liste de souhaits">
+                        <i class="fas fa-heart fa-lg" aria-hidden="true"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger wishlist-count">
+                            {{ user.wishlist_count|default:0 }}
+                        </span>
+                    </a>
+                </div>
+                {% endif %}
 
-                        <!-- Cart -->
-                        <a href="{% url 'marketplace:cart' %}" class="action-link cart-link" aria-label="Mon panier">
-                            <div class="cart-icon">
-                                <i class="fas fa-shopping-cart" aria-hidden="true"></i>
-                                <span class="cart-count" id="cart-count">
-                                    {% if cart_items_count %}{{ cart_items_count }}{% else %}0{% endif %}
-                                </span>
+                <!-- Shopping Cart -->
+                <div class="nav-item">
+                    <a class="nav-link position-relative cart-trigger" href="{% url 'marketplace:cart' %}" 
+                       aria-label="Mon panier ({{ cart_items_count|default:0 }} articles)">
+                        <i class="fas fa-shopping-cart fa-lg" aria-hidden="true"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary" 
+                              id="cart-badge">
+                            {{ cart_items_count|default:0 }}
+                        </span>
+                    </a>
+                    
+                    <!-- Cart Dropdown -->
+                    <div class="cart-dropdown position-absolute end-0 mt-2 d-none" id="cart-dropdown">
+                        <div class="card shadow border-0" style="width: 320px;">
+                            <div class="card-header bg-primary text-white">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-shopping-cart me-2" aria-hidden="true"></i>
+                                    Mon Panier
+                                </h6>
                             </div>
-                            <span class="action-text d-none d-lg-inline">Panier</span>
-                        </a>
+                            <div class="card-body p-0" id="cart-dropdown-content">
+                                <!-- Cart items will be loaded here via AJAX -->
+                                <div class="text-center p-4">
+                                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                        <span class="visually-hidden">Chargement...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- Category Navigation -->
-    <nav class="category-nav d-none d-lg-block" aria-label="Navigation par catégorie">
+    <!-- Category Navigation (Desktop) -->
+    <nav class="category-navbar bg-light d-none d-lg-block" aria-label="Navigation par catégories">
         <div class="container">
             {% include 'components/category_nav.html' %}
         </div>
     </nav>
 
-    <!-- Mobile Menu Toggle -->
-    <button class="mobile-menu-toggle d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu" aria-controls="mobileMenu" aria-label="Ouvrir le menu">
-        <span class="hamburger-line"></span>
-        <span class="hamburger-line"></span>
-        <span class="hamburger-line"></span>
-    </button>
+    <!-- Search Bar (Mobile) -->
+    <div class="mobile-search bg-light py-3 d-lg-none" id="mobile-search">
+        <div class="container">
+            {% include 'components/search_bar.html' with mobile=True %}
+        </div>
+    </div>
 </header>
 
 <!-- Mobile Menu Offcanvas -->
 <div class="offcanvas offcanvas-start" tabindex="-1" id="mobileMenu" aria-labelledby="mobileMenuLabel">
-    <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="mobileMenuLabel">Menu</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Fermer"></button>
+    <div class="offcanvas-header bg-primary text-white">
+        <div class="d-flex align-items-center">
+            <img src="{% static 'images/afepanou-logo-white.svg' %}" alt="Afèpanou" width="32" height="32" class="me-2">
+            <h5 class="offcanvas-title mb-0" id="mobileMenuLabel">Menu Afèpanou</h5>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Fermer"></button>
     </div>
-    <div class="offcanvas-body">
+    <div class="offcanvas-body p-0">
         {% include 'components/mobile_menu.html' %}
+    </div>
+</div>
+
+<!-- Cart Sidebar -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="cartSidebar" aria-labelledby="cartSidebarLabel">
+    <div class="offcanvas-header bg-primary text-white">
+        <h5 class="offcanvas-title" id="cartSidebarLabel">
+            <i class="fas fa-shopping-cart me-2" aria-hidden="true"></i>
+            Mon Panier
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Fermer"></button>
+    </div>
+    <div class="offcanvas-body p-0" id="cart-sidebar-content">
+        <!-- Cart content will be loaded here -->
+        <div class="text-center p-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Chargement du panier...</span>
+            </div>
+        </div>
     </div>
 </div>

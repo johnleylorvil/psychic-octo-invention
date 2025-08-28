@@ -26,6 +26,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
+    'testserver',  # For testing
     '.railway.app',
     'afepanou.com',
     'www.afepanou.com',

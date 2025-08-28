@@ -1,91 +1,211 @@
 {% load static %}
-<footer class="site-footer">
-    <!-- Main Footer -->
-    <div class="footer-main">
+
+<!-- Site Footer -->
+<footer id="main-footer" class="site-footer bg-dark text-white" role="contentinfo">
+    <!-- Footer Main Content -->
+    <div class="footer-main py-5">
         <div class="container">
-            <div class="row">
-                <!-- About Section -->
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="footer-section">
-                        <h5 class="footer-title">À propos d'Afèpanou</h5>
-                        <p class="footer-description">
-                            Afèpanou connecte les vendeurs locaux haïtiens aux consommateurs, 
-                            favorisant la croissance économique et l'entrepreneuriat en Haïti.
+            <div class="row g-4">
+                <!-- Brand & About Section -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="footer-brand mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <img src="{% static 'images/afepanou-logo-white.svg' %}" alt="Afèpanou" 
+                                 width="48" height="48" class="me-3">
+                            <div>
+                                <h4 class="footer-brand-name mb-0 text-white">Afèpanou</h4>
+                                <small class="text-light opacity-75">Croissance Économique Haïtienne</small>
+                            </div>
+                        </div>
+                        <p class="footer-description text-light mb-4">
+                            Afèpanou connecte les vendeurs locaux haïtiens aux consommateurs du monde entier, 
+                            favorisant la croissance économique et l'entrepreneuriat en Haïti. 
+                            <strong>Ensemble, nous bâtissons l'économie de demain.</strong>
                         </p>
+                        
+                        <!-- Social Media Links -->
                         <div class="social-links">
-                            <a href="#" class="social-link" aria-label="Facebook">
-                                <i class="fab fa-facebook-f" aria-hidden="true"></i>
-                            </a>
-                            <a href="#" class="social-link" aria-label="Instagram">
-                                <i class="fab fa-instagram" aria-hidden="true"></i>
-                            </a>
-                            <a href="#" class="social-link" aria-label="Twitter">
-                                <i class="fab fa-twitter" aria-hidden="true"></i>
-                            </a>
-                            <a href="#" class="social-link" aria-label="LinkedIn">
-                                <i class="fab fa-linkedin-in" aria-hidden="true"></i>
-                            </a>
+                            <h6 class="text-light mb-3">Suivez-nous</h6>
+                            <div class="d-flex gap-3">
+                                <a href="#" class="social-link text-decoration-none" aria-label="Page Facebook d'Afèpanou">
+                                    <i class="fab fa-facebook-f fa-lg" aria-hidden="true"></i>
+                                </a>
+                                <a href="#" class="social-link text-decoration-none" aria-label="Instagram d'Afèpanou">
+                                    <i class="fab fa-instagram fa-lg" aria-hidden="true"></i>
+                                </a>
+                                <a href="#" class="social-link text-decoration-none" aria-label="Twitter d'Afèpanou">
+                                    <i class="fab fa-twitter fa-lg" aria-hidden="true"></i>
+                                </a>
+                                <a href="#" class="social-link text-decoration-none" aria-label="LinkedIn d'Afèpanou">
+                                    <i class="fab fa-linkedin-in fa-lg" aria-hidden="true"></i>
+                                </a>
+                                <a href="#" class="social-link text-decoration-none" aria-label="YouTube d'Afèpanou">
+                                    <i class="fab fa-youtube fa-lg" aria-hidden="true"></i>
+                                </a>
+                                <a href="#" class="social-link text-decoration-none" aria-label="WhatsApp d'Afèpanou">
+                                    <i class="fab fa-whatsapp fa-lg" aria-hidden="true"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Quick Links -->
-                <div class="col-lg-2 col-md-6 mb-4">
+                <!-- Navigation Links -->
+                <div class="col-lg-2 col-md-6 col-sm-6">
                     <div class="footer-section">
-                        <h5 class="footer-title">Liens Rapides</h5>
-                        <ul class="footer-links">
-                            <li><a href="{% url 'marketplace:home' %}">Accueil</a></li>
-                            <li><a href="{% url 'marketplace:categories' %}">Catégories</a></li>
-                            <li><a href="{% url 'marketplace:sellers' %}">Vendeurs</a></li>
-                            <li><a href="{% url 'pages:about' %}">À Propos</a></li>
-                            <li><a href="{% url 'pages:contact' %}">Contact</a></li>
+                        <h5 class="footer-title text-warning mb-3">Navigation</h5>
+                        <ul class="footer-links list-unstyled">
+                            <li class="mb-2">
+                                <a href="{% url 'marketplace:home' %}" class="text-light text-decoration-none">
+                                    <i class="fas fa-home me-2" aria-hidden="true"></i>Accueil
+                                </a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="{% url 'marketplace:category_index' %}" class="text-light text-decoration-none">
+                                    <i class="fas fa-th-large me-2" aria-hidden="true"></i>Catégories
+                                </a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="{% url 'marketplace:product_search' %}" class="text-light text-decoration-none">
+                                    <i class="fas fa-search me-2" aria-hidden="true"></i>Rechercher
+                                </a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="{% url 'marketplace:new_products' %}" class="text-light text-decoration-none">
+                                    <i class="fas fa-star me-2" aria-hidden="true"></i>Nouveautés
+                                </a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="{% url 'marketplace:promotions' %}" class="text-light text-decoration-none">
+                                    <i class="fas fa-tags me-2" aria-hidden="true"></i>Promotions
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 </div>
 
                 <!-- Customer Service -->
-                <div class="col-lg-3 col-md-6 mb-4">
+                <div class="col-lg-3 col-md-6 col-sm-6">
                     <div class="footer-section">
-                        <h5 class="footer-title">Service Client</h5>
-                        <ul class="footer-links">
-                            <li><a href="{% url 'pages:help' %}">Centre d'Aide</a></li>
-                            <li><a href="{% url 'pages:shipping' %}">Livraison</a></li>
-                            <li><a href="{% url 'pages:returns' %}">Retours</a></li>
-                            <li><a href="{% url 'pages:faq' %}">FAQ</a></li>
-                            <li><a href="{% url 'account:become_seller' %}">Devenir Vendeur</a></li>
+                        <h5 class="footer-title text-warning mb-3">Service Client</h5>
+                        <ul class="footer-links list-unstyled">
+                            <li class="mb-2">
+                                <a href="{% url 'marketplace:about' %}" class="text-light text-decoration-none">
+                                    <i class="fas fa-info-circle me-2" aria-hidden="true"></i>À Propos
+                                </a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="{% url 'marketplace:contact' %}" class="text-light text-decoration-none">
+                                    <i class="fas fa-envelope me-2" aria-hidden="true"></i>Contactez-nous
+                                </a>
+                            </li>
+                            {% if user.is_authenticated %}
+                            <li class="mb-2">
+                                <a href="{% url 'marketplace:order_history' %}" class="text-light text-decoration-none">
+                                    <i class="fas fa-shopping-bag me-2" aria-hidden="true"></i>Mes Commandes
+                                </a>
+                            </li>
+                            {% endif %}
+                            <li class="mb-2">
+                                <a href="{% url 'marketplace:become_seller' %}" class="text-light text-decoration-none">
+                                    <i class="fas fa-store me-2" aria-hidden="true"></i>Devenir Vendeur
+                                </a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="#" class="text-light text-decoration-none" data-bs-toggle="modal" data-bs-target="#supportModal">
+                                    <i class="fas fa-life-ring me-2" aria-hidden="true"></i>Centre d'Aide
+                                </a>
+                            </li>
                         </ul>
+                        
+                        <!-- Quick Support -->
+                        <div class="mt-4">
+                            <h6 class="text-warning">Support Rapide</h6>
+                            <div class="d-flex gap-2">
+                                <a href="tel:+50928123456" class="btn btn-outline-light btn-sm" title="Appelez-nous">
+                                    <i class="fas fa-phone" aria-hidden="true"></i>
+                                </a>
+                                <a href="mailto:support@afepanou.ht" class="btn btn-outline-light btn-sm" title="Envoyez un email">
+                                    <i class="fas fa-envelope" aria-hidden="true"></i>
+                                </a>
+                                <button class="btn btn-outline-light btn-sm" id="live-chat-btn" title="Chat en direct">
+                                    <i class="fas fa-comments" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Contact Info -->
-                <div class="col-lg-3 col-md-6 mb-4">
+                <!-- Contact & Newsletter -->
+                <div class="col-lg-3 col-md-6">
                     <div class="footer-section">
-                        <h5 class="footer-title">Nous Contacter</h5>
-                        <div class="contact-info">
-                            <div class="contact-item">
-                                <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
-                                <span>Port-au-Prince, Haïti</span>
+                        <h5 class="footer-title text-warning mb-3">Restons Connectés</h5>
+                        
+                        <!-- Contact Information -->
+                        <div class="contact-info mb-4">
+                            <div class="contact-item d-flex align-items-center mb-2">
+                                <i class="fas fa-map-marker-alt text-primary me-3" aria-hidden="true"></i>
+                                <div>
+                                    <small class="text-light">
+                                        <strong>Adresse:</strong><br>
+                                        Port-au-Prince, Haïti<br>
+                                        Zone Métropolitaine
+                                    </small>
+                                </div>
                             </div>
-                            <div class="contact-item">
-                                <i class="fas fa-phone" aria-hidden="true"></i>
-                                <a href="tel:+50928123456">+509 28 12 34 56</a>
+                            <div class="contact-item d-flex align-items-center mb-2">
+                                <i class="fas fa-phone text-primary me-3" aria-hidden="true"></i>
+                                <div>
+                                    <small class="text-light">
+                                        <strong>Téléphone:</strong><br>
+                                        <a href="tel:+50928123456" class="text-light text-decoration-none">+509 28 12 34 56</a>
+                                    </small>
+                                </div>
                             </div>
-                            <div class="contact-item">
-                                <i class="fas fa-envelope" aria-hidden="true"></i>
-                                <a href="mailto:info@afepanou.com">info@afepanou.com</a>
+                            <div class="contact-item d-flex align-items-center mb-3">
+                                <i class="fas fa-clock text-primary me-3" aria-hidden="true"></i>
+                                <div>
+                                    <small class="text-light">
+                                        <strong>Horaires:</strong><br>
+                                        Lun-Ven: 8h-18h<br>
+                                        Sam: 9h-15h
+                                    </small>
+                                </div>
                             </div>
                         </div>
                         
                         <!-- Newsletter Signup -->
-                        <div class="newsletter-signup mt-3">
-                            <h6>Newsletter</h6>
-                            <form class="newsletter-form" method="post" action="{% url 'newsletter:subscribe' %}">
+                        <div class="newsletter-signup">
+                            <h6 class="text-warning mb-3">
+                                <i class="fas fa-envelope-open-text me-2" aria-hidden="true"></i>
+                                Newsletter
+                            </h6>
+                            <p class="small text-light mb-3">Recevez nos dernières offres et nouveautés</p>
+                            <form class="newsletter-form" id="newsletter-form" novalidate>
                                 {% csrf_token %}
-                                <div class="input-group">
-                                    <input type="email" class="form-control" placeholder="Votre email" name="email" required>
-                                    <button type="submit" class="btn btn-primary">
+                                <div class="input-group mb-3">
+                                    <input 
+                                        type="email" 
+                                        class="form-control" 
+                                        placeholder="Votre adresse email" 
+                                        name="email" 
+                                        id="newsletter-email"
+                                        required
+                                        aria-label="Adresse email pour la newsletter"
+                                    >
+                                    <button 
+                                        type="submit" 
+                                        class="btn btn-primary"
+                                        aria-label="S'abonner à la newsletter"
+                                    >
                                         <i class="fas fa-paper-plane" aria-hidden="true"></i>
                                     </button>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="newsletter-consent" required>
+                                    <label class="form-check-label small text-light" for="newsletter-consent">
+                                        J'accepte de recevoir les communications d'Afèpanou
+                                    </label>
                                 </div>
                             </form>
                         </div>
@@ -95,20 +215,43 @@
         </div>
     </div>
 
-    <!-- Payment Methods -->
-    <div class="footer-payments">
+    <!-- Payment Methods & Trust Badges -->
+    <div class="footer-payments bg-primary py-4">
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <div class="payment-methods">
-                        <span class="payment-text">Paiement sécurisé avec:</span>
-                        <img src="{% static 'images/payments/moncash-logo.png' %}" alt="MonCash" class="payment-logo">
+                    <div class="payment-methods text-center text-md-start">
+                        <h6 class="text-white mb-3">Paiement 100% Sécurisé</h6>
+                        <div class="d-flex flex-wrap justify-content-center justify-content-md-start align-items-center gap-3">
+                            <img src="{% static 'images/payments/moncash-logo-white.png' %}" 
+                                 alt="MonCash - Paiement mobile sécurisé" class="payment-logo" 
+                                 style="height: 32px; filter: brightness(1.2);">
+                            <img src="{% static 'images/payments/ssl-secured.png' %}" 
+                                 alt="SSL Sécurisé" class="payment-logo" 
+                                 style="height: 32px;">
+                            <img src="{% static 'images/payments/256-bit-encryption.png' %}" 
+                                 alt="Chiffrement 256-bit" class="payment-logo" 
+                                 style="height: 32px;">
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="footer-badges">
-                        <img src="{% static 'images/badges/secure-shopping.png' %}" alt="Achat sécurisé" class="badge-img">
-                        <img src="{% static 'images/badges/made-in-haiti.png' %}" alt="Made in Haiti" class="badge-img">
+                    <div class="trust-badges text-center text-md-end">
+                        <h6 class="text-white mb-3">Certifications</h6>
+                        <div class="d-flex flex-wrap justify-content-center justify-content-md-end align-items-center gap-3">
+                            <img src="{% static 'images/badges/made-in-haiti-badge.png' %}" 
+                                 alt="Fièrement Haïtien" class="trust-badge" 
+                                 style="height: 40px;" 
+                                 title="Produits fabriqués en Haïti">
+                            <img src="{% static 'images/badges/secure-checkout.png' %}" 
+                                 alt="Commande sécurisée" class="trust-badge" 
+                                 style="height: 40px;"
+                                 title="Processus de commande sécurisé">
+                            <img src="{% static 'images/badges/verified-sellers.png' %}" 
+                                 alt="Vendeurs vérifiés" class="trust-badge" 
+                                 style="height: 40px;"
+                                 title="Tous nos vendeurs sont vérifiés">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -116,21 +259,39 @@
     </div>
 
     <!-- Footer Bottom -->
-    <div class="footer-bottom">
+    <div class="footer-bottom bg-darker py-3">
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <p class="copyright">
-                        &copy; {% now "Y" %} Afèpanou. Tous droits réservés.
+                    <p class="copyright text-light mb-0 text-center text-md-start">
+                        <i class="fas fa-copyright me-1" aria-hidden="true"></i>
+                        {% now "Y" %} <strong>Afèpanou</strong>. Tous droits réservés.
+                        <br class="d-md-none">
+                        <small class="text-muted">Plateforme développée avec ❤️ en Haïti</small>
                     </p>
                 </div>
                 <div class="col-md-6">
-                    <div class="footer-legal">
-                        <a href="{% url 'pages:privacy' %}">Politique de Confidentialité</a>
-                        <span class="separator">|</span>
-                        <a href="{% url 'pages:terms' %}">Conditions d'Utilisation</a>
-                        <span class="separator">|</span>
-                        <a href="{% url 'pages:cookies' %}">Cookies</a>
+                    <div class="footer-legal text-center text-md-end">
+                        <div class="d-flex flex-wrap justify-content-center justify-content-md-end gap-3">
+                            <a href="{% url 'marketplace:terms' %}" class="text-light text-decoration-none small">
+                                Conditions d'Utilisation
+                            </a>
+                            <a href="{% url 'marketplace:privacy' %}" class="text-light text-decoration-none small">
+                                Confidentialité
+                            </a>
+                            <a href="#" class="text-light text-decoration-none small" data-bs-toggle="modal" data-bs-target="#cookieModal">
+                                Cookies
+                            </a>
+                            <a href="#" class="text-light text-decoration-none small" id="accessibility-link">
+                                Accessibilité
+                            </a>
+                        </div>
+                        <div class="mt-2">
+                            <button class="btn btn-outline-light btn-sm" id="language-toggle" aria-label="Changer de langue">
+                                <i class="fas fa-globe me-1" aria-hidden="true"></i>
+                                <small>Français (HT)</small>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -138,7 +299,41 @@
     </div>
 </footer>
 
-<!-- Back to Top Button -->
-<button id="backToTop" class="back-to-top" aria-label="Retour en haut">
-    <i class="fas fa-arrow-up" aria-hidden="true"></i>
-</button>
+<!-- Support Modal -->
+<div class="modal fade" id="supportModal" tabindex="-1" aria-labelledby="supportModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="supportModalLabel">
+                    <i class="fas fa-life-ring me-2" aria-hidden="true"></i>
+                    Centre d'Aide Afèpanou
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body text-center">
+                                <i class="fas fa-question-circle fa-3x text-primary mb-3"></i>
+                                <h6>Questions Fréquentes</h6>
+                                <p class="small text-muted">Trouvez des réponses rapides aux questions les plus courantes</p>
+                                <a href="#" class="btn btn-outline-primary btn-sm">Voir la FAQ</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body text-center">
+                                <i class="fas fa-comments fa-3x text-success mb-3"></i>
+                                <h6>Chat en Direct</h6>
+                                <p class="small text-muted">Discutez directement avec notre équipe support</p>
+                                <button class="btn btn-outline-success btn-sm" id="start-live-chat">Démarrer</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

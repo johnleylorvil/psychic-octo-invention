@@ -1,32 +1,84 @@
+<!-- Primary Meta Tags -->
 {% load static %}
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="title" content="{% block meta_title %}Afèpanou - Marketplace Haïtien pour la Croissance Économique Locale{% endblock %}">
+<meta name="description" content="{% block meta_description %}Découvrez Afèpanou, le marketplace haïtien qui connecte vendeurs locaux et acheteurs. Produits authentiques d'Haïti, paiement sécurisé via MonCash, livraison dans tout le pays.{% endblock %}">
+<meta name="keywords" content="{% block meta_keywords %}Haïti, marketplace, commerce électronique, produits locaux, MonCash, Port-au-Prince, artisanat haïtien, agriculture, économie locale{% endblock %}">
+<meta name="author" content="Afèpanou Team">
+<meta name="robots" content="{% block meta_robots %}index, follow{% endblock %}">
+<meta name="language" content="French">
+<meta name="revisit-after" content="1 days">
+<meta name="rating" content="general">
 
-<!-- SEO Meta Tags -->
-<meta name="description" content="{% block meta_description %}Afèpanou - Marketplace haïtien pour la croissance économique locale. Découvrez et achetez des produits authentiques haïtiens.{% endblock %}">
-<meta name="keywords" content="{% block meta_keywords %}Haiti, marketplace, e-commerce, produits haïtiens, MonCash, économie locale{% endblock %}">
-<meta name="author" content="Afèpanou">
+<!-- Geographic Meta Tags -->
+<meta name="geo.region" content="HT">
+<meta name="geo.country" content="Haiti">
+<meta name="geo.placename" content="Port-au-Prince">
+<meta name="ICBM" content="18.5944, -72.3074">
 
 <!-- Open Graph / Facebook -->
-<meta property="og:type" content="website">
+<meta property="og:type" content="{% block og_type %}website{% endblock %}">
 <meta property="og:url" content="{{ request.build_absolute_uri }}">
-<meta property="og:title" content="{% block og_title %}{% block title %}Afèpanou - Croissance Économique Locale{% endblock %}{% endblock %}">
-<meta property="og:description" content="{% block og_description %}{{ block.super }}{% endblock %}">
-<meta property="og:image" content="{% block og_image %}{% static 'images/afepanou-og-image.jpg' %}{% endblock %}">
+<meta property="og:title" content="{% block og_title %}Afèpanou - Marketplace Haïtien{% endblock %}">
+<meta property="og:description" content="{% block og_description %}Marketplace haïtien pour la croissance économique locale. Découvrez des produits authentiques d'Haïti avec paiement MonCash sécurisé.{% endblock %}">
+<meta property="og:image" content="{% block og_image %}{{ request.build_absolute_uri }}{% static 'images/afepanou-og-image.jpg' %}{% endblock %}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Afèpanou - Marketplace Haïtien">
+<meta property="og:site_name" content="Afèpanou">
+<meta property="og:locale" content="fr_HT">
 
 <!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image">
 <meta property="twitter:url" content="{{ request.build_absolute_uri }}">
-<meta property="twitter:title" content="{% block twitter_title %}{{ block.super }}{% endblock %}">
-<meta property="twitter:description" content="{% block twitter_description %}{{ block.super }}{% endblock %}">
-<meta property="twitter:image" content="{% block twitter_image %}{{ block.super }}{% endblock %}">
+<meta property="twitter:title" content="{% block twitter_title %}Afèpanou - Marketplace Haïtien{% endblock %}">
+<meta property="twitter:description" content="{% block twitter_description %}Marketplace haïtien pour la croissance économique locale. Produits authentiques, paiement MonCash, livraison sécurisée.{% endblock %}">
+<meta property="twitter:image" content="{% block twitter_image %}{{ request.build_absolute_uri }}{% static 'images/afepanou-twitter-card.jpg' %}{% endblock %}">
+<meta property="twitter:site" content="@afepanou">
+<meta property="twitter:creator" content="@afepanou">
 
-<!-- Favicon -->
-<link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
-<link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
-<link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
+<!-- WhatsApp -->
+<meta property="whatsapp:image" content="{{ request.build_absolute_uri }}{% static 'images/afepanou-whatsapp-preview.jpg' %}">
 
-<!-- Preconnect for performance -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Additional SEO Meta Tags -->
+<meta name="google-site-verification" content="{% block google_verification %}{% endblock %}">
+<meta name="msvalidate.01" content="{% block bing_verification %}{% endblock %}">
+<meta name="yandex-verification" content="{% block yandex_verification %}{% endblock %}">
+
+<!-- Web App Meta Tags -->
+<meta name="application-name" content="Afèpanou">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Afèpanou">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no">
+
+<!-- Canonical URL -->
+<link rel="canonical" href="{% block canonical %}{{ request.build_absolute_uri }}{% endblock %}">
+
+<!-- Alternate Language Versions -->
+<link rel="alternate" hreflang="fr-ht" href="{{ request.build_absolute_uri }}">
+<link rel="alternate" hreflang="fr" href="{{ request.build_absolute_uri }}">
+<link rel="alternate" hreflang="x-default" href="{{ request.build_absolute_uri }}">
+
+<!-- JSON-LD Structured Data for Organization -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Afèpanou",
+    "description": "Marketplace haïtien pour la croissance économique locale",
+    "url": "{{ request.build_absolute_uri }}",
+    "logo": "{{ request.build_absolute_uri }}{% static 'images/afepanou-logo.png' %}",
+    "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Port-au-Prince",
+        "addressRegion": "Ouest",
+        "addressCountry": "HT"
+    },
+    "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "Customer Service",
+        "availableLanguage": ["French", "Haitian Creole"]
+    }
+}
+</script>

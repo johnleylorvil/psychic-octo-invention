@@ -1,21 +1,36 @@
 /**
- * Afèpanou - Main JavaScript
- * ===========================
- * Main application JavaScript with core functionality
+ * ========================================
+ * AFÈPANOU MARKETPLACE - MAIN JAVASCRIPT
+ * Modern Interactive Components for Haitian E-commerce
+ * ========================================
  */
 
 (function() {
     'use strict';
 
-    // Global app object
+    // Global configuration from Django template
+    const config = window.AfepanouConfig || {};
+
+    // Main application object
     window.Afepanou = {
         config: {
-            csrfToken: window.csrfToken || '',
-            apiBaseUrl: '/api/v1/',
-            debug: false
+            csrfToken: config.csrfToken || '',
+            baseUrl: config.baseUrl || '/',
+            staticUrl: config.staticUrl || '/static/',
+            mediaUrl: config.mediaUrl || '/media/',
+            language: config.language || 'fr-HT',
+            currency: config.currency || 'HTG',
+            user: config.user || { isAuthenticated: false, isSeller: false },
+            urls: config.urls || {},
+            debug: config.debug || false
         },
         components: {},
-        utils: {}
+        utils: {},
+        state: {
+            cartCount: 0,
+            wishlistCount: 0,
+            isOnline: navigator.onLine
+        }
     };
 
     // Utility functions
@@ -100,15 +115,17 @@
         },
 
         /**
-         * Make AJAX request
+         * Make AJAX request with modern fetch API
          */
         ajax: function(options) {
             const defaults = {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': Afepanou.utils.getCSRFToken()
-                }
+                    'X-CSRFToken': Afepanou.utils.getCSRFToken(),
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
             };
 
             const config = Object.assign(defaults, options);
@@ -122,8 +139,93 @@
                 })
                 .catch(error => {
                     console.error('AJAX Error:', error);
+                    if (Afepanou.config.debug) {
+                        Afepanou.utils.showToast('Erreur de connexion', 'danger');
+                    }
                     throw error;
                 });
+        },
+
+        /**
+         * Format currency for Haiti
+         */
+        formatCurrency: function(amount) {
+            return new Intl.NumberFormat('fr-HT', {
+                style: 'currency',
+                currency: 'HTG',
+                minimumFractionDigits: 2
+            }).format(amount);
+        },
+
+        /**
+         * Storage utilities
+         */
+        storage: {
+            get: function(key) {
+                try {
+                    return JSON.parse(localStorage.getItem(`afepanou_${key}`));
+                } catch (e) {
+                    return null;
+                }
+            },
+            set: function(key, value) {
+                try {
+                    localStorage.setItem(`afepanou_${key}`, JSON.stringify(value));
+                } catch (e) {
+                    console.warn('Storage not available');
+                }
+            },
+            remove: function(key) {
+                try {
+                    localStorage.removeItem(`afepanou_${key}`);
+                } catch (e) {
+                    console.warn('Storage not available');
+                }
+            }
+        },
+
+        /**
+         * Animate element
+         */
+        animate: function(element, animation, duration = 500) {
+            return new Promise((resolve) => {
+                element.style.animation = `${animation} ${duration}ms ease-in-out`;
+                element.addEventListener('animationend', function handler() {
+                    element.removeEventListener('animationend', handler);
+                    element.style.animation = '';
+                    resolve();
+                });
+            });
+        },
+
+        /**
+         * Throttle function
+         */
+        throttle: function(func, limit) {
+            let inThrottle;
+            return function() {
+                const args = arguments;
+                const context = this;
+                if (!inThrottle) {
+                    func.apply(context, args);
+                    inThrottle = true;
+                    setTimeout(() => inThrottle = false, limit);
+                }
+            };
+        },
+
+        /**
+         * Check if user is on mobile
+         */
+        isMobile: function() {
+            return window.innerWidth < 768;
+        },
+
+        /**
+         * Generate unique ID
+         */
+        generateId: function() {
+            return 'afepanou_' + Math.random().toString(36).substr(2, 9);
         }
     };
 
@@ -281,10 +383,13 @@
         }
     };
 
-    // Search component
+    // Enhanced Search component with voice recognition
     Afepanou.components.Search = {
         init: function() {
             this.bindEvents();
+            this.initVoiceSearch();
+            this.initQuickFilters();
+            this.loadSearchHistory();
         },
 
         bindEvents: function() {
@@ -295,7 +400,31 @@
                 );
                 input.addEventListener('focus', this.showSuggestions.bind(this));
                 input.addEventListener('blur', this.hideSuggestions.bind(this));
+                input.addEventListener('keydown', this.handleKeydown.bind(this));
             });
+
+            // Quick filter buttons
+            document.addEventListener('click', (e) => {
+                if (e.target.matches('.quick-filter-btn')) {
+                    e.preventDefault();
+                    this.applyQuickFilter(e.target);
+                }
+            });
+
+            // Popular search tags
+            document.addEventListener('click', (e) => {
+                if (e.target.matches('.popular-search-tag')) {
+                    e.preventDefault();
+                    const query = e.target.dataset.query;
+                    this.performSearch(query);
+                }
+            });
+
+            // Advanced search form
+            const advancedForm = document.getElementById('advanced-search-form');
+            if (advancedForm) {
+                advancedForm.addEventListener('submit', this.handleAdvancedSearch.bind(this));
+            }
         },
 
         handleSearchInput: function(event) {
@@ -303,58 +432,280 @@
             const query = input.value.trim();
             
             if (query.length >= 2) {
+                this.showLoadingState();
                 this.fetchSuggestions(query, input);
+            } else if (query.length === 0) {
+                this.showPopularSearches();
             } else {
                 this.hideSuggestions();
             }
         },
 
+        handleKeydown: function(event) {
+            const dropdown = document.getElementById('search-suggestions');
+            if (!dropdown || dropdown.classList.contains('d-none')) return;
+
+            const items = dropdown.querySelectorAll('.suggestion-item, .popular-search-tag');
+            let activeIndex = Array.from(items).findIndex(item => item.classList.contains('active'));
+
+            switch (event.key) {
+                case 'ArrowDown':
+                    event.preventDefault();
+                    activeIndex = (activeIndex + 1) % items.length;
+                    this.highlightSuggestion(items, activeIndex);
+                    break;
+                case 'ArrowUp':
+                    event.preventDefault();
+                    activeIndex = activeIndex <= 0 ? items.length - 1 : activeIndex - 1;
+                    this.highlightSuggestion(items, activeIndex);
+                    break;
+                case 'Enter':
+                    event.preventDefault();
+                    if (activeIndex >= 0) {
+                        const activeItem = items[activeIndex];
+                        if (activeItem.dataset.query) {
+                            this.performSearch(activeItem.dataset.query);
+                        } else {
+                            activeItem.click();
+                        }
+                    }
+                    break;
+                case 'Escape':
+                    this.hideSuggestions();
+                    break;
+            }
+        },
+
+        highlightSuggestion: function(items, activeIndex) {
+            items.forEach((item, index) => {
+                item.classList.toggle('active', index === activeIndex);
+            });
+        },
+
         fetchSuggestions: function(query, input) {
-            fetch(`/ajax/search-suggestions/?q=${encodeURIComponent(query)}`)
+            const url = Afepanou.config.urls.ajaxSearchAutocomplete || '/ajax/recherche/';
+            
+            fetch(`${url}?query=${encodeURIComponent(query)}`)
                 .then(response => response.json())
                 .then(data => {
-                    if (data.suggestions && data.suggestions.length > 0) {
-                        this.displaySuggestions(data.suggestions, input);
+                    this.hideLoadingState();
+                    if (data.success && data.suggestions && data.suggestions.length > 0) {
+                        this.displaySuggestions(data.suggestions, data.products || [], input);
                     } else {
-                        this.hideSuggestions();
+                        this.showNoResults();
                     }
                 })
                 .catch(error => {
                     console.error('Search suggestions error:', error);
+                    this.hideLoadingState();
+                    this.showNoResults();
                 });
         },
 
-        displaySuggestions: function(suggestions, input) {
-            const container = input.closest('.search-container');
-            let suggestionsEl = container.querySelector('.search-suggestions');
+        displaySuggestions: function(suggestions, products, input) {
+            const dropdown = document.getElementById('search-suggestions');
+            const suggestionsList = document.getElementById('suggestions-list');
             
-            if (!suggestionsEl) {
-                suggestionsEl = document.createElement('div');
-                suggestionsEl.className = 'search-suggestions';
-                container.appendChild(suggestionsEl);
+            if (!dropdown || !suggestionsList) return;
+
+            let html = '';
+
+            // Product suggestions
+            if (products.length > 0) {
+                html += '<div class="suggestions-section">';
+                html += '<h6 class="suggestion-header text-muted mb-2"><i class="fas fa-cube me-2"></i>Produits</h6>';
+                products.slice(0, 5).forEach(product => {
+                    html += `
+                        <a href="/produit/${product.slug}/" class="suggestion-item d-flex align-items-center p-2 text-decoration-none">
+                            <img src="${product.image || '/static/images/product-placeholder.jpg'}" 
+                                 alt="${product.name}" class="suggestion-image me-3" width="40" height="40">
+                            <div class="flex-grow-1">
+                                <div class="suggestion-name">${product.name}</div>
+                                <small class="text-muted">${Afepanou.utils.formatCurrency(product.price)}</small>
+                            </div>
+                        </a>
+                    `;
+                });
+                html += '</div>';
             }
 
-            let html = '<div class="suggestions-header"><h6>Suggestions</h6></div><div class="suggestions-list">';
-            suggestions.forEach(suggestion => {
-                html += `<a href="/search/?q=${encodeURIComponent(suggestion.name)}" class="suggestion-item d-block p-2">`;
-                html += `<i class="fas fa-search me-2"></i>${suggestion.name}`;
-                html += '</a>';
-            });
-            html += '</div>';
+            // Search term suggestions
+            if (suggestions.length > 0) {
+                html += '<div class="suggestions-section border-top pt-2">';
+                html += '<h6 class="suggestion-header text-muted mb-2"><i class="fas fa-search me-2"></i>Suggestions</h6>';
+                suggestions.forEach(suggestion => {
+                    html += `
+                        <button type="button" class="suggestion-item w-100 text-start border-0 bg-transparent p-2" 
+                                data-query="${suggestion}">
+                            <i class="fas fa-search text-muted me-2"></i>
+                            ${suggestion}
+                        </button>
+                    `;
+                });
+                html += '</div>';
+            }
 
-            suggestionsEl.innerHTML = html;
-            suggestionsEl.style.display = 'block';
+            suggestionsList.innerHTML = html;
+            dropdown.classList.remove('d-none');
+
+            // Add click handlers for dynamic elements
+            suggestionsList.addEventListener('click', (e) => {
+                if (e.target.dataset.query) {
+                    this.performSearch(e.target.dataset.query);
+                }
+            });
         },
 
-        showSuggestions: function() {
-            // Show suggestions if they exist
+        showLoadingState: function() {
+            const loading = document.getElementById('suggestions-loading');
+            const list = document.getElementById('suggestions-list');
+            const empty = document.getElementById('suggestions-empty');
+            const popular = document.getElementById('popular-searches');
+            
+            if (loading) loading.classList.remove('d-none');
+            if (list) list.innerHTML = '';
+            if (empty) empty.classList.add('d-none');
+            if (popular) popular.classList.add('d-none');
+            
+            document.getElementById('search-suggestions').classList.remove('d-none');
+        },
+
+        hideLoadingState: function() {
+            const loading = document.getElementById('suggestions-loading');
+            if (loading) loading.classList.add('d-none');
+        },
+
+        showNoResults: function() {
+            const empty = document.getElementById('suggestions-empty');
+            const popular = document.getElementById('popular-searches');
+            
+            if (empty) empty.classList.remove('d-none');
+            if (popular) popular.classList.remove('d-none');
+        },
+
+        showPopularSearches: function() {
+            const popular = document.getElementById('popular-searches');
+            const list = document.getElementById('suggestions-list');
+            
+            if (popular) popular.classList.remove('d-none');
+            if (list) list.innerHTML = '';
+            
+            document.getElementById('search-suggestions').classList.remove('d-none');
         },
 
         hideSuggestions: function() {
             setTimeout(() => {
-                const suggestions = document.querySelectorAll('.search-suggestions');
-                suggestions.forEach(el => el.style.display = 'none');
+                const dropdown = document.getElementById('search-suggestions');
+                if (dropdown) dropdown.classList.add('d-none');
             }, 200);
+        },
+
+        performSearch: function(query) {
+            const searchInput = document.querySelector('.search-input');
+            if (searchInput) {
+                searchInput.value = query;
+            }
+            
+            // Save to search history
+            this.saveSearchHistory(query);
+            
+            // Submit search form or navigate
+            const searchForm = document.getElementById('search-form');
+            if (searchForm) {
+                searchForm.submit();
+            } else {
+                window.location.href = `${Afepanou.config.baseUrl}recherche/?query=${encodeURIComponent(query)}`;
+            }
+        },
+
+        applyQuickFilter: function(button) {
+            const query = button.dataset.query;
+            this.performSearch(query);
+        },
+
+        saveSearchHistory: function(query) {
+            let history = Afepanou.utils.storage.get('search_history') || [];
+            
+            // Remove existing occurrence
+            history = history.filter(item => item.toLowerCase() !== query.toLowerCase());
+            
+            // Add to beginning
+            history.unshift(query);
+            
+            // Keep only last 10 searches
+            history = history.slice(0, 10);
+            
+            Afepanou.utils.storage.set('search_history', history);
+        },
+
+        loadSearchHistory: function() {
+            const history = Afepanou.utils.storage.get('search_history') || [];
+            // Use history to populate search suggestions when input is focused
+        },
+
+        initVoiceSearch: function() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                return; // Voice search not supported
+            }
+
+            const voiceBtn = document.getElementById('voice-search-btn');
+            const voiceIcon = document.getElementById('voice-search-icon');
+            const voiceContainer = document.getElementById('voice-search-container');
+
+            if (!voiceBtn) return;
+
+            // Show voice search button
+            voiceContainer.classList.remove('d-none');
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'fr-FR'; // French for Haiti
+
+            voiceBtn.addEventListener('click', () => {
+                recognition.start();
+                voiceIcon.className = 'fas fa-microphone-slash text-danger';
+                voiceBtn.title = 'Arrêter l\'écoute';
+            });
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                this.performSearch(transcript);
+            };
+
+            recognition.onend = () => {
+                voiceIcon.className = 'fas fa-microphone text-muted';
+                voiceBtn.title = 'Recherche vocale';
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                Afepanou.utils.showToast('Erreur de reconnaissance vocale', 'warning');
+                voiceIcon.className = 'fas fa-microphone text-muted';
+            };
+        },
+
+        initQuickFilters: function() {
+            // Quick filters are handled in bindEvents
+        },
+
+        handleAdvancedSearch: function(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            // Build query string
+            const params = new URLSearchParams();
+            for (let [key, value] of formData.entries()) {
+                if (value.trim()) {
+                    params.append(key, value);
+                }
+            }
+            
+            // Navigate to search results
+            window.location.href = `${Afepanou.config.baseUrl}recherche/?${params.toString()}`;
         }
     };
 
