@@ -1,7 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(python manage.py:*)",
+      "Bash(pip install:*)",
+      "Bash(python -m pytest marketplace/tests/test_models.py::TestUserModel::test_user_creation -v)",
+      "Bash(python -m pytest --ds=config.settings marketplace/tests/test_models.py::TestUserModel::test_user_creation -v)",
+      "Bash(python -m pytest --ds=config.settings marketplace/tests/test_models.py -v --tb=short)",
+      "Bash(python -m pytest --ds=config.settings marketplace/tests/test_models.py::TestUserModel -v --maxfail=5)",
+      "Bash(python -m pytest --ds=config.settings marketplace/tests/test_models.py::TestUserModel --cov=marketplace.models.user --cov-report=term-missing)"
     ],
     "deny": [],
     "ask": []

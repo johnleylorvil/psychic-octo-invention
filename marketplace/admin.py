@@ -144,7 +144,7 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(ProductImage)
 class ProductImageAdmin(admin.ModelAdmin):
-    list_display = ['product', 'alt_text', 'is_primary', 'display_order']
+    list_display = ['product', 'alt_text', 'is_primary', 'sort_order']
     list_filter = ['is_primary', 'created_at']
     search_fields = ['product__name', 'alt_text']
 
@@ -161,7 +161,7 @@ class OrderItemInline(admin.TabularInline):
 
 class OrderStatusHistoryInline(admin.TabularInline):
     model = OrderStatusHistory
-    readonly_fields = ['status', 'notes', 'user', 'created_at']
+    readonly_fields = ['old_status', 'new_status', 'changed_by', 'created_at']
     extra = 0
     
     def has_add_permission(self, request, obj=None):
@@ -236,12 +236,12 @@ class CartAdmin(admin.ModelAdmin):
 class TransactionAdmin(admin.ModelAdmin):
     list_display = [
         'order', 'amount', 'currency', 'payment_method', 
-        'status', 'external_transaction_id', 'created_at'
+        'status', 'transaction_id', 'created_at'
     ]
     list_filter = ['status', 'payment_method', 'currency', 'created_at']
-    search_fields = ['order__order_number', 'external_transaction_id']
+    search_fields = ['order__order_number', 'transaction_id']
     readonly_fields = [
-        'created_at', 'updated_at', 'gateway_response', 'webhook_data'
+        'created_at', 'updated_at', 'gateway_response'
     ]
     
     fieldsets = (
@@ -249,10 +249,10 @@ class TransactionAdmin(admin.ModelAdmin):
             'fields': ('order', 'amount', 'currency', 'payment_method', 'status')
         }),
         ('External Reference', {
-            'fields': ('external_transaction_id', 'reference_number')
+            'fields': ('transaction_id', 'reference_number')
         }),
         ('Metadata', {
-            'fields': ('metadata', 'gateway_response', 'webhook_data'),
+            'fields': ('gateway_response', 'notes'),
             'classes': ('collapse',)
         }),
         ('Timestamps', {
@@ -291,27 +291,27 @@ class ReviewAdmin(admin.ModelAdmin):
 # Content Management
 @admin.register(Banner)
 class BannerAdmin(admin.ModelAdmin):
-    list_display = ['title', 'is_active', 'display_order', 'created_at']
+    list_display = ['title', 'is_active', 'sort_order', 'created_at']
     list_filter = ['is_active', 'created_at']
     search_fields = ['title', 'subtitle', 'button_text']
     
     fieldsets = (
         ('Banner Content', {
-            'fields': ('title', 'subtitle', 'description', 'button_text', 'button_link')
+            'fields': ('title', 'subtitle', 'description', 'button_text', 'link_url')
         }),
         ('Media', {
-            'fields': ('image', 'background_color')
+            'fields': ('image_url', 'image_path', 'mobile_image_url')
         }),
         ('Settings', {
-            'fields': ('is_active', 'display_order')
+            'fields': ('is_active', 'sort_order', 'layout_type')
         }),
     )
 
 
 @admin.register(Page)
 class PageAdmin(admin.ModelAdmin):
-    list_display = ['title', 'slug', 'is_published', 'created_at']
-    list_filter = ['is_published', 'created_at']
+    list_display = ['title', 'slug', 'is_active', 'created_at']
+    list_filter = ['is_active', 'created_at']
     search_fields = ['title', 'content']
     prepopulated_fields = {'slug': ('title',)}
     readonly_fields = ['created_at', 'updated_at']
@@ -319,9 +319,9 @@ class PageAdmin(admin.ModelAdmin):
 
 @admin.register(NewsletterSubscriber)
 class NewsletterSubscriberAdmin(admin.ModelAdmin):
-    list_display = ['email', 'user', 'is_active', 'subscribed_at']
+    list_display = ['email', 'first_name', 'is_active', 'subscribed_at']
     list_filter = ['is_active', 'subscribed_at']
-    search_fields = ['email', 'user__email']
+    search_fields = ['email', 'first_name', 'last_name']
     
     actions = ['activate_subscribers', 'deactivate_subscribers']
     
@@ -338,8 +338,8 @@ class NewsletterSubscriberAdmin(admin.ModelAdmin):
 
 @admin.register(SiteSetting)
 class SiteSettingAdmin(admin.ModelAdmin):
-    list_display = ['key', 'value', 'description']
-    search_fields = ['key', 'description']
+    list_display = ['setting_key', 'setting_value', 'description']
+    search_fields = ['setting_key', 'description']
     
     def has_add_permission(self, request):
         return request.user.is_superuser
@@ -351,32 +351,28 @@ class SiteSettingAdmin(admin.ModelAdmin):
 @admin.register(Promotion)
 class PromotionAdmin(admin.ModelAdmin):
     list_display = [
-        'name', 'promotion_type', 'discount_value', 'is_active',
+        'name', 'discount_type', 'discount_value', 'is_active',
         'start_date', 'end_date'
     ]
-    list_filter = ['promotion_type', 'is_active', 'start_date', 'end_date']
-    search_fields = ['name', 'description', 'code']
+    list_filter = ['discount_type', 'is_active', 'start_date', 'end_date']
+    search_fields = ['name', 'code']
     
     fieldsets = (
         ('Basic Information', {
-            'fields': ('name', 'description', 'promotion_type', 'code')
+            'fields': ('name', 'code', 'discount_type')
         }),
         ('Discount Settings', {
-            'fields': ('discount_value', 'max_discount_amount', 'min_order_amount')
+            'fields': ('discount_value', 'minimum_amount')
         }),
         ('Validity', {
-            'fields': ('start_date', 'end_date', 'usage_limit', 'used_count')
-        }),
-        ('Conditions', {
-            'fields': ('applicable_categories', 'applicable_products'),
-            'classes': ('collapse',)
+            'fields': ('start_date', 'end_date', 'maximum_uses', 'current_uses')
         }),
         ('Settings', {
             'fields': ('is_active',)
         }),
     )
     
-    readonly_fields = ['used_count']
+    readonly_fields = ['current_uses']
 
 
 # Custom admin site configuration

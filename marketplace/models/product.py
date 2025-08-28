@@ -165,6 +165,29 @@ class Product(models.Model):
         null=True,
         validators=[MinValueValidator(0)]
     )
+    
+    # Analytics and Performance
+    view_count = models.PositiveIntegerField(default=0)
+    purchase_count = models.PositiveIntegerField(default=0)
+    
+    # Shipping and Fulfillment
+    shipping_weight = models.DecimalField(
+        max_digits=8,
+        decimal_places=3,
+        blank=True,
+        null=True,
+        help_text="Weight for shipping calculations"
+    )
+    shipping_class = models.CharField(
+        max_length=50,
+        blank=True,
+        choices=[
+            ('standard', 'Standard'),
+            ('heavy', 'Heavy Item'),
+            ('fragile', 'Fragile'),
+            ('express_only', 'Express Only')
+        ]
+    )
 
     # Product Details
     brand = models.CharField(max_length=100, blank=True, null=True)
@@ -286,6 +309,36 @@ class Product(models.Model):
             self.save()
             return True
         return False
+    
+    def release_reserved_quantity(self, quantity):
+        """Release reserved quantity"""
+        if self.reserved_quantity >= quantity:
+            self.reserved_quantity -= quantity
+            self.save()
+            return True
+        return False
+    
+    def increment_view_count(self):
+        """Increment product view count"""
+        self.view_count += 1
+        self.save(update_fields=['view_count'])
+    
+    def increment_purchase_count(self):
+        """Increment purchase count when product is purchased"""
+        self.purchase_count += 1
+        self.save(update_fields=['purchase_count'])
+    
+    @property
+    def is_popular(self):
+        """Check if product is popular based on views and purchases"""
+        return self.view_count > 100 or self.purchase_count > 10
+    
+    @property 
+    def conversion_rate(self):
+        """Calculate conversion rate (purchases/views)"""
+        if self.view_count > 0:
+            return (self.purchase_count / self.view_count) * 100
+        return 0
 
 
 class ProductImage(models.Model):

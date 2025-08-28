@@ -20,7 +20,15 @@ class User(AbstractUser):
     
     # User Type and Status
     is_seller = models.BooleanField(default=False)
+    is_premium_seller = models.BooleanField(default=False)
+    seller_since = models.DateTimeField(blank=True, null=True)
     email_verified = models.BooleanField(default=False)
+    phone_verified = models.BooleanField(default=False)
+    
+    # Account Status
+    is_suspended = models.BooleanField(default=False)
+    suspension_reason = models.TextField(blank=True)
+    last_login_ip = models.GenericIPAddressField(blank=True, null=True)
     
     # Additional Information
     gender = models.CharField(
@@ -89,3 +97,66 @@ class User(AbstractUser):
             return self.first_name
         else:
             return self.username
+    
+    def activate_seller_account(self):
+        """Activate seller account"""
+        from django.utils import timezone
+        if not self.is_seller:
+            self.is_seller = True
+            self.seller_since = timezone.now()
+            self.save(update_fields=['is_seller', 'seller_since'])
+    
+    def deactivate_seller_account(self):
+        """Deactivate seller account"""
+        self.is_seller = False
+        self.is_premium_seller = False
+        self.save(update_fields=['is_seller', 'is_premium_seller'])
+    
+    def suspend_account(self, reason=""):
+        """Suspend user account"""
+        self.is_suspended = True
+        self.suspension_reason = reason
+        self.is_active = False
+        self.save(update_fields=['is_suspended', 'suspension_reason', 'is_active'])
+    
+    def unsuspend_account(self):
+        """Unsuspend user account"""
+        self.is_suspended = False
+        self.suspension_reason = ""
+        self.is_active = True
+        self.save(update_fields=['is_suspended', 'suspension_reason', 'is_active'])
+    
+    @property
+    def is_verified_seller(self):
+        """Check if seller has all verifications"""
+        return (self.is_seller and 
+                self.email_verified and 
+                self.phone_verified and
+                hasattr(self, 'vendor_profile') and 
+                self.vendor_profile.is_verified)
+    
+    @property
+    def seller_rating(self):
+        """Get seller's average rating from all their products"""
+        if not self.is_seller:
+            return None
+        
+        from django.db.models import Avg
+        reviews = self.products.filter(
+            reviews__is_approved=True
+        ).aggregate(avg_rating=Avg('reviews__rating'))
+        
+        return round(reviews['avg_rating'] or 0, 2)
+    
+    @property
+    def total_products(self):
+        """Get total number of products for seller"""
+        if not self.is_seller:
+            return 0
+        return self.products.filter(is_active=True).count()
+    
+    @property
+    def account_age_days(self):
+        """Get account age in days"""
+        from django.utils import timezone
+        return (timezone.now() - self.date_joined).days

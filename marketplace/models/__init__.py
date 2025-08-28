@@ -13,6 +13,8 @@ from .newsletter import NewsletterSubscriber
 from .settings import SiteSetting
 from .vendor import VendorProfile
 from .promotion import Promotion
+from .address import Address, SavedLocation
+from .wishlist import Wishlist, WishlistItem, WishlistCollection, WishlistCollectionItem, ProductAlert
 
 __all__ = [
     # User Management
@@ -50,4 +52,15 @@ __all__ = [
 
     # Promotions
     'Promotion',
+    
+    # Address Management
+    'Address',
+    'SavedLocation',
+    
+    # Wishlist and Favorites
+    'Wishlist',
+    'WishlistItem',
+    'WishlistCollection',
+    'WishlistCollectionItem',
+    'ProductAlert',
 ]
