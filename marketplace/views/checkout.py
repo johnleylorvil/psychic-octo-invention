@@ -401,3 +401,140 @@ def delete_address(request, address_id):
         messages.success(request, _('Address deleted successfully.'))
     
     return redirect('address_book')
+
+
+@login_required
+def checkout_shipping(request):
+    """Checkout shipping step"""
+    cart = CartService.get_or_create_cart(user=request.user)
+    cart_summary = CartService.get_cart_summary(cart)
+    
+    if cart_summary['item_count'] == 0:
+        messages.error(request, _('Your cart is empty.'))
+        return redirect('marketplace:cart')
+    
+    if request.method == 'POST':
+        shipping_form = ShippingAddressForm(request.POST)
+        if shipping_form.is_valid():
+            # Save shipping info to session
+            request.session['shipping_address'] = shipping_form.cleaned_data
+            return redirect('marketplace:checkout_payment')
+    else:
+        # Pre-fill with user's default address
+        default_address = Address.objects.filter(user=request.user, is_default=True).first()
+        initial_data = {}
+        if default_address:
+            initial_data = {
+                'first_name': default_address.first_name,
+                'last_name': default_address.last_name,
+                'address_line_1': default_address.address_line_1,
+                'address_line_2': default_address.address_line_2,
+                'city': default_address.city,
+                'state': default_address.state,
+                'postal_code': default_address.postal_code,
+                'phone': default_address.phone,
+            }
+        shipping_form = ShippingAddressForm(initial=initial_data)
+    
+    return render(request, 'checkout/shipping.html', {
+        'form': shipping_form,
+        'cart_summary': cart_summary,
+        'title': _('Shipping Information')
+    })
+
+
+@login_required
+def checkout_payment(request):
+    """Checkout payment step"""
+    cart = CartService.get_or_create_cart(user=request.user)
+    cart_summary = CartService.get_cart_summary(cart)
+    
+    if cart_summary['item_count'] == 0:
+        messages.error(request, _('Your cart is empty.'))
+        return redirect('marketplace:cart')
+    
+    # Check if shipping info exists
+    if 'shipping_address' not in request.session:
+        messages.error(request, _('Please complete shipping information first.'))
+        return redirect('marketplace:checkout_shipping')
+    
+    if request.method == 'POST':
+        payment_form = PaymentMethodForm(request.POST)
+        if payment_form.is_valid():
+            # Create order
+            order_data = {
+                'user': request.user,
+                'cart': cart,
+                'shipping_address': request.session['shipping_address'],
+                'payment_method': payment_form.cleaned_data['payment_method']
+            }
+            
+            try:
+                order = OrderService.create_order_from_cart(**order_data)
+                
+                # Clear cart and session
+                CartService.clear_cart(cart)
+                del request.session['shipping_address']
+                
+                messages.success(request, _('Order created successfully!'))
+                return redirect('marketplace:order_confirmation', order_id=order.id)
+                
+            except ValidationError as e:
+                messages.error(request, str(e))
+    else:
+        payment_form = PaymentMethodForm()
+    
+    return render(request, 'checkout/payment.html', {
+        'form': payment_form,
+        'cart_summary': cart_summary,
+        'shipping_address': request.session['shipping_address'],
+        'title': _('Payment Method')
+    })
+
+
+@login_required
+def checkout_success(request):
+    """Checkout success page"""
+    order_id = request.GET.get('order_id')
+    if order_id:
+        order = get_object_or_404(Order, id=order_id, user=request.user)
+        return render(request, 'checkout/success.html', {
+            'order': order,
+            'title': _('Order Completed')
+        })
+    
+    return render(request, 'checkout/success.html', {
+        'title': _('Order Completed')
+    })
+
+
+def checkout_error(request):
+    """Checkout error page"""
+    error_message = request.GET.get('error', _('An error occurred during checkout.'))
+    
+    return render(request, 'checkout/error.html', {
+        'error_message': error_message,
+        'title': _('Checkout Error')
+    })
+
+
+class OrderConfirmationView(LoginRequiredMixin, DetailView):
+    """Order confirmation view"""
+    model = Order
+    template_name = 'checkout/order_confirmation.html'
+    context_object_name = 'order'
+    pk_url_kwarg = 'order_id'
+    
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f'Order Confirmation #{self.object.order_number}'
+        
+        # Calculate shipping and tax info
+        context['shipping_cost'] = self.object.shipping_cost
+        context['tax_amount'] = self.object.tax_amount
+        context['subtotal'] = self.object.subtotal
+        
+        return context

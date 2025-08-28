@@ -294,3 +294,82 @@ def payment_retry(request, order_id):
     
     messages.info(request, _('You can now retry the payment.'))
     return redirect('payment_initiate', order_id=order.id)
+
+
+def cod_payment(request):
+    """Handle Cash on Delivery payment method"""
+    if request.method == 'POST':
+        order_id = request.POST.get('order_id')
+        order = get_object_or_404(Order, id=order_id, user=request.user)
+        
+        # Set payment method to COD
+        order.payment_method = 'cash_on_delivery'
+        order.payment_status = 'pending_delivery'
+        order.status = 'confirmed'
+        order.save()
+        
+        # Create transaction record
+        Transaction.objects.create(
+            order=order,
+            payment_method='cash_on_delivery',
+            amount=order.total_amount,
+            status='pending',
+            transaction_id=f'COD_{order.order_number}'
+        )
+        
+        messages.success(request, _('Order confirmed for Cash on Delivery.'))
+        return redirect('marketplace:order_detail', order_id=order.id)
+    
+    return redirect('marketplace:checkout')
+
+
+def payment_invoice(request, transaction_id):
+    """Generate payment invoice"""
+    transaction = get_object_or_404(Transaction, id=transaction_id)
+    
+    # Check access permissions
+    if not (transaction.order.user == request.user or 
+            (request.user.is_authenticated and request.user.is_seller and 
+             transaction.order.items.filter(product__seller=request.user.vendorprofile).exists())):
+        messages.error(request, _('Access denied.'))
+        return redirect('marketplace:home')
+    
+    return render(request, 'payment/invoice.html', {
+        'transaction': transaction,
+        'order': transaction.order,
+        'title': f'Payment Invoice #{transaction.transaction_id}'
+    })
+
+
+@login_required  
+def request_refund(request, transaction_id):
+    """Request refund for a transaction"""
+    transaction = get_object_or_404(Transaction, id=transaction_id, order__user=request.user)
+    
+    if transaction.status != 'completed':
+        messages.error(request, _('Refund can only be requested for completed payments.'))
+        return redirect('marketplace:payment_history')
+    
+    if request.method == 'POST':
+        reason = request.POST.get('reason', '')
+        
+        # Create refund request
+        from ..models.payment import RefundRequest
+        refund_request = RefundRequest.objects.create(
+            transaction=transaction,
+            user=request.user,
+            reason=reason,
+            amount=transaction.amount,
+            status='pending'
+        )
+        
+        # Send notification to admin
+        # EmailService.send_refund_request_notification(refund_request)
+        
+        messages.success(request, _('Refund request submitted successfully.'))
+        return redirect('marketplace:payment_history')
+    
+    return render(request, 'payment/request_refund.html', {
+        'transaction': transaction,
+        'title': 'Request Refund'
+    })

@@ -469,3 +469,236 @@ def seller_profile_settings(request):
     }
     
     return render(request, 'seller/profile_settings.html', context)
+
+
+@method_decorator(seller_required, name='dispatch')
+class SellerProductDetailView(LoginRequiredMixin, DetailView):
+    """Seller product detail view"""
+    template_name = 'seller/product_detail.html'
+    context_object_name = 'product'
+    
+    def get_queryset(self):
+        return Product.objects.filter(seller=self.request.user.vendorprofile)
+    
+    def get_object(self):
+        return get_object_or_404(self.get_queryset(), id=self.kwargs['product_id'])
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        product = self.object
+        
+        # Product analytics
+        context['analytics'] = ProductService.get_product_analytics(product)
+        
+        # Recent orders for this product
+        context['recent_orders'] = Order.objects.filter(
+            items__product=product
+        ).distinct().order_by('-created_at')[:10]
+        
+        # Reviews
+        context['reviews'] = Review.objects.filter(product=product)[:5]
+        
+        return context
+
+
+@method_decorator(seller_required, name='dispatch')  
+class SellerProductDeleteView(LoginRequiredMixin, DetailView):
+    """Seller product deletion view"""
+    template_name = 'seller/product_delete.html'
+    context_object_name = 'product'
+    
+    def get_queryset(self):
+        return Product.objects.filter(seller=self.request.user.vendorprofile)
+    
+    def get_object(self):
+        return get_object_or_404(self.get_queryset(), id=self.kwargs['product_id'])
+    
+    def post(self, request, *args, **kwargs):
+        product = self.get_object()
+        product_name = product.name
+        
+        # Soft delete - just deactivate
+        product.is_active = False
+        product.save()
+        
+        messages.success(request, f'Product "{product_name}" has been deactivated.')
+        return redirect('marketplace:seller_products')
+
+
+@seller_required
+def process_order(request, order_id):
+    """Process order - change status to processing"""
+    order = get_object_or_404(Order, id=order_id)
+    
+    # Check if seller has items in this order
+    seller_items = order.items.filter(product__seller=request.user.vendorprofile)
+    if not seller_items.exists():
+        messages.error(request, _('Access denied.'))
+        return redirect('marketplace:seller_dashboard')
+    
+    if request.method == 'POST':
+        order.status = 'processing'
+        order.save()
+        
+        # Send notification to customer
+        # EmailService.send_order_processing_notification(order)
+        
+        messages.success(request, _('Order marked as processing.'))
+        return redirect('marketplace:seller_order_detail', order_id=order.id)
+    
+    return render(request, 'seller/process_order.html', {
+        'order': order,
+        'title': f'Process Order #{order.order_number}'
+    })
+
+
+@seller_required
+def ship_order(request, order_id):
+    """Mark order as shipped"""
+    order = get_object_or_404(Order, id=order_id)
+    
+    # Check if seller has items in this order
+    seller_items = order.items.filter(product__seller=request.user.vendorprofile)
+    if not seller_items.exists():
+        messages.error(request, _('Access denied.'))
+        return redirect('marketplace:seller_dashboard')
+    
+    if request.method == 'POST':
+        tracking_number = request.POST.get('tracking_number', '')
+        
+        order.status = 'shipped'
+        if tracking_number:
+            order.tracking_number = tracking_number
+        order.save()
+        
+        # Send shipping notification
+        # EmailService.send_shipping_notification(order)
+        
+        messages.success(request, _('Order marked as shipped.'))
+        return redirect('marketplace:seller_order_detail', order_id=order.id)
+    
+    return render(request, 'seller/ship_order.html', {
+        'order': order,
+        'title': f'Ship Order #{order.order_number}'
+    })
+
+
+@method_decorator(seller_required, name='dispatch')
+class SellerAnalyticsView(LoginRequiredMixin, TemplateView):
+    """Seller analytics and reports view"""
+    template_name = 'seller/analytics.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        
+        # Overall analytics
+        context['analytics'] = ProductService.get_seller_analytics(user)
+        
+        # Monthly sales data
+        context['monthly_sales'] = OrderService.get_monthly_sales_data(user)
+        
+        # Top products
+        context['top_products'] = ProductService.get_top_seller_products(user)[:10]
+        
+        # Recent performance
+        context['performance'] = {
+            'orders_this_month': Order.objects.filter(
+                items__product__seller=user.vendorprofile,
+                created_at__month=timezone.now().month
+            ).distinct().count(),
+            'revenue_this_month': Order.objects.filter(
+                items__product__seller=user.vendorprofile,
+                created_at__month=timezone.now().month
+            ).aggregate(total=Sum('total_amount'))['total'] or 0,
+        }
+        
+        return context
+
+
+@seller_required
+def seller_reports(request):
+    """Generate seller reports"""
+    from django.http import HttpResponse
+    import csv
+    from datetime import datetime, timedelta
+    
+    report_type = request.GET.get('type', 'orders')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    
+    if report_type == 'orders':
+        orders = Order.objects.filter(
+            items__product__seller=request.user.vendorprofile
+        ).distinct()
+        
+        if start_date:
+            orders = orders.filter(created_at__gte=start_date)
+        if end_date:
+            orders = orders.filter(created_at__lte=end_date)
+        
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="orders_report_{datetime.now().strftime("%Y%m%d")}.csv"'
+        
+        writer = csv.writer(response)
+        writer.writerow(['Order Number', 'Customer', 'Total', 'Status', 'Date'])
+        
+        for order in orders:
+            writer.writerow([
+                order.order_number,
+                order.user.get_full_name(),
+                order.total_amount,
+                order.status,
+                order.created_at.strftime('%Y-%m-%d %H:%M')
+            ])
+        
+        return response
+    
+    elif report_type == 'products':
+        products = Product.objects.filter(seller=request.user.vendorprofile)
+        
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="products_report_{datetime.now().strftime("%Y%m%d")}.csv"'
+        
+        writer = csv.writer(response)
+        writer.writerow(['Name', 'SKU', 'Price', 'Stock', 'Status', 'Views', 'Sales'])
+        
+        for product in products:
+            writer.writerow([
+                product.name,
+                product.sku,
+                product.price,
+                product.stock_quantity,
+                'Active' if product.is_active else 'Inactive',
+                product.view_count,
+                product.purchase_count
+            ])
+        
+        return response
+    
+    return render(request, 'seller/reports.html', {
+        'title': _('Reports & Analytics')
+    })
+
+
+@seller_required
+def seller_profile(request):
+    """Seller profile management"""
+    vendor_profile = request.user.vendorprofile
+    
+    if request.method == 'POST':
+        form = SellerApplicationForm(request.POST, request.FILES, instance=vendor_profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _('Profile updated successfully.'))
+            return redirect('marketplace:seller_profile')
+    else:
+        form = SellerApplicationForm(instance=vendor_profile)
+    
+    context = {
+        'form': form,
+        'vendor_profile': vendor_profile,
+        'title': _('Seller Profile')
+    }
+    
+    return render(request, 'seller/profile.html', context)

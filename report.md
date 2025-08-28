@@ -1,4 +1,4 @@
-# Afèpanou Marketplace Development Report
+# Afï¿½panou Marketplace Development Report
 
 ## Task Implementation Status
 

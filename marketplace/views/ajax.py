@@ -417,3 +417,148 @@ def load_more_products_ajax(request):
             'success': False,
             'error': str(e)
         })
+
+
+@require_POST
+@login_required
+def remove_from_cart_ajax(request):
+    """Remove item from cart via AJAX"""
+    try:
+        data = json.loads(request.body)
+        item_id = data.get('item_id')
+        
+        cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
+        cart_item.delete()
+        
+        # Get updated cart summary
+        cart = CartService.get_or_create_cart(user=request.user)
+        cart_summary = CartService.get_cart_summary(cart)
+        
+        return JsonResponse({
+            'success': True,
+            'message': _('Item removed from cart'),
+            'cart_count': cart_summary['item_count'],
+            'cart_total': str(cart_summary['total']),
+            'cart_subtotal': str(cart_summary['subtotal'])
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+
+@require_GET
+def validate_address_ajax(request):
+    """Validate address information via AJAX"""
+    try:
+        address_data = {
+            'address_line_1': request.GET.get('address_line_1', ''),
+            'city': request.GET.get('city', ''),
+            'state': request.GET.get('state', ''),
+            'postal_code': request.GET.get('postal_code', '')
+        }
+        
+        # Basic validation for Haiti
+        errors = {}
+        
+        if not address_data['address_line_1']:
+            errors['address_line_1'] = _('Address line 1 is required')
+        
+        if not address_data['city']:
+            errors['city'] = _('City is required')
+        
+        # Validate Haiti postal code format (if provided)
+        if address_data['postal_code'] and not address_data['postal_code'].isdigit():
+            errors['postal_code'] = _('Postal code must be numeric')
+        
+        # Check if city exists in Haiti
+        haiti_cities = [
+            'Port-au-Prince', 'Cap-Haïtien', 'Gonaïves', 'Les Cayes', 
+            'Jacmel', 'Jérémie', 'Fort-de-France', 'Hinche'
+        ]
+        
+        if address_data['city'] not in haiti_cities:
+            # Still valid, but suggest corrections
+            suggestions = [city for city in haiti_cities if 
+                          address_data['city'].lower() in city.lower()]
+            
+        return JsonResponse({
+            'success': True,
+            'is_valid': len(errors) == 0,
+            'errors': errors,
+            'suggestions': suggestions if 'suggestions' in locals() else []
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+
+@require_GET
+def get_notifications_ajax(request):
+    """Get user notifications via AJAX"""
+    if not request.user.is_authenticated:
+        return JsonResponse({'success': False, 'error': 'Authentication required'})
+    
+    try:
+        # Get recent notifications (if notification model exists)
+        notifications = []
+        
+        # For now, return empty list - can be expanded when notification system is implemented
+        unread_count = 0
+        
+        return JsonResponse({
+            'success': True,
+            'notifications': notifications,
+            'unread_count': unread_count
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+
+@require_GET
+def check_stock_ajax(request):
+    """Check product stock availability via AJAX"""
+    try:
+        product_id = request.GET.get('product_id')
+        quantity = int(request.GET.get('quantity', 1))
+        
+        product = get_object_or_404(Product, id=product_id, is_active=True)
+        
+        # Check stock availability
+        is_available = ProductService.check_availability(product, quantity)
+        stock_level = product.stock_quantity
+        
+        # Determine stock status
+        if stock_level == 0:
+            stock_status = 'out_of_stock'
+            stock_message = _('Out of stock')
+        elif stock_level < 10:
+            stock_status = 'low_stock'
+            stock_message = f'{stock_level} left in stock'
+        else:
+            stock_status = 'in_stock'
+            stock_message = _('In stock')
+        
+        return JsonResponse({
+            'success': True,
+            'is_available': is_available,
+            'stock_level': stock_level,
+            'stock_status': stock_status,
+            'stock_message': stock_message,
+            'max_quantity': min(stock_level, 10)  # Limit max quantity
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })

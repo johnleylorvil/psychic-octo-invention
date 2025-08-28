@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr-HT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Requête invalide - Afèpanou</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+</head>
+<body>
+    <div class="error-page">
+        <div class="error-container">
+            <div class="error-code">400</div>
+            <h1>Requête invalide</h1>
+            <p>Votre demande ne peut pas être traitée en raison d'une erreur de syntaxe.</p>
+            
+            <div class="error-actions">
+                <a href="{% url 'marketplace:home' %}" class="btn-primary">
+                    Retour à l'accueil
+                </a>
+                <a href="javascript:history.back()" class="btn-secondary">
+                    Page précédente
+                </a>
+            </div>
+            
+            <div class="error-suggestions">
+                <h3>Que faire?</h3>
+                <ul>
+                    <li>Vérifiez les informations saisies</li>
+                    <li>Actualisez la page</li>
+                    <li>Réessayez votre demande</li>
+                    <li>Contactez notre support si nécessaire</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

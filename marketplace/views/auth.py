@@ -391,3 +391,103 @@ def delete_account(request):
     return render(request, 'account/delete_account.html', {
         'title': _('Delete Account')
     })
+
+
+def email_confirmation(request, token):
+    """Email confirmation view with token"""
+    try:
+        # Decode the token to get user ID
+        uid = urlsafe_base64_decode(token).decode()
+        user = get_object_or_404(User, pk=uid)
+        
+        if not user.email_verified:
+            user.email_verified = True
+            user.save()
+            
+            messages.success(
+                request,
+                _('Email verified successfully! You can now use all features.')
+            )
+        else:
+            messages.info(request, _('Email is already verified.'))
+        
+        return redirect('marketplace:login')
+        
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        messages.error(request, _('Invalid verification link.'))
+        return redirect('marketplace:home')
+
+
+@login_required
+def address_book(request):
+    """User address book management"""
+    from ..models.address import Address
+    
+    addresses = Address.objects.filter(user=request.user).order_by('-is_default', '-created_at')
+    
+    return render(request, 'account/address_book.html', {
+        'addresses': addresses,
+        'title': _('My Addresses')
+    })
+
+
+@login_required
+def add_address(request):
+    """Add new address"""
+    from ..forms import AddressForm
+    
+    if request.method == 'POST':
+        form = AddressForm(request.POST)
+        if form.is_valid():
+            address = form.save(commit=False)
+            address.user = request.user
+            
+            # If this is the first address, make it default
+            if not Address.objects.filter(user=request.user).exists():
+                address.is_default = True
+            
+            address.save()
+            
+            messages.success(request, _('Address added successfully.'))
+            return redirect('marketplace:address_book')
+    else:
+        form = AddressForm()
+    
+    return render(request, 'account/add_address.html', {
+        'form': form,
+        'title': _('Add Address')
+    })
+
+
+@login_required
+def edit_address(request, address_id):
+    """Edit existing address"""
+    from ..models.address import Address
+    from ..forms import AddressForm
+    
+    address = get_object_or_404(Address, id=address_id, user=request.user)
+    
+    if request.method == 'POST':
+        form = AddressForm(request.POST, instance=address)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _('Address updated successfully.'))
+            return redirect('marketplace:address_book')
+    else:
+        form = AddressForm(instance=address)
+    
+    return render(request, 'account/edit_address.html', {
+        'form': form,
+        'address': address,
+        'title': _('Edit Address')
+    })
+
+
+class UserLogoutView(TemplateView):
+    """User logout view"""
+    template_name = 'account/logout_confirm.html'
+    
+    def post(self, request, *args, **kwargs):
+        logout(request)
+        messages.success(request, _('You have been logged out successfully.'))
+        return redirect('marketplace:home')
