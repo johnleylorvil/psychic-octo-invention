@@ -943,6 +943,660 @@
         }
     });
 
+    // Cart Management Component
+    Afepanou.components.Cart = {
+        init: function() {
+            this.bindEvents();
+            this.updateCartUI();
+        },
+
+        bindEvents: function() {
+            // Add to cart buttons
+            document.addEventListener('click', (e) => {
+                if (e.target.matches('.add-to-cart-btn') || e.target.closest('.add-to-cart-btn')) {
+                    this.handleAddToCart(e);
+                }
+            });
+
+            // Remove from cart
+            document.addEventListener('click', (e) => {
+                if (e.target.matches('.remove-from-cart') || e.target.closest('.remove-from-cart')) {
+                    this.handleRemoveFromCart(e);
+                }
+            });
+
+            // Update quantity
+            document.addEventListener('change', (e) => {
+                if (e.target.matches('.cart-quantity-input')) {
+                    this.handleQuantityChange(e);
+                }
+            });
+
+            // Cart dropdown toggle
+            const cartTrigger = document.querySelector('.cart-trigger');
+            if (cartTrigger) {
+                cartTrigger.addEventListener('mouseenter', this.showCartDropdown.bind(this));
+                cartTrigger.addEventListener('mouseleave', this.hideCartDropdownDelay.bind(this));
+            }
+        },
+
+        handleAddToCart: async function(event) {
+            event.preventDefault();
+            const button = event.target.closest('.add-to-cart-btn');
+            const productId = button.dataset.productId;
+            const quantity = parseInt(button.dataset.quantity || '1');
+            const variantId = button.dataset.variantId;
+
+            if (!productId) return;
+
+            // Show loading state
+            button.classList.add('loading');
+            button.disabled = true;
+
+            try {
+                const response = await fetch('/api/cart/add/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': Afepanou.config.csrfToken
+                    },
+                    body: JSON.stringify({
+                        product_id: productId,
+                        quantity: quantity,
+                        variant_id: variantId
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    this.updateCartUI(data);
+                    Afepanou.components.Notifications.show('Produit ajouté au panier', 'success');
+                    
+                    // Update button state
+                    button.textContent = 'Ajouté ✓';
+                    setTimeout(() => {
+                        button.textContent = 'Ajouter au panier';
+                        button.classList.remove('loading');
+                        button.disabled = false;
+                    }, 2000);
+                } else {
+                    throw new Error(data.error || 'Erreur lors de l\'ajout');
+                }
+            } catch (error) {
+                console.error('Add to cart error:', error);
+                Afepanou.components.Notifications.show(error.message, 'error');
+                button.classList.remove('loading');
+                button.disabled = false;
+            }
+        },
+
+        handleRemoveFromCart: async function(event) {
+            event.preventDefault();
+            const button = event.target.closest('.remove-from-cart');
+            const itemId = button.dataset.itemId;
+
+            try {
+                const response = await fetch(`/api/cart/remove/${itemId}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': Afepanou.config.csrfToken
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    this.updateCartUI(data);
+                    Afepanou.components.Notifications.show('Produit retiré du panier', 'info');
+                } else {
+                    throw new Error(data.error || 'Erreur lors de la suppression');
+                }
+            } catch (error) {
+                console.error('Remove from cart error:', error);
+                Afepanou.components.Notifications.show(error.message, 'error');
+            }
+        },
+
+        handleQuantityChange: async function(event) {
+            const input = event.target;
+            const itemId = input.dataset.itemId;
+            const quantity = parseInt(input.value);
+
+            if (quantity < 1) {
+                input.value = 1;
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/cart/update/${itemId}/`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': Afepanou.config.csrfToken
+                    },
+                    body: JSON.stringify({ quantity: quantity })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    this.updateCartUI(data);
+                } else {
+                    throw new Error(data.error || 'Erreur lors de la mise à jour');
+                }
+            } catch (error) {
+                console.error('Update quantity error:', error);
+                Afepanou.components.Notifications.show(error.message, 'error');
+            }
+        },
+
+        updateCartUI: function(cartData) {
+            // Update cart badge
+            const cartBadge = document.getElementById('cart-badge');
+            if (cartBadge && cartData) {
+                cartBadge.textContent = cartData.items_count || 0;
+                cartBadge.style.display = (cartData.items_count > 0) ? 'inline' : 'none';
+            }
+
+            // Update cart total in various locations
+            if (cartData && cartData.total) {
+                const totalElements = document.querySelectorAll('.cart-total');
+                totalElements.forEach(el => {
+                    el.textContent = `${cartData.total} HTG`;
+                });
+            }
+
+            // Update cart dropdown content
+            if (cartData && cartData.html) {
+                const cartDropdown = document.getElementById('cart-dropdown-content');
+                if (cartDropdown) {
+                    cartDropdown.innerHTML = cartData.html;
+                }
+            }
+        },
+
+        showCartDropdown: function() {
+            const dropdown = document.getElementById('cart-dropdown');
+            if (dropdown) {
+                dropdown.classList.remove('d-none');
+                this.loadCartContent();
+            }
+        },
+
+        hideCartDropdownDelay: function() {
+            setTimeout(() => {
+                const dropdown = document.getElementById('cart-dropdown');
+                if (dropdown && !dropdown.matches(':hover')) {
+                    dropdown.classList.add('d-none');
+                }
+            }, 300);
+        },
+
+        loadCartContent: async function() {
+            const content = document.getElementById('cart-dropdown-content');
+            if (!content) return;
+
+            try {
+                const response = await fetch('/api/cart/preview/');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    content.innerHTML = data.html;
+                } else {
+                    content.innerHTML = '<p class="text-center p-3">Erreur de chargement</p>';
+                }
+            } catch (error) {
+                console.error('Load cart content error:', error);
+                content.innerHTML = '<p class="text-center p-3">Erreur de chargement</p>';
+            }
+        }
+    };
+
+    // Wishlist Component
+    Afepanou.components.Wishlist = {
+        init: function() {
+            this.bindEvents();
+        },
+
+        bindEvents: function() {
+            document.addEventListener('click', (e) => {
+                if (e.target.matches('.wishlist-btn') || e.target.closest('.wishlist-btn')) {
+                    this.handleWishlistToggle(e);
+                }
+            });
+        },
+
+        handleWishlistToggle: async function(event) {
+            event.preventDefault();
+            
+            if (!Afepanou.config.user.isAuthenticated) {
+                Afepanou.components.Notifications.show('Veuillez vous connecter', 'warning');
+                return;
+            }
+
+            const button = event.target.closest('.wishlist-btn');
+            const productId = button.dataset.productId;
+            const isInWishlist = button.classList.contains('in-wishlist');
+
+            try {
+                const url = isInWishlist ? `/api/wishlist/remove/${productId}/` : `/api/wishlist/add/`;
+                const method = isInWishlist ? 'DELETE' : 'POST';
+                const body = isInWishlist ? null : JSON.stringify({ product_id: productId });
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': Afepanou.config.csrfToken
+                    },
+                    body: body
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Toggle button state
+                    button.classList.toggle('in-wishlist');
+                    const icon = button.querySelector('i');
+                    if (icon) {
+                        icon.classList.toggle('fas');
+                        icon.classList.toggle('far');
+                    }
+
+                    // Update wishlist count
+                    const wishlistCount = document.querySelector('.wishlist-count');
+                    if (wishlistCount && data.wishlist_count !== undefined) {
+                        wishlistCount.textContent = data.wishlist_count;
+                    }
+
+                    const message = isInWishlist ? 'Retiré des favoris' : 'Ajouté aux favoris';
+                    Afepanou.components.Notifications.show(message, 'success');
+                } else {
+                    throw new Error(data.error || 'Erreur');
+                }
+            } catch (error) {
+                console.error('Wishlist toggle error:', error);
+                Afepanou.components.Notifications.show(error.message, 'error');
+            }
+        }
+    };
+
+    // Notifications Component
+    Afepanou.components.Notifications = {
+        init: function() {
+            this.createContainer();
+        },
+
+        createContainer: function() {
+            if (document.getElementById('notifications-container')) return;
+
+            const container = document.createElement('div');
+            container.id = 'notifications-container';
+            container.className = 'position-fixed top-0 end-0 p-3';
+            container.style.zIndex = '1060';
+            document.body.appendChild(container);
+        },
+
+        show: function(message, type = 'info', duration = 5000) {
+            this.createContainer();
+            
+            const container = document.getElementById('notifications-container');
+            const notification = document.createElement('div');
+            
+            const typeClasses = {
+                'success': 'alert-success',
+                'error': 'alert-danger',
+                'warning': 'alert-warning',
+                'info': 'alert-info'
+            };
+
+            const icons = {
+                'success': 'fas fa-check-circle',
+                'error': 'fas fa-exclamation-circle',
+                'warning': 'fas fa-exclamation-triangle',
+                'info': 'fas fa-info-circle'
+            };
+
+            notification.className = `alert ${typeClasses[type]} alert-dismissible fade show`;
+            notification.innerHTML = `
+                <i class="${icons[type]} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+
+            container.appendChild(notification);
+
+            // Auto-remove after duration
+            if (duration > 0) {
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.remove();
+                    }
+                }, duration);
+            }
+        }
+    };
+
+    // Product Quick View Component
+    Afepanou.components.QuickView = {
+        init: function() {
+            this.bindEvents();
+        },
+
+        bindEvents: function() {
+            document.addEventListener('click', (e) => {
+                if (e.target.matches('.quick-view-btn') || e.target.closest('.quick-view-btn')) {
+                    this.handleQuickView(e);
+                }
+            });
+        },
+
+        handleQuickView: async function(event) {
+            event.preventDefault();
+            const button = event.target.closest('.quick-view-btn');
+            const productId = button.dataset.productId;
+
+            if (!productId) return;
+
+            try {
+                const response = await fetch(`/api/products/${productId}/quick-view/`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    this.showQuickViewModal(data);
+                } else {
+                    throw new Error(data.error || 'Erreur de chargement');
+                }
+            } catch (error) {
+                console.error('Quick view error:', error);
+                Afepanou.components.Notifications.show(error.message, 'error');
+            }
+        },
+
+        showQuickViewModal: function(productData) {
+            // Create modal if it doesn't exist
+            let modal = document.getElementById('quickViewModal');
+            if (!modal) {
+                modal = this.createQuickViewModal();
+                document.body.appendChild(modal);
+            }
+
+            // Populate modal with product data
+            modal.querySelector('.modal-body').innerHTML = productData.html;
+
+            // Show modal using Bootstrap
+            const bsModal = new bootstrap.Modal(modal);
+            bsModal.show();
+
+            // Initialize product gallery for quick view
+            Afepanou.components.ProductGallery.init();
+        },
+
+        createQuickViewModal: function() {
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.id = 'quickViewModal';
+            modal.innerHTML = `
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Aperçu Rapide</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- Product content will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            `;
+            return modal;
+        }
+    };
+
+    // Lazy Loading Component
+    Afepanou.components.LazyLoading = {
+        init: function() {
+            if ('IntersectionObserver' in window) {
+                this.initIntersectionObserver();
+            } else {
+                this.fallbackLazyLoad();
+            }
+        },
+
+        initIntersectionObserver: function() {
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        this.loadImage(img);
+                        observer.unobserve(img);
+                    }
+                });
+            });
+
+            const lazyImages = document.querySelectorAll('img[data-src]');
+            lazyImages.forEach(img => imageObserver.observe(img));
+        },
+
+        fallbackLazyLoad: function() {
+            const lazyImages = document.querySelectorAll('img[data-src]');
+            
+            const loadImagesInViewport = () => {
+                lazyImages.forEach(img => {
+                    if (this.isInViewport(img)) {
+                        this.loadImage(img);
+                    }
+                });
+            };
+
+            loadImagesInViewport();
+            window.addEventListener('scroll', Afepanou.utils.throttle(loadImagesInViewport, 200));
+            window.addEventListener('resize', Afepanou.utils.throttle(loadImagesInViewport, 200));
+        },
+
+        loadImage: function(img) {
+            const src = img.dataset.src;
+            if (src) {
+                img.src = src;
+                img.classList.remove('lazy');
+                img.classList.add('loaded');
+                img.removeAttribute('data-src');
+            }
+        },
+
+        isInViewport: function(element) {
+            const rect = element.getBoundingClientRect();
+            return (
+                rect.top < window.innerHeight &&
+                rect.bottom > 0 &&
+                rect.left < window.innerWidth &&
+                rect.right > 0
+            );
+        }
+    };
+
+    // Form Enhancement Component
+    Afepanou.components.FormEnhancement = {
+        init: function() {
+            this.initFormValidation();
+            this.initFormSaving();
+            this.bindEvents();
+        },
+
+        bindEvents: function() {
+            // Auto-save form data
+            document.addEventListener('input', this.handleFormChange.bind(this));
+            document.addEventListener('change', this.handleFormChange.bind(this));
+            
+            // Form submission enhancement
+            document.addEventListener('submit', this.handleFormSubmit.bind(this));
+        },
+
+        handleFormChange: function(event) {
+            const form = event.target.closest('form');
+            if (form && form.dataset.autosave === 'true') {
+                this.saveFormData(form);
+            }
+        },
+
+        handleFormSubmit: function(event) {
+            const form = event.target;
+            if (form.classList.contains('ajax-form')) {
+                event.preventDefault();
+                this.submitFormAjax(form);
+            }
+        },
+
+        saveFormData: function(form) {
+            const formData = new FormData(form);
+            const data = {};
+            
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+
+            const formId = form.id || `form_${Date.now()}`;
+            Afepanou.utils.storage.set(`form_data_${formId}`, data, 86400000); // 24 hours
+        },
+
+        loadFormData: function(formId) {
+            return Afepanou.utils.storage.get(`form_data_${formId}`);
+        },
+
+        submitFormAjax: async function(form) {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn ? submitBtn.textContent : '';
+
+            try {
+                if (submitBtn) {
+                    Afepanou.utils.showLoading(submitBtn);
+                    submitBtn.disabled = true;
+                }
+
+                const formData = new FormData(form);
+                const response = await fetch(form.action, {
+                    method: form.method || 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': Afepanou.config.csrfToken
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    Afepanou.components.Notifications.show(data.message || 'Formulaire soumis avec succès', 'success');
+                    
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    } else {
+                        form.reset();
+                    }
+                } else {
+                    throw new Error(data.error || 'Erreur lors de la soumission');
+                }
+            } catch (error) {
+                console.error('Form submission error:', error);
+                Afepanou.components.Notifications.show(error.message, 'error');
+            } finally {
+                if (submitBtn) {
+                    Afepanou.utils.hideLoading(submitBtn);
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
+            }
+        },
+
+        initFormValidation: function() {
+            // Add custom validation styles
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('submit', (e) => {
+                    if (!form.checkValidity()) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                });
+            });
+        },
+
+        initFormSaving: function() {
+            // Restore saved form data on page load
+            const forms = document.querySelectorAll('form[data-autosave="true"]');
+            forms.forEach(form => {
+                const formId = form.id;
+                if (formId) {
+                    const savedData = this.loadFormData(formId);
+                    if (savedData) {
+                        Object.keys(savedData).forEach(key => {
+                            const input = form.querySelector(`[name="${key}"]`);
+                            if (input) {
+                                input.value = savedData[key];
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    };
+
+    // Performance Monitor Component
+    Afepanou.components.Performance = {
+        init: function() {
+            this.monitorPageLoad();
+            this.monitorUserInteractions();
+        },
+
+        monitorPageLoad: function() {
+            window.addEventListener('load', () => {
+                if ('performance' in window) {
+                    const navigation = performance.getEntriesByType('navigation')[0];
+                    const loadTime = navigation.loadEventEnd - navigation.loadEventStart;
+                    
+                    // Log performance metrics (could be sent to analytics)
+                    console.info(`Page load time: ${loadTime}ms`);
+                    
+                    // Show warning for slow pages
+                    if (loadTime > 3000) {
+                        console.warn('Slow page load detected');
+                    }
+                }
+            });
+        },
+
+        monitorUserInteractions: function() {
+            // Track Core Web Vitals if supported
+            if ('PerformanceObserver' in window) {
+                try {
+                    const observer = new PerformanceObserver((list) => {
+                        for (const entry of list.getEntries()) {
+                            console.info(`${entry.entryType}:`, entry);
+                        }
+                    });
+                    
+                    observer.observe({ entryTypes: ['largest-contentful-paint', 'first-input', 'layout-shift'] });
+                } catch (e) {
+                    console.warn('Performance monitoring not fully supported');
+                }
+            }
+        }
+    };
+
+    // Service Worker Registration
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/static/sw.js')
+                .then(registration => {
+                    console.log('ServiceWorker registered successfully:', registration.scope);
+                })
+                .catch(error => {
+                    console.warn('ServiceWorker registration failed:', error);
+                });
+        });
+    }
+
     // Handle page unload
     window.addEventListener('beforeunload', function() {
         // Clean up any ongoing operations
@@ -950,6 +1604,20 @@
         loadingElements.forEach(el => {
             Afepanou.utils.hideLoading(el);
         });
+
+        // Clear temporary data
+        if (Afepanou.utils.storage) {
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('temp_')) {
+                    localStorage.removeItem(key);
+                }
+            });
+        }
     });
+
+    // Expose Afepanou object globally
+    window.Afepanou = Afepanou;
+
+})(window, document);
 
 })();
