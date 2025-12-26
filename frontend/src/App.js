@@ -70,38 +70,38 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           
           {/* ===== ADMIN ROUTES ===== */}
-          <Route path=\"/admin\" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><AdminDashboard /></ProtectedRoute>} />
           
           {/* Patients */}
-          <Route path=\"/admin/patients\" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><PatientsList /></ProtectedRoute>} />
-          <Route path=\"/admin/patients/new\" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><PatientForm /></ProtectedRoute>} />
-          <Route path=\"/admin/patients/:id/edit\" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><PatientForm /></ProtectedRoute>} />
-          <Route path=\"/admin/patients/:id\" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><ComingSoon title=\"Détails du patient\" description=\"Vue détaillée du dossier patient\" /></ProtectedRoute>} />
+          <Route path="/admin/patients" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><PatientsList /></ProtectedRoute>} />
+          <Route path="/admin/patients/new" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><PatientForm /></ProtectedRoute>} />
+          <Route path="/admin/patients/:id/edit" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><PatientForm /></ProtectedRoute>} />
+          <Route path="/admin/patients/:id" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><ComingSoon title="Détails du patient" description="Vue détaillée du dossier patient" /></ProtectedRoute>} />
           
           {/* Rendez-vous */}
-          <Route path=\"/admin/appointments\" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><AppointmentsList /></ProtectedRoute>} />
-          <Route path=\"/admin/appointments/new\" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><AppointmentForm /></ProtectedRoute>} />
-          <Route path=\"/admin/appointments/:id/edit\" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><AppointmentForm /></ProtectedRoute>} />
+          <Route path="/admin/appointments" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><AppointmentsList /></ProtectedRoute>} />
+          <Route path="/admin/appointments/new" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><AppointmentForm /></ProtectedRoute>} />
+          <Route path="/admin/appointments/:id/edit" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><AppointmentForm /></ProtectedRoute>} />
           
           {/* Pharmacie */}
-          <Route path=\"/admin/pharmacy\" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><PharmacyPage /></ProtectedRoute>} />
+          <Route path="/admin/pharmacy" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><PharmacyPage /></ProtectedRoute>} />
           
           {/* Facturation */}
-          <Route path=\"/admin/billing\" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><BillingPage /></ProtectedRoute>} />
+          <Route path="/admin/billing" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><BillingPage /></ProtectedRoute>} />
           
           {/* Banque de sang */}
-          <Route path=\"/admin/blood-bank\" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><BloodBankPage /></ProtectedRoute>} />
-          <Route path=\"/admin/blood-bank/donneurs/new\" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><DonneurForm /></ProtectedRoute>} />
-          <Route path=\"/admin/blood-bank/donneurs/:id/edit\" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><DonneurForm /></ProtectedRoute>} />
+          <Route path="/admin/blood-bank" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><BloodBankPage /></ProtectedRoute>} />
+          <Route path="/admin/blood-bank/donneurs/new" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><DonneurForm /></ProtectedRoute>} />
+          <Route path="/admin/blood-bank/donneurs/:id/edit" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><DonneurForm /></ProtectedRoute>} />
           
           {/* Services & Lits */}
-          <Route path=\"/admin/services\" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><ServicesLitsPage /></ProtectedRoute>} />
-          <Route path=\"/admin/services/new\" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><ComingSoon title=\"Nouveau service\" description=\"Créer un service\" /></ProtectedRoute>} />
-          <Route path=\"/admin/services/lits/new\" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><ComingSoon title=\"Nouveau lit\" description=\"Ajouter un lit\" /></ProtectedRoute>} />
+          <Route path="/admin/services" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><ServicesLitsPage /></ProtectedRoute>} />
+          <Route path="/admin/services/new" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><ComingSoon title="Nouveau service" description="Créer un service" /></ProtectedRoute>} />
+          <Route path="/admin/services/lits/new" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><ComingSoon title="Nouveau lit" description="Ajouter un lit" /></ProtectedRoute>} />
           
           {/* Utilisateurs */}
-          <Route path=\"/admin/users\" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><UsersPage /></ProtectedRoute>} />
-          <Route path=\"/admin/users/new\" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><UserForm /></ProtectedRoute>} />
+          <Route path="/admin/users" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><UsersPage /></ProtectedRoute>} />
+          <Route path="/admin/users/new" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><UserForm /></ProtectedRoute>} />
           
           {/* ===== MÉDECIN ROUTES ===== */}
           <Route path=\"/medecin\" element={<ProtectedRoute allowedRoles={[ROLES.MEDECIN]}><MedecinDashboard /></ProtectedRoute>} />
