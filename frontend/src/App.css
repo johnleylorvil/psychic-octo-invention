@@ -1,34 +1,126 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* Styles CSS personnalisés pour l'application */
+
+.App {
+  min-height: 100vh;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+/* Animations personnalisées */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
 }
 
-.App-link {
-    color: #61dafb;
+/* Styles pour les cartes avec effet hover */
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+}
+
+/* Styles pour les boutons */
+.btn-primary {
+  background: linear-gradient(135deg, #0284c7 0%, #10b981 100%);
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #0369a1 0%, #059669 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(2, 132, 199, 0.3);
+}
+
+/* Scrollbar personnalisée */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Styles pour les tableaux */
+.table-responsive {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  background: linear-gradient(to right, #f8fafc, #f1f5f9);
+  font-weight: 600;
+  text-align: left;
+  padding: 12px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.table td {
+  padding: 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.table tr:hover {
+  background-color: #f8fafc;
+}
+
+/* Styles pour les modales */
+.modal-overlay {
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+/* Transitions douces */
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Styles pour les badges de statut */
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Styles pour les inputs avec focus médical */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+}
+
+/* Gradient backgrounds pour les sections */
+.gradient-medical {
+  background: linear-gradient(135deg, #0284c7 0%, #10b981 100%);
+}
+
+.gradient-light {
+  background: linear-gradient(135deg, #f0f9ff 0%, #ecfdf5 100%);
 }
