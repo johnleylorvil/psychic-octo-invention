@@ -67,7 +67,7 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path=\"/login\" element={<LoginPage />} />
+          <Route path="/login" element={<LoginPage />} />
           
           {/* ===== ADMIN ROUTES ===== */}
           <Route path=\"/admin\" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><AdminDashboard /></ProtectedRoute>} />
