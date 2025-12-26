@@ -41,18 +41,18 @@ import MainLayout from './components/Layout/MainLayout';
 const ComingSoon = ({ title, description }) => {
   return (
     <MainLayout>
-      <div className=\"space-y-6\">
+      <div className="space-y-6">
         <div>
-          <h2 className=\"text-2xl font-bold text-gray-900 mb-2\">{title}</h2>
-          <p className=\"text-gray-600\">{description}</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">{title}</h2>
+          <p className="text-gray-600">{description}</p>
         </div>
-        <div className=\"bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center\">
-          <div className=\"max-w-md mx-auto\">
-            <div className=\"w-20 h-20 bg-gradient-to-br from-sky-100 to-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4\">
-              <span className=\"text-3xl\">🚧</span>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+          <div className="max-w-md mx-auto">
+            <div className="w-20 h-20 bg-gradient-to-br from-sky-100 to-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-3xl">🚧</span>
             </div>
-            <h3 className=\"text-xl font-semibold text-gray-900 mb-2\">En développement</h3>
-            <p className=\"text-gray-600\">
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">En développement</h3>
+            <p className="text-gray-600">
               Cette fonctionnalité est en cours de développement. Elle sera bientôt disponible.
             </p>
           </div>
