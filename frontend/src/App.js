@@ -1,53 +1,130 @@
-import { useEffect } from "react";
-import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import ProtectedRoute from './components/common/ProtectedRoute';
+import LoginPage from './pages/auth/LoginPage';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import MedecinDashboard from './pages/doctor/MedecinDashboard';
+import PatientDashboard from './pages/patient/PatientDashboard';
+import { ROLES } from './utils/constants';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
-
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
-
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
-
+// Composant simple pour les autres dashboards (à développer plus tard)
+const SimpleDashboard = ({ title }) => {
+  const MainLayout = require('./components/Layout/MainLayout').default;
   return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
+    <MainLayout>
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">{title}</h2>
+          <p className="text-gray-600">Tableau de bord en développement</p>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
+          <p className="text-gray-600">
+            Cette section sera bientôt disponible. Utilisez le menu de navigation pour accéder aux autres fonctionnalités.
+          </p>
+        </div>
+      </div>
+    </MainLayout>
   );
 };
 
 function App() {
   return (
-    <div className="App">
+    <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
+          <Route path="/login" element={<LoginPage />} />
+          
+          {/* Admin Routes */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/*"
+            element={
+              <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+                <SimpleDashboard title="Administration" />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* Médecin Routes */}
+          <Route
+            path="/medecin"
+            element={
+              <ProtectedRoute allowedRoles={[ROLES.MEDECIN]}>
+                <MedecinDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/medecin/*"
+            element={
+              <ProtectedRoute allowedRoles={[ROLES.MEDECIN]}>
+                <SimpleDashboard title="Espace Médecin" />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* Infirmière Routes */}
+          <Route
+            path="/infirmiere/*"
+            element={
+              <ProtectedRoute allowedRoles={[ROLES.INFIRMIERE]}>
+                <SimpleDashboard title="Espace Infirmière" />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* Pharmacien Routes */}
+          <Route
+            path="/pharmacien/*"
+            element={
+              <ProtectedRoute allowedRoles={[ROLES.PHARMACIEN]}>
+                <SimpleDashboard title="Espace Pharmacien" />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* Comptable Routes */}
+          <Route
+            path="/comptable/*"
+            element={
+              <ProtectedRoute allowedRoles={[ROLES.COMPTABLE]}>
+                <SimpleDashboard title="Espace Comptable" />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* Patient Routes */}
+          <Route
+            path="/patient"
+            element={
+              <ProtectedRoute allowedRoles={[ROLES.PATIENT]}>
+                <PatientDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/patient/*"
+            element={
+              <ProtectedRoute allowedRoles={[ROLES.PATIENT]}>
+                <SimpleDashboard title="Mon Espace" />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* Default Route */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>
-    </div>
+    </AuthProvider>
   );
 }
 
