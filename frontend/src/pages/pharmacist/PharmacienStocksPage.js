@@ -83,7 +83,7 @@ const PharmacienStocksPage = () => {
                 {medicaments.map(m => <option key={m.id} value={m.id}>{m.nom}</option>)}
               </select>
               <input name="numero_lot" value={form.numero_lot} onChange={handleChange} required placeholder="Numéro de lot *" className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500" data-testid="lot-numero" />
-              <input name="quantite" type="number" value={form.quantite} onChange={handleChange} required placeholder="Quantité *" className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500" data-testid="lot-quantite" />
+              <input name="quantite" type="number" min="1" value={form.quantite} onChange={handleChange} required placeholder="Quantité *" className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500" data-testid="lot-quantite" />
               <input name="date_peremption" type="date" value={form.date_peremption} onChange={handleChange} required className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500" data-testid="lot-peremption" />
               <input name="emplacement" value={form.emplacement} onChange={handleChange} placeholder="Emplacement" className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500" />
             </div>

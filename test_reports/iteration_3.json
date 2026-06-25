@@ -1,0 +1,46 @@
+{
+  "summary": "Frontend-only validation of patient self-service booking. The new booking flow (button -> form -> POST) works: doctor dropdown is populated via /users/medecins (5 doctors), form submits successfully, a success toast 'Demande de rendez-vous envoyée' is displayed, and the user is redirected to /patient/appointments. Backend verification via curl confirms the appointment is persisted (appointment count went 7 -> 8). HOWEVER, a regression is exposed on the patient appointments list page: it never displays any appointments (shows 'Prochains rendez-vous (0)' and 'Historique (0)') because the page also fires GET /users?role=médecin which returns 403 for the patient role, causing the Promise.all to reject and the list to stay empty. Consultations and Factures pages still load correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/patients", "issue": "Returns 307 redirect to /api/patients/ (FastAPI trailing-slash). Axios follows it fine, but it's an extra round-trip. Consider mounting the route without redirect_slashes or calling /patients/ from FE."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Patient -> Mes rendez-vous list",
+        "issue": "PatientAppointmentsList.js calls GET /users?role=médecin which is restricted to admin/médecin/infirmière and returns 403 for the patient role. Inside Promise.all([appointments, users]) the rejection wipes the appointments state, so the patient NEVER sees their appointments (existing seeded ones AND newly booked ones). The booking itself works backend-side (count 7->8), but the user sees an empty list after submitting -- looks like the feature is broken.",
+        "affected_selectors": ["[data-testid='book-appointment-btn']", "Prochains rendez-vous (count)", "Historique (count)"]
+      },
+      {
+        "flow": "Patient -> Tableau de bord (dashboard)",
+        "issue": "Two 403 errors are logged on dashboard load as well. Likely the same root cause (the dashboard component is calling /users with a role filter or /patients listing). Worth auditing all patient-facing pages for usage of admin-only /users endpoint and replacing with /users/medecins.",
+        "affected_selectors": ["/patient (dashboard)"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/test_reports/iteration_3.json"
+  ],
+  "action_items": [
+    "FIX (HIGH): In /app/frontend/src/pages/patient/PatientAppointmentsList.js line 32, replace api.get('/users?role=médecin') with api.get('/users/medecins') (same endpoint already used successfully by PatientAppointmentForm.js). Without this fix the new booking feature is effectively unusable -- the patient books, gets a success toast, lands on an empty list and thinks nothing happened.",
+    "AUDIT: Verify /app/frontend/src/pages/patient/PatientDashboard.js (and any other patient-facing page) does not call GET /api/users or GET /api/users?role=médecin. Replace with GET /api/users/medecins where doctor data is needed.",
+    "OPTIONAL: Consider exposing a tiny /me/patient or /patients/me endpoint so the FE doesn't need to GET /patients (which 307-redirects) and then .find() the matching record."
+  ],
+  "critical_code_review_comments": [
+    "PatientAppointmentForm.js: fetches /patients (full list, redirected) then does pRes.data.find(p => p.user_id === user.id). Fragile -- relies on backend already filtering by role. A dedicated /patients/me endpoint would be cleaner and avoids the 307 hop.",
+    "PatientAppointmentsList.js uses two different ways to fetch doctors compared to PatientAppointmentForm.js. Standardise on /users/medecins everywhere.",
+    "PatientAppointmentForm.js does new Date(form.date_rdv).toISOString() with no validation against past dates; the form should restrict the datetime input via min=now to avoid scheduling in the past."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (not formally tested, only spot-checked with curl)", "frontend": "60% (booking POST works, but list view broken after booking)"},
+  "test_credentials": "patient1@email.com / patient123 (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "Created 1 real appointment via the UI: patient1 (Ibrahima Diallo) -> Dr. Diop Amadou, 2026-06-27 10:00, en_ligne, motif 'Test booking from automated test - consultation de routine', status forced to en_attente by backend.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "The booking POST flow itself is correct and verified end-to-end (toast + persisted in DB). The blocking issue is purely in PatientAppointmentsList.js using an admin-only users endpoint. Once changed to /users/medecins, retest by logging in as patient1@email.com / patient123, going to /patient/appointments and verifying the seeded appointments AND the test appointment 'Test booking from automated test...' (Dr. Diop Amadou, 2026-06-27, En attente, Téléconsultation) appear in the list. Also revisit /patient (dashboard) and confirm no 403s in console.",
+  "rca of the issue": "Root cause: PatientAppointmentsList.js line 32 -> api.get('/users?role=médecin'). Backend route GET /api/users requires roles ['admin','médecin','infirmière'] (see /app/backend/routers/users.py line 33), so a patient JWT gets 403. Because the call is inside Promise.all([appointments, users]), the whole Promise rejects, the catch block logs the error, and setAppointments is never called, leaving the list empty. Reproduction: 1) Login patient1@email.com/patient123. 2) Open /patient/appointments. 3) Observe browser devtools: 403 on /api/users?role=m%C3%A9decin. 4) UI shows 'Prochains rendez-vous (0)' / 'Historique (0)' even though backend has 8 appointments for this patient (verified by direct curl: GET /api/appointments?patient_id=<id> returns 8 items). Mitigation: switch to GET /api/users/medecins, which is the new public-for-authenticated-users endpoint already used by PatientAppointmentForm.js and confirmed returning 200 with 5 doctors for a patient token."
+}

@@ -136,7 +136,7 @@ const InfirmiereBloodBankPage = () => {
                 {GROUPES_SANGUINS.map(g => <option key={g} value={g}>{g}</option>)}
               </select>
               <input name="numero_poche" value={poche.numero_poche} onChange={handlePocheChange} required placeholder="Numéro de poche *" className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500" data-testid="poche-numero" />
-              <input name="quantite_ml" type="number" value={poche.quantite_ml} onChange={handlePocheChange} required placeholder="Quantité (ml) *" className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500" data-testid="poche-quantite" />
+              <input name="quantite_ml" type="number" min="1" value={poche.quantite_ml} onChange={handlePocheChange} required placeholder="Quantité (ml) *" className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500" data-testid="poche-quantite" />
               <select name="donneur_id" value={poche.donneur_id} onChange={handlePocheChange} className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500">
                 <option value="">Donneur (optionnel)</option>
                 {donneurs.map(d => <option key={d.id} value={d.id}>{d.nom} {d.prenom} ({d.groupe_sanguin})</option>)}

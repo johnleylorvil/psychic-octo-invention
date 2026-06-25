@@ -92,7 +92,7 @@ const FactureForm = () => {
             {items.map((it, idx) => (
               <div key={idx} className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center border border-gray-200 rounded-lg p-3" data-testid={`facture-item-${idx}`}>
                 <input value={it.description} onChange={(e) => updateItem(idx, 'description', e.target.value)} placeholder="Désignation" className="md:col-span-5 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-sky-500" />
-                <input type="number" value={it.quantite} onChange={(e) => updateItem(idx, 'quantite', e.target.value)} placeholder="Qté" className="md:col-span-2 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-sky-500" />
+                <input type="number" min="1" value={it.quantite} onChange={(e) => updateItem(idx, 'quantite', e.target.value)} placeholder="Qté" className="md:col-span-2 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-sky-500" />
                 <input type="number" value={it.prix_unitaire} onChange={(e) => updateItem(idx, 'prix_unitaire', e.target.value)} placeholder="Prix unit." className="md:col-span-3 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-sky-500" />
                 <span className="md:col-span-1 text-sm text-gray-600 text-right">{lineTotal(it).toLocaleString()}</span>
                 <button type="button" onClick={() => removeItem(idx)} className="md:col-span-1 text-red-500 hover:text-red-700 flex justify-center"><Trash2 className="w-4 h-4" /></button>

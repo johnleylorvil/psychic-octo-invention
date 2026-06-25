@@ -71,6 +71,7 @@ const AppointmentsList = () => {
   };
 
   const cancelAppointment = async (id) => {
+    if (!window.confirm('Confirmer l\'annulation de ce rendez-vous ?')) return;
     try {
       await api.delete(`/appointments/${id}`);
       toast.success('Rendez-vous annulé');

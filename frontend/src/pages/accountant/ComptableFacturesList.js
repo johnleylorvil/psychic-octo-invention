@@ -35,6 +35,7 @@ const ComptableFacturesList = () => {
   };
 
   const encaisser = async (facture) => {
+    if (!window.confirm(`Encaisser ${facture.montant_total.toLocaleString()} FCFA pour la facture ${facture.numero_facture} ?`)) return;
     try {
       await api.post('/billing/paiements', {
         facture_id: facture.id,

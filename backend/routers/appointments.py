@@ -22,6 +22,15 @@ async def create_appointment(
     Créer un nouveau rendez-vous.
     """
     rdv = RendezVous(**rdv_data.model_dump())
+
+    # Un patient ne peut créer un RDV que pour lui-même
+    if current_user["role"] == "patient":
+        patient = await db.patients.find_one({"user_id": current_user["user_id"]}, {"_id": 0})
+        if not patient:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Dossier patient introuvable")
+        rdv.patient_id = patient["id"]
+        rdv.statut = "en_attente"
+
     doc = rdv.model_dump()
     doc['date_rdv'] = doc['date_rdv'].isoformat()
     doc['created_at'] = doc['created_at'].isoformat()
@@ -30,8 +39,8 @@ async def create_appointment(
     await db.appointments.insert_one(doc)
     
     # Envoyer notification de rappel (log uniquement)
-    patient = await db.patients.find_one({"id": rdv_data.patient_id}, {"_id": 0})
-    medecin = await db.users.find_one({"id": rdv_data.medecin_id}, {"_id": 0})
+    patient = await db.patients.find_one({"id": rdv.patient_id}, {"_id": 0})
+    medecin = await db.users.find_one({"id": rdv.medecin_id}, {"_id": 0})
     
     if patient and medecin:
         patient_info = await db.users.find_one({"id": patient["user_id"]}, {"_id": 0})
@@ -45,8 +54,8 @@ async def create_appointment(
             appointment_data={
                 "date_rdv": rdv_data.date_rdv,
                 "medecin_nom": f"{medecin.get('nom')} {medecin.get('prenom')}",
-                "type_rdv": rdv_data.type_rdv,
-                "motif": rdv_data.motif
+                "type_rdv": rdv.type_rdv,
+                "motif": rdv.motif
             }
         )
     

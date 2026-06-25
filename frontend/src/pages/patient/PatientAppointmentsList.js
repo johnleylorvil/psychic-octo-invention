@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import MainLayout from '../../components/Layout/MainLayout';
-import { Calendar, Video, Clock } from 'lucide-react';
+import { Calendar, Video, Clock, Plus } from 'lucide-react';
 import { Badge } from '../../components/common/Card';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const PatientAppointmentsList = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
   const [medecins, setMedecins] = useState({});
   const [patientData, setPatientData] = useState(null);
@@ -73,9 +75,19 @@ const PatientAppointmentsList = () => {
   return (
     <MainLayout>
       <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Mes rendez-vous</h2>
-          <p className="text-gray-600 mt-1">Planning de vos consultations</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Mes rendez-vous</h2>
+            <p className="text-gray-600 mt-1">Planning de vos consultations</p>
+          </div>
+          <button
+            onClick={() => navigate('/patient/appointments/new')}
+            className="bg-gradient-to-r from-sky-600 to-emerald-600 text-white px-4 py-2 rounded-lg font-medium hover:from-sky-700 hover:to-emerald-700 transition-all flex items-center space-x-2 shadow-lg"
+            data-testid="book-appointment-btn"
+          >
+            <Plus className="w-5 h-5" />
+            <span>Prendre un rendez-vous</span>
+          </button>
         </div>
 
         {/* RDV à venir */}

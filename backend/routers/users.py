@@ -44,6 +44,20 @@ async def get_users(
     users = await db.users.find(query, {"_id": 0, "password_hash": 0}).to_list(1000)
     return users
 
+@router.get("/medecins", response_model=List[User])
+async def get_medecins(
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    """
+    Liste des médecins actifs (accessible à tout utilisateur authentifié, ex: prise de RDV patient).
+    """
+    medecins = await db.users.find(
+        {"role": "médecin", "actif": True},
+        {"_id": 0, "password_hash": 0}
+    ).to_list(1000)
+    return medecins
+
 @router.get("/{user_id}", response_model=User)
 async def get_user(
     user_id: str,

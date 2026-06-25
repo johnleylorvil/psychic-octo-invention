@@ -53,6 +53,7 @@ import ComptablePaiementsList from './pages/accountant/ComptablePaiementsList';
 // Patient pages
 import PatientDashboard from './pages/patient/PatientDashboard';
 import PatientAppointmentsList from './pages/patient/PatientAppointmentsList';
+import PatientAppointmentForm from './pages/patient/PatientAppointmentForm';
 import PatientConsultationsList from './pages/patient/PatientConsultationsList';
 import PatientFacturesList from './pages/patient/PatientFacturesList';
 
@@ -117,6 +118,7 @@ function App() {
           {/* PATIENT ROUTES */}
           <Route path="/patient" element={<ProtectedRoute allowedRoles={[ROLES.PATIENT]}><PatientDashboard /></ProtectedRoute>} />
           <Route path="/patient/appointments" element={<ProtectedRoute allowedRoles={[ROLES.PATIENT]}><PatientAppointmentsList /></ProtectedRoute>} />
+          <Route path="/patient/appointments/new" element={<ProtectedRoute allowedRoles={[ROLES.PATIENT]}><PatientAppointmentForm /></ProtectedRoute>} />
           <Route path="/patient/consultations" element={<ProtectedRoute allowedRoles={[ROLES.PATIENT]}><PatientConsultationsList /></ProtectedRoute>} />
           <Route path="/patient/factures" element={<ProtectedRoute allowedRoles={[ROLES.PATIENT]}><PatientFacturesList /></ProtectedRoute>} />
 

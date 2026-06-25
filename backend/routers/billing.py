@@ -19,6 +19,9 @@ async def create_facture(
     current_user = Depends(require_roles(["admin", "comptable"]))
 ):
     facture = Facture(**facture_data.model_dump())
+    # Sécurité : recalculer le total à partir des lignes (ne pas faire confiance au client)
+    computed_total = sum((it.total if it.total else it.quantite * it.prix_unitaire) for it in facture.items)
+    facture.montant_total = computed_total
     doc = facture.model_dump()
     if doc.get('date_echeance'):
         doc['date_echeance'] = doc['date_echeance'].isoformat()
