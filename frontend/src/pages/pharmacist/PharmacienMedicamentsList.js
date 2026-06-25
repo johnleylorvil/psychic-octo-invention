@@ -5,10 +5,11 @@ import { Badge } from '../../components/common/Card';
 import api from '../../services/api';
 import { toast } from 'sonner';
 
-const emptyMed = { nom: '', forme: '', dosage: '', prix_unitaire: 0, seuil_stock_min: 10, fabricant: '' };
+const emptyMed = { nom: '', categorie_id: '', forme: '', dosage: '', prix_unitaire: 0, seuil_stock_min: 10, fabricant: '' };
 
 const PharmacienMedicamentsList = () => {
   const [medicaments, setMedicaments] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
@@ -20,8 +21,12 @@ const PharmacienMedicamentsList = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/pharmacy/medicaments');
-      setMedicaments(res.data);
+      const [medRes, catRes] = await Promise.all([
+        api.get('/pharmacy/medicaments'),
+        api.get('/pharmacy/categories')
+      ]);
+      setMedicaments(medRes.data);
+      setCategories(catRes.data);
     } catch (error) {
       console.error('Erreur:', error);
     } finally {
@@ -71,6 +76,10 @@ const PharmacienMedicamentsList = () => {
             <h3 className="text-lg font-semibold text-gray-900">Ajouter un médicament</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <input name="nom" value={form.nom} onChange={handleChange} required placeholder="Nom *" className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500" data-testid="med-nom" />
+              <select name="categorie_id" value={form.categorie_id} onChange={handleChange} required className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500" data-testid="med-categorie">
+                <option value="">Catégorie *</option>
+                {categories.map(c => <option key={c.id} value={c.id}>{c.nom}</option>)}
+              </select>
               <input name="forme" value={form.forme} onChange={handleChange} placeholder="Forme (comprimé, sirop...)" className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500" />
               <input name="dosage" value={form.dosage} onChange={handleChange} placeholder="Dosage (500mg...)" className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500" />
               <input name="fabricant" value={form.fabricant} onChange={handleChange} placeholder="Fabricant" className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500" />

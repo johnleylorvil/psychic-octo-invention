@@ -8,7 +8,6 @@ import { exportPrescriptionPDF } from '../../utils/pdfExport';
 const PharmacienPrescriptionsList = () => {
   const [prescriptions, setPrescriptions] = useState([]);
   const [patients, setPatients] = useState({});
-  const [medecins, setMedecins] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { loadData(); }, []);
@@ -16,14 +15,12 @@ const PharmacienPrescriptionsList = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [pRes, patRes, medRes] = await Promise.all([
+      const [pRes, patRes] = await Promise.all([
         api.get('/consultations/prescriptions/'),
-        api.get('/patients'),
-        api.get('/users?role=médecin')
+        api.get('/patients')
       ]);
       setPrescriptions(pRes.data);
       const patMap = {}; patRes.data.forEach(p => { patMap[p.id] = p; }); setPatients(patMap);
-      const medMap = {}; medRes.data.forEach(m => { medMap[m.id] = m; }); setMedecins(medMap);
     } catch (error) {
       console.error('Erreur:', error);
     } finally {
@@ -51,16 +48,15 @@ const PharmacienPrescriptionsList = () => {
           ) : (
             <div className="space-y-4">
               {prescriptions.map(p => {
-                const medecin = medecins[p.medecin_id];
                 return (
                   <div key={p.id} className="border border-gray-200 rounded-lg p-4" data-testid={`prescription-card-${p.id}`}>
                     <div className="flex items-start justify-between mb-3">
                       <div>
                         <p className="text-sm font-semibold text-gray-900">Patient : {patients[p.patient_id]?.numero_dossier || 'N/A'}</p>
-                        <p className="text-xs text-gray-500">Dr. {medecin?.nom} {medecin?.prenom} · {new Date(p.created_at).toLocaleDateString('fr-FR')}</p>
+                        <p className="text-xs text-gray-500">{new Date(p.created_at).toLocaleDateString('fr-FR')}</p>
                       </div>
                       <button
-                        onClick={() => exportPrescriptionPDF(p, `${medecin?.nom || ''} ${medecin?.prenom || ''}`)}
+                        onClick={() => exportPrescriptionPDF(p)}
                         className="flex items-center space-x-1 text-sky-600 hover:text-sky-800 text-sm"
                         data-testid={`export-prescription-${p.id}`}
                       >
