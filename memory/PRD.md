@@ -34,6 +34,13 @@ FastAPI + React + MongoDB + JWT. Shadcn/UI + Tailwind. Universal Emergent LLM ke
 ## Identifiants de test
 Voir /app/memory/test_credentials.md.
 
+## Audit & compléments (Juin 2026 — itération 2)
+Audit des fonctionnalités manquantes (endpoints backend existants sans UI) → implémentées et testées (6/6 OK) :
+- Création de facture : formulaire avec lignes + calcul auto du total (Admin /admin/billing/new + Comptable /comptable/factures/new).
+- RDV admin : actions Éditer + Annuler (DELETE) directement depuis la liste.
+- Pharmacie : ajout de lots de stock (numéro lot, quantité, péremption, emplacement).
+- Banque de sang : ajout de poches de sang (groupe, n° poche, ml, dates, donneur) côté infirmière.
+
 ## Backlog / Améliorations futures (P1/P2)
 - P1 : Export PDF côté serveur (ReportLab) pour factures/ordonnances officielles.
 - P1 : Notifications réelles (Twilio SMS / Resend email) au lieu de log.
