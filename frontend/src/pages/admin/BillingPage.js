@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import MainLayout from '../../components/Layout/MainLayout';
-import { DollarSign, FileText, TrendingUp } from 'lucide-react';
+import { DollarSign, FileText, TrendingUp, FileDown } from 'lucide-react';
 import { Badge } from '../../components/common/Card';
 import api from '../../services/api';
+import { exportFacturePDF } from '../../utils/pdfExport';
 
 const BillingPage = () => {
   const [factures, setFactures] = useState([]);
@@ -166,6 +167,9 @@ const BillingPage = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Items
                     </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -189,6 +193,15 @@ const BillingPage = () => {
                         <div className="text-sm text-gray-600">
                           {facture.items.length} item(s)
                         </div>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button
+                          onClick={() => exportFacturePDF(facture)}
+                          className="inline-flex items-center space-x-1 text-sky-600 hover:text-sky-800 text-sm"
+                          data-testid={`export-facture-${facture.id}`}
+                        >
+                          <FileDown className="w-4 h-4" /><span>PDF</span>
+                        </button>
                       </td>
                     </tr>
                   ))}

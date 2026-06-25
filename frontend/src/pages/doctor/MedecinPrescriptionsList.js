@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import MainLayout from '../../components/Layout/MainLayout';
-import { FileText, Plus } from 'lucide-react';
-import { Badge } from '../../components/common/Card';
+import { FileText, Plus, FileDown } from 'lucide-react';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { exportPrescriptionPDF } from '../../utils/pdfExport';
 
 const MedecinPrescriptionsList = () => {
   const { user } = useAuth();
@@ -21,7 +21,7 @@ const MedecinPrescriptionsList = () => {
     try {
       setLoading(true);
       const [prescriptionsRes, patientsRes] = await Promise.all([
-        api.get('/consultations/prescriptions', { params: { medecin_id: user.id } }),
+        api.get('/consultations/prescriptions/', { params: { medecin_id: user.id } }),
         api.get('/patients')
       ]);
       
@@ -77,6 +77,13 @@ const MedecinPrescriptionsList = () => {
                           {new Date(prescription.created_at).toLocaleDateString('fr-FR')}
                         </span>
                       </div>
+                      <button
+                        onClick={() => exportPrescriptionPDF(prescription, `${user?.nom || ''} ${user?.prenom || ''}`)}
+                        className="flex items-center space-x-1 text-sky-600 hover:text-sky-800 text-sm"
+                        data-testid={`export-prescription-${prescription.id}`}
+                      >
+                        <FileDown className="w-4 h-4" /><span>PDF</span>
+                      </button>
                     </div>
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">

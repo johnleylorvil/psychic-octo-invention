@@ -9,6 +9,7 @@ import LoginPage from './pages/auth/LoginPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import PatientsList from './pages/admin/PatientsList';
 import PatientForm from './pages/admin/PatientForm';
+import PatientDetail from './pages/admin/PatientDetail';
 import AppointmentsList from './pages/admin/AppointmentsList';
 import AppointmentForm from './pages/admin/AppointmentForm';
 import PharmacyPage from './pages/admin/PharmacyPage';
@@ -16,46 +17,45 @@ import BillingPage from './pages/admin/BillingPage';
 import BloodBankPage from './pages/admin/BloodBankPage';
 import DonneurForm from './pages/admin/DonneurForm';
 import ServicesLitsPage from './pages/admin/ServicesLitsPage';
+import ServiceForm from './pages/admin/ServiceForm';
+import LitForm from './pages/admin/LitForm';
 import UsersPage from './pages/admin/UsersPage';
 import UserForm from './pages/admin/UserForm';
 
 // Doctor pages
 import MedecinDashboard from './pages/doctor/MedecinDashboard';
+import MedecinPatientsList from './pages/doctor/MedecinPatientsList';
+import MedecinAppointmentsList from './pages/doctor/MedecinAppointmentsList';
+import MedecinConsultationsList from './pages/doctor/MedecinConsultationsList';
+import MedecinConsultationForm from './pages/doctor/MedecinConsultationForm';
+import MedecinPrescriptionsList from './pages/doctor/MedecinPrescriptionsList';
+import MedecinPrescriptionForm from './pages/doctor/MedecinPrescriptionForm';
 
 // Nurse pages
 import InfirmiereDashboard from './pages/nurse/InfirmiereDashboard';
+import InfirmierePatientsList from './pages/nurse/InfirmierePatientsList';
+import InfirmiereAppointmentsList from './pages/nurse/InfirmiereAppointmentsList';
+import InfirmiereLitsPage from './pages/nurse/InfirmiereLitsPage';
+import InfirmiereBloodBankPage from './pages/nurse/InfirmiereBloodBankPage';
 
 // Pharmacist pages
 import PharmacienDashboard from './pages/pharmacist/PharmacienDashboard';
+import PharmacienMedicamentsList from './pages/pharmacist/PharmacienMedicamentsList';
+import PharmacienStocksPage from './pages/pharmacist/PharmacienStocksPage';
+import PharmacienPrescriptionsList from './pages/pharmacist/PharmacienPrescriptionsList';
 
 // Accountant pages
 import ComptableDashboard from './pages/accountant/ComptableDashboard';
+import ComptableFacturesList from './pages/accountant/ComptableFacturesList';
+import ComptablePaiementsList from './pages/accountant/ComptablePaiementsList';
 
 // Patient pages
 import PatientDashboard from './pages/patient/PatientDashboard';
+import PatientAppointmentsList from './pages/patient/PatientAppointmentsList';
+import PatientConsultationsList from './pages/patient/PatientConsultationsList';
+import PatientFacturesList from './pages/patient/PatientFacturesList';
 
 import { ROLES } from './utils/constants';
-import MainLayout from './components/Layout/MainLayout';
-
-const ComingSoon = ({ title, description }) => (
-  <MainLayout>
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">{title}</h2>
-        <p className="text-gray-600">{description}</p>
-      </div>
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-        <div className="max-w-md mx-auto">
-          <div className="w-20 h-20 bg-gradient-to-br from-sky-100 to-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-3xl">🚧</span>
-          </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">En développement</h3>
-          <p className="text-gray-600">Cette fonctionnalité est en cours de développement. Elle sera bientôt disponible.</p>
-        </div>
-      </div>
-    </div>
-  </MainLayout>
-);
 
 function App() {
   return (
@@ -63,13 +63,13 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          
+
           {/* ADMIN ROUTES */}
           <Route path="/admin" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><AdminDashboard /></ProtectedRoute>} />
           <Route path="/admin/patients" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><PatientsList /></ProtectedRoute>} />
           <Route path="/admin/patients/new" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><PatientForm /></ProtectedRoute>} />
           <Route path="/admin/patients/:id/edit" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><PatientForm /></ProtectedRoute>} />
-          <Route path="/admin/patients/:id" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><ComingSoon title="Détails du patient" description="Vue détaillée du dossier patient" /></ProtectedRoute>} />
+          <Route path="/admin/patients/:id" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><PatientDetail /></ProtectedRoute>} />
           <Route path="/admin/appointments" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><AppointmentsList /></ProtectedRoute>} />
           <Route path="/admin/appointments/new" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><AppointmentForm /></ProtectedRoute>} />
           <Route path="/admin/appointments/:id/edit" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><AppointmentForm /></ProtectedRoute>} />
@@ -79,42 +79,44 @@ function App() {
           <Route path="/admin/blood-bank/donneurs/new" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><DonneurForm /></ProtectedRoute>} />
           <Route path="/admin/blood-bank/donneurs/:id/edit" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><DonneurForm /></ProtectedRoute>} />
           <Route path="/admin/services" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><ServicesLitsPage /></ProtectedRoute>} />
-          <Route path="/admin/services/new" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><ComingSoon title="Nouveau service" description="Créer un service" /></ProtectedRoute>} />
-          <Route path="/admin/services/lits/new" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><ComingSoon title="Nouveau lit" description="Ajouter un lit" /></ProtectedRoute>} />
+          <Route path="/admin/services/new" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><ServiceForm /></ProtectedRoute>} />
+          <Route path="/admin/services/lits/new" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><LitForm /></ProtectedRoute>} />
           <Route path="/admin/users" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><UsersPage /></ProtectedRoute>} />
           <Route path="/admin/users/new" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><UserForm /></ProtectedRoute>} />
-          
+
           {/* MÉDECIN ROUTES */}
           <Route path="/medecin" element={<ProtectedRoute allowedRoles={[ROLES.MEDECIN]}><MedecinDashboard /></ProtectedRoute>} />
-          <Route path="/medecin/patients" element={<ProtectedRoute allowedRoles={[ROLES.MEDECIN]}><ComingSoon title="Mes patients" description="Liste de vos patients" /></ProtectedRoute>} />
-          <Route path="/medecin/appointments" element={<ProtectedRoute allowedRoles={[ROLES.MEDECIN]}><ComingSoon title="Mes rendez-vous" description="Vos consultations" /></ProtectedRoute>} />
-          <Route path="/medecin/consultations" element={<ProtectedRoute allowedRoles={[ROLES.MEDECIN]}><ComingSoon title="Consultations" description="Historique des consultations" /></ProtectedRoute>} />
-          <Route path="/medecin/prescriptions" element={<ProtectedRoute allowedRoles={[ROLES.MEDECIN]}><ComingSoon title="Prescriptions" description="Vos prescriptions" /></ProtectedRoute>} />
-          
+          <Route path="/medecin/patients" element={<ProtectedRoute allowedRoles={[ROLES.MEDECIN]}><MedecinPatientsList /></ProtectedRoute>} />
+          <Route path="/medecin/appointments" element={<ProtectedRoute allowedRoles={[ROLES.MEDECIN]}><MedecinAppointmentsList /></ProtectedRoute>} />
+          <Route path="/medecin/consultations" element={<ProtectedRoute allowedRoles={[ROLES.MEDECIN]}><MedecinConsultationsList /></ProtectedRoute>} />
+          <Route path="/medecin/consultations/new" element={<ProtectedRoute allowedRoles={[ROLES.MEDECIN]}><MedecinConsultationForm /></ProtectedRoute>} />
+          <Route path="/medecin/prescriptions" element={<ProtectedRoute allowedRoles={[ROLES.MEDECIN]}><MedecinPrescriptionsList /></ProtectedRoute>} />
+          <Route path="/medecin/prescriptions/new" element={<ProtectedRoute allowedRoles={[ROLES.MEDECIN]}><MedecinPrescriptionForm /></ProtectedRoute>} />
+
           {/* INFIRMIÈRE ROUTES */}
           <Route path="/infirmiere" element={<ProtectedRoute allowedRoles={[ROLES.INFIRMIERE]}><InfirmiereDashboard /></ProtectedRoute>} />
-          <Route path="/infirmiere/patients" element={<ProtectedRoute allowedRoles={[ROLES.INFIRMIERE]}><ComingSoon title="Patients" description="Dossiers patients" /></ProtectedRoute>} />
-          <Route path="/infirmiere/appointments" element={<ProtectedRoute allowedRoles={[ROLES.INFIRMIERE]}><ComingSoon title="Rendez-vous" description="Gestion des rendez-vous" /></ProtectedRoute>} />
-          <Route path="/infirmiere/lits" element={<ProtectedRoute allowedRoles={[ROLES.INFIRMIERE]}><ComingSoon title="Gestion des lits" description="Admissions et libérations" /></ProtectedRoute>} />
-          <Route path="/infirmiere/blood-bank" element={<ProtectedRoute allowedRoles={[ROLES.INFIRMIERE]}><ComingSoon title="Banque de sang" description="Gestion des stocks de sang" /></ProtectedRoute>} />
-          
+          <Route path="/infirmiere/patients" element={<ProtectedRoute allowedRoles={[ROLES.INFIRMIERE]}><InfirmierePatientsList /></ProtectedRoute>} />
+          <Route path="/infirmiere/appointments" element={<ProtectedRoute allowedRoles={[ROLES.INFIRMIERE]}><InfirmiereAppointmentsList /></ProtectedRoute>} />
+          <Route path="/infirmiere/lits" element={<ProtectedRoute allowedRoles={[ROLES.INFIRMIERE]}><InfirmiereLitsPage /></ProtectedRoute>} />
+          <Route path="/infirmiere/blood-bank" element={<ProtectedRoute allowedRoles={[ROLES.INFIRMIERE]}><InfirmiereBloodBankPage /></ProtectedRoute>} />
+
           {/* PHARMACIEN ROUTES */}
           <Route path="/pharmacien" element={<ProtectedRoute allowedRoles={[ROLES.PHARMACIEN]}><PharmacienDashboard /></ProtectedRoute>} />
-          <Route path="/pharmacien/medicaments" element={<ProtectedRoute allowedRoles={[ROLES.PHARMACIEN]}><ComingSoon title="Médicaments" description="Catalogue des médicaments" /></ProtectedRoute>} />
-          <Route path="/pharmacien/stocks" element={<ProtectedRoute allowedRoles={[ROLES.PHARMACIEN]}><ComingSoon title="Stocks" description="Gestion des stocks" /></ProtectedRoute>} />
-          <Route path="/pharmacien/prescriptions" element={<ProtectedRoute allowedRoles={[ROLES.PHARMACIEN]}><ComingSoon title="Prescriptions" description="Ordonnances à préparer" /></ProtectedRoute>} />
-          
+          <Route path="/pharmacien/medicaments" element={<ProtectedRoute allowedRoles={[ROLES.PHARMACIEN]}><PharmacienMedicamentsList /></ProtectedRoute>} />
+          <Route path="/pharmacien/stocks" element={<ProtectedRoute allowedRoles={[ROLES.PHARMACIEN]}><PharmacienStocksPage /></ProtectedRoute>} />
+          <Route path="/pharmacien/prescriptions" element={<ProtectedRoute allowedRoles={[ROLES.PHARMACIEN]}><PharmacienPrescriptionsList /></ProtectedRoute>} />
+
           {/* COMPTABLE ROUTES */}
           <Route path="/comptable" element={<ProtectedRoute allowedRoles={[ROLES.COMPTABLE]}><ComptableDashboard /></ProtectedRoute>} />
-          <Route path="/comptable/factures" element={<ProtectedRoute allowedRoles={[ROLES.COMPTABLE]}><ComingSoon title="Factures" description="Gestion des factures" /></ProtectedRoute>} />
-          <Route path="/comptable/paiements" element={<ProtectedRoute allowedRoles={[ROLES.COMPTABLE]}><ComingSoon title="Paiements" description="Suivi des paiements" /></ProtectedRoute>} />
-          
+          <Route path="/comptable/factures" element={<ProtectedRoute allowedRoles={[ROLES.COMPTABLE]}><ComptableFacturesList /></ProtectedRoute>} />
+          <Route path="/comptable/paiements" element={<ProtectedRoute allowedRoles={[ROLES.COMPTABLE]}><ComptablePaiementsList /></ProtectedRoute>} />
+
           {/* PATIENT ROUTES */}
           <Route path="/patient" element={<ProtectedRoute allowedRoles={[ROLES.PATIENT]}><PatientDashboard /></ProtectedRoute>} />
-          <Route path="/patient/appointments" element={<ProtectedRoute allowedRoles={[ROLES.PATIENT]}><ComingSoon title="Mes rendez-vous" description="Historique de vos rendez-vous" /></ProtectedRoute>} />
-          <Route path="/patient/consultations" element={<ProtectedRoute allowedRoles={[ROLES.PATIENT]}><ComingSoon title="Mes consultations" description="Résultats de consultations" /></ProtectedRoute>} />
-          <Route path="/patient/factures" element={<ProtectedRoute allowedRoles={[ROLES.PATIENT]}><ComingSoon title="Mes factures" description="Vos factures et paiements" /></ProtectedRoute>} />
-          
+          <Route path="/patient/appointments" element={<ProtectedRoute allowedRoles={[ROLES.PATIENT]}><PatientAppointmentsList /></ProtectedRoute>} />
+          <Route path="/patient/consultations" element={<ProtectedRoute allowedRoles={[ROLES.PATIENT]}><PatientConsultationsList /></ProtectedRoute>} />
+          <Route path="/patient/factures" element={<ProtectedRoute allowedRoles={[ROLES.PATIENT]}><PatientFacturesList /></ProtectedRoute>} />
+
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

@@ -34,47 +34,7 @@ async def get_services(
     services = await db.services.find({}, {"_id": 0}).to_list(1000)
     return services
 
-@router.get("/{service_id}", response_model=Service)
-async def get_service(
-    service_id: str,
-    db: AsyncIOMotorDatabase = Depends(get_db),
-    current_user = Depends(get_current_user)
-):
-    service = await db.services.find_one({"id": service_id}, {"_id": 0})
-    if not service:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Service non trouvé"
-        )
-    return service
-
-@router.put("/{service_id}", response_model=dict)
-async def update_service(
-    service_id: str,
-    service_data: ServiceUpdate,
-    db: AsyncIOMotorDatabase = Depends(get_db),
-    current_user = Depends(require_roles(["admin"]))
-):
-    update_dict = {k: v for k, v in service_data.model_dump(exclude_unset=True).items() if v is not None}
-    
-    if not update_dict:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Aucune donnée à mettre à jour"
-        )
-    
-    update_dict["updated_at"] = datetime.now().isoformat()
-    result = await db.services.update_one({"id": service_id}, {"$set": update_dict})
-    
-    if result.matched_count == 0:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Service non trouvé"
-        )
-    
-    return {"message": "Service mis à jour avec succès"}
-
-# Lits
+# Lits (must come BEFORE /{service_id} to avoid route shadowing)
 @router.post("/lits", response_model=Lit, status_code=status.HTTP_201_CREATED)
 async def create_lit(
     lit_data: LitCreate,
@@ -149,3 +109,44 @@ async def update_lit(
         )
     
     return {"message": "Lit mis à jour avec succès"}
+
+# Services detail/update routes (declared AFTER /lits to avoid shadowing)
+@router.get("/{service_id}", response_model=Service)
+async def get_service(
+    service_id: str,
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    service = await db.services.find_one({"id": service_id}, {"_id": 0})
+    if not service:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Service non trouvé"
+        )
+    return service
+
+@router.put("/{service_id}", response_model=dict)
+async def update_service(
+    service_id: str,
+    service_data: ServiceUpdate,
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    current_user = Depends(require_roles(["admin"]))
+):
+    update_dict = {k: v for k, v in service_data.model_dump(exclude_unset=True).items() if v is not None}
+
+    if not update_dict:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Aucune donnée à mettre à jour"
+        )
+
+    update_dict["updated_at"] = datetime.now().isoformat()
+    result = await db.services.update_one({"id": service_id}, {"$set": update_dict})
+
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Service non trouvé"
+        )
+
+    return {"message": "Service mis à jour avec succès"}

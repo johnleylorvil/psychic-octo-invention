@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
@@ -33,6 +34,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Honor X-Forwarded-Proto/For so 307 trailing-slash redirects use https behind proxy
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
 # Configure logging
 logging.basicConfig(
