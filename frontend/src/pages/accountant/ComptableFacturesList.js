@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import MainLayout from '../../components/Layout/MainLayout';
-import { DollarSign, FileText, TrendingUp, FileDown, CheckCircle } from 'lucide-react';
+import { DollarSign, FileText, TrendingUp, FileDown, CheckCircle, Plus } from 'lucide-react';
 import { Badge } from '../../components/common/Card';
 import api from '../../services/api';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { exportFacturePDF } from '../../utils/pdfExport';
 
@@ -11,6 +12,7 @@ const ComptableFacturesList = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [filterStatut, setFilterStatut] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => { loadData(); }, [filterStatut]);
 
@@ -51,9 +53,19 @@ const ComptableFacturesList = () => {
   return (
     <MainLayout>
       <div className="space-y-6" data-testid="comptable-factures-page">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Factures</h2>
-          <p className="text-gray-600 mt-1">Gestion et suivi des factures</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Factures</h2>
+            <p className="text-gray-600 mt-1">Gestion et suivi des factures</p>
+          </div>
+          <button
+            onClick={() => navigate('/comptable/factures/new')}
+            className="bg-gradient-to-r from-sky-600 to-emerald-600 text-white px-4 py-2 rounded-lg font-medium hover:from-sky-700 hover:to-emerald-700 transition-all flex items-center space-x-2 shadow-lg"
+            data-testid="add-facture-btn"
+          >
+            <Plus className="w-5 h-5" />
+            <span>Nouvelle facture</span>
+          </button>
         </div>
 
         {stats && (

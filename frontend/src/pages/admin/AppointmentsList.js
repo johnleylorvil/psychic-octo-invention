@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import MainLayout from '../../components/Layout/MainLayout';
-import { Plus, Calendar, Video, User } from 'lucide-react';
+import { Plus, Calendar, Video, User, Edit, X } from 'lucide-react';
 import { Badge } from '../../components/common/Card';
 import api from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 import { STATUT_RDV } from '../../utils/constants';
+import { toast } from 'sonner';
 
 const AppointmentsList = () => {
   const [appointments, setAppointments] = useState([]);
@@ -67,6 +68,16 @@ const AppointmentsList = () => {
       'en_attente': 'En attente'
     };
     return labels[statut] || statut;
+  };
+
+  const cancelAppointment = async (id) => {
+    try {
+      await api.delete(`/appointments/${id}`);
+      toast.success('Rendez-vous annulé');
+      loadData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Erreur lors de l\'annulation');
+    }
   };
 
   return (
@@ -141,6 +152,9 @@ const AppointmentsList = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Motif
                     </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -193,6 +207,24 @@ const AppointmentsList = () => {
                           <div className="text-sm text-gray-600 max-w-xs truncate">
                             {rdv.motif || 'Non spécifié'}
                           </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <button
+                            onClick={() => navigate(`/admin/appointments/${rdv.id}/edit`)}
+                            className="text-emerald-600 hover:text-emerald-900 mr-3"
+                            data-testid={`edit-appointment-${rdv.id}`}
+                          >
+                            <Edit className="w-5 h-5 inline" />
+                          </button>
+                          {rdv.statut !== 'annulé' && (
+                            <button
+                              onClick={() => cancelAppointment(rdv.id)}
+                              className="text-red-600 hover:text-red-900"
+                              data-testid={`cancel-appointment-${rdv.id}`}
+                            >
+                              <X className="w-5 h-5 inline" />
+                            </button>
+                          )}
                         </td>
                       </tr>
                     );

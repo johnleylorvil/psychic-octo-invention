@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import MainLayout from '../../components/Layout/MainLayout';
-import { DollarSign, FileText, TrendingUp, FileDown } from 'lucide-react';
+import { DollarSign, FileText, TrendingUp, FileDown, Plus } from 'lucide-react';
 import { Badge } from '../../components/common/Card';
 import api from '../../services/api';
+import { useNavigate } from 'react-router-dom';
 import { exportFacturePDF } from '../../utils/pdfExport';
 
 const BillingPage = () => {
@@ -10,6 +11,7 @@ const BillingPage = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [filterStatut, setFilterStatut] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadData();
@@ -59,9 +61,19 @@ const BillingPage = () => {
     <MainLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Facturation</h2>
-          <p className="text-gray-600 mt-1">Gestion des factures et paiements</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Facturation</h2>
+            <p className="text-gray-600 mt-1">Gestion des factures et paiements</p>
+          </div>
+          <button
+            onClick={() => navigate('/admin/billing/new')}
+            className="bg-gradient-to-r from-sky-600 to-emerald-600 text-white px-4 py-2 rounded-lg font-medium hover:from-sky-700 hover:to-emerald-700 transition-all flex items-center space-x-2 shadow-lg"
+            data-testid="add-facture-btn"
+          >
+            <Plus className="w-5 h-5" />
+            <span>Nouvelle facture</span>
+          </button>
         </div>
 
         {/* Stats */}

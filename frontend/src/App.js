@@ -21,6 +21,7 @@ import ServiceForm from './pages/admin/ServiceForm';
 import LitForm from './pages/admin/LitForm';
 import UsersPage from './pages/admin/UsersPage';
 import UserForm from './pages/admin/UserForm';
+import FactureForm from './pages/admin/FactureForm';
 
 // Doctor pages
 import MedecinDashboard from './pages/doctor/MedecinDashboard';
@@ -75,6 +76,7 @@ function App() {
           <Route path="/admin/appointments/:id/edit" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><AppointmentForm /></ProtectedRoute>} />
           <Route path="/admin/pharmacy" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><PharmacyPage /></ProtectedRoute>} />
           <Route path="/admin/billing" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><BillingPage /></ProtectedRoute>} />
+          <Route path="/admin/billing/new" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><FactureForm /></ProtectedRoute>} />
           <Route path="/admin/blood-bank" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><BloodBankPage /></ProtectedRoute>} />
           <Route path="/admin/blood-bank/donneurs/new" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><DonneurForm /></ProtectedRoute>} />
           <Route path="/admin/blood-bank/donneurs/:id/edit" element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]}><DonneurForm /></ProtectedRoute>} />
@@ -109,6 +111,7 @@ function App() {
           {/* COMPTABLE ROUTES */}
           <Route path="/comptable" element={<ProtectedRoute allowedRoles={[ROLES.COMPTABLE]}><ComptableDashboard /></ProtectedRoute>} />
           <Route path="/comptable/factures" element={<ProtectedRoute allowedRoles={[ROLES.COMPTABLE]}><ComptableFacturesList /></ProtectedRoute>} />
+          <Route path="/comptable/factures/new" element={<ProtectedRoute allowedRoles={[ROLES.COMPTABLE]}><FactureForm /></ProtectedRoute>} />
           <Route path="/comptable/paiements" element={<ProtectedRoute allowedRoles={[ROLES.COMPTABLE]}><ComptablePaiementsList /></ProtectedRoute>} />
 
           {/* PATIENT ROUTES */}

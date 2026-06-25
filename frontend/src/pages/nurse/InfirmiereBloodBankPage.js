@@ -7,6 +7,7 @@ import { GROUPES_SANGUINS } from '../../utils/constants';
 import { toast } from 'sonner';
 
 const emptyDonneur = { nom: '', prenom: '', groupe_sanguin: 'O+', telephone: '', email: '', adresse: '', eligible: true };
+const emptyPoche = { groupe_sanguin: 'O+', quantite_ml: 450, numero_poche: '', date_collecte: '', date_expiration: '', donneur_id: '' };
 
 const InfirmiereBloodBankPage = () => {
   const [donneurs, setDonneurs] = useState([]);
@@ -15,6 +16,9 @@ const InfirmiereBloodBankPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(emptyDonneur);
   const [saving, setSaving] = useState(false);
+  const [showPoche, setShowPoche] = useState(false);
+  const [poche, setPoche] = useState(emptyPoche);
+  const [savingPoche, setSavingPoche] = useState(false);
 
   useEffect(() => { loadData(); }, []);
 
@@ -57,6 +61,29 @@ const InfirmiereBloodBankPage = () => {
 
   const stockColor = (statut) => statut === 'critique' ? 'text-red-600 bg-red-50' : statut === 'faible' ? 'text-amber-600 bg-amber-50' : 'text-emerald-600 bg-emerald-50';
 
+  const handlePocheChange = (e) => {
+    const { name, value } = e.target;
+    setPoche(prev => ({ ...prev, [name]: name === 'quantite_ml' ? Number(value) : value }));
+  };
+
+  const handlePocheSubmit = async (e) => {
+    e.preventDefault();
+    setSavingPoche(true);
+    try {
+      const payload = { ...poche };
+      if (!payload.donneur_id) delete payload.donneur_id;
+      await api.post('/blood-bank/stock', payload);
+      toast.success('Poche ajoutée au stock');
+      setPoche(emptyPoche);
+      setShowPoche(false);
+      loadData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Erreur lors de l\'ajout');
+    } finally {
+      setSavingPoche(false);
+    }
+  };
+
   return (
     <MainLayout>
       <div className="space-y-6" data-testid="infirmiere-bloodbank-page">
@@ -65,6 +92,7 @@ const InfirmiereBloodBankPage = () => {
             <h2 className="text-2xl font-bold text-gray-900">Banque de sang</h2>
             <p className="text-gray-600 mt-1">Donneurs et stocks de sang</p>
           </div>
+          <div className="flex space-x-3">
           <button
             onClick={() => setShowForm(!showForm)}
             className="bg-gradient-to-r from-sky-600 to-emerald-600 text-white px-4 py-2 rounded-lg font-medium hover:from-sky-700 hover:to-emerald-700 transition-all flex items-center space-x-2 shadow-lg"
@@ -73,6 +101,15 @@ const InfirmiereBloodBankPage = () => {
             {showForm ? <X className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
             <span>{showForm ? 'Fermer' : 'Nouveau donneur'}</span>
           </button>
+          <button
+            onClick={() => setShowPoche(!showPoche)}
+            className="bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-lg font-medium hover:from-red-600 hover:to-red-700 transition-all flex items-center space-x-2 shadow-lg"
+            data-testid="toggle-poche-form-btn"
+          >
+            {showPoche ? <X className="w-5 h-5" /> : <Droplet className="w-5 h-5" />}
+            <span>{showPoche ? 'Fermer' : 'Ajouter une poche'}</span>
+          </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
@@ -90,6 +127,34 @@ const InfirmiereBloodBankPage = () => {
             );
           })}
         </div>
+
+        {showPoche && (
+          <form onSubmit={handlePocheSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4" data-testid="poche-form">
+            <h3 className="text-lg font-semibold text-gray-900">Ajouter une poche de sang</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <select name="groupe_sanguin" value={poche.groupe_sanguin} onChange={handlePocheChange} className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500" data-testid="poche-groupe">
+                {GROUPES_SANGUINS.map(g => <option key={g} value={g}>{g}</option>)}
+              </select>
+              <input name="numero_poche" value={poche.numero_poche} onChange={handlePocheChange} required placeholder="Numéro de poche *" className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500" data-testid="poche-numero" />
+              <input name="quantite_ml" type="number" value={poche.quantite_ml} onChange={handlePocheChange} required placeholder="Quantité (ml) *" className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500" data-testid="poche-quantite" />
+              <select name="donneur_id" value={poche.donneur_id} onChange={handlePocheChange} className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500">
+                <option value="">Donneur (optionnel)</option>
+                {donneurs.map(d => <option key={d.id} value={d.id}>{d.nom} {d.prenom} ({d.groupe_sanguin})</option>)}
+              </select>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Date de collecte *</label>
+                <input name="date_collecte" type="date" value={poche.date_collecte} onChange={handlePocheChange} required className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500" data-testid="poche-collecte" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Date d'expiration *</label>
+                <input name="date_expiration" type="date" value={poche.date_expiration} onChange={handlePocheChange} required className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500" data-testid="poche-expiration" />
+              </div>
+            </div>
+            <button type="submit" disabled={savingPoche} className="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-2 rounded-lg font-medium disabled:opacity-50" data-testid="submit-poche-btn">
+              {savingPoche ? 'Enregistrement...' : 'Enregistrer la poche'}
+            </button>
+          </form>
+        )}
 
         {showForm && (
           <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4" data-testid="donneur-form">
