@@ -25,7 +25,7 @@ const PatientConsultationsList = () => {
       if (myPatient) {
         const [consultationsRes, medecinsRes] = await Promise.all([
           api.get('/consultations', { params: { patient_id: myPatient.id } }),
-          api.get('/users?role=médecin')
+          api.get('/users/medecins')
         ]);
         
         setConsultations(consultationsRes.data);
