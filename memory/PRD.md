@@ -41,6 +41,12 @@ Audit des fonctionnalités manquantes (endpoints backend existants sans UI) → 
 - Pharmacie : ajout de lots de stock (numéro lot, quantité, péremption, emplacement).
 - Banque de sang : ajout de poches de sang (groupe, n° poche, ml, dates, donneur) côté infirmière.
 
+## Itération 3 (Juin 2026) — Prise de RDV patient + sécurité/UX
+- Prise de rendez-vous en libre-service par le patient : page /patient/appointments/new, endpoint GET /users/medecins (accessible aux patients), le backend force le patient_id du demandeur et met le statut à « en_attente ». Testé 100%.
+- Sécurité : POST /billing/factures recalcule montant_total à partir des lignes (anti-falsification client). Vérifié.
+- UX : confirmation avant annulation de RDV et avant encaissement ; quantités min=1 sur les formulaires.
+- FIX CRITIQUE : les pages patient (RDV, consultations) appelaient /users?role=médecin (403 patient) → le Promise.all échouait et le patient ne voyait jamais ses données. Corrigé via /users/medecins. Testé 100%, zéro 403.
+
 ## Backlog / Améliorations futures (P1/P2)
 - P1 : Export PDF côté serveur (ReportLab) pour factures/ordonnances officielles.
 - P1 : Notifications réelles (Twilio SMS / Resend email) au lieu de log.
